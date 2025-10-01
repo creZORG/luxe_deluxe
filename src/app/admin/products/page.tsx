@@ -73,8 +73,8 @@ function ProductList({ products, onAdd }: { products: Product[], onAdd: () => vo
     );
 }
 
-function PricingForm({ product, onSave }: { product: Product, onSave: (productId: string, sizes: any[]) => void }) {
-    const { register, control, handleSubmit } = useForm({
+function PricingForm({ product, onSave, isSaving }: { product: Product, onSave: (productId: string, sizes: any[]) => void, isSaving: boolean }) {
+    const { register, control, handleSubmit, reset } = useForm({
         defaultValues: {
             sizes: product.sizes && product.sizes.length > 0 
                 ? product.sizes.map(s => ({ size: s.size, price: s.price, quantityAvailable: s.quantityAvailable || 0 })) 
@@ -82,17 +82,22 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (productId
         }
     });
 
+    useEffect(() => {
+        reset({
+            sizes: product.sizes && product.sizes.length > 0 
+                ? product.sizes.map(s => ({ size: s.size, price: s.price, quantityAvailable: s.quantityAvailable || 0 })) 
+                : [{ size: '', price: 0, quantityAvailable: 0 }]
+        });
+    }, [product, reset]);
+
     const { fields, append, remove } = useFieldArray({
         control,
         name: "sizes"
     });
-    const [isPending, startTransition] = useTransition();
 
     const onSubmit = (data: { sizes: { size: string, price: number, quantityAvailable: number }[] }) => {
-        startTransition(async () => {
-            const validSizes = data.sizes.filter(s => s.size && s.price > 0);
-            await onSave(product.id, validSizes.map(s => ({...s, price: Number(s.price), quantityAvailable: Number(s.quantityAvailable) })));
-        });
+        const validSizes = data.sizes.filter(s => s.size && s.price > 0);
+        onSave(product.id, validSizes.map(s => ({...s, price: Number(s.price), quantityAvailable: Number(s.quantityAvailable) })));
     };
     
     return (
@@ -122,8 +127,8 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (productId
                 <Button type="button" variant="outline" className="mt-4" onClick={() => append({ size: '', price: 0, quantityAvailable: 0 })}>Add Size</Button>
             </CardContent>
             <div className="flex justify-end p-6 pt-0">
-                <Button type="submit" disabled={isPending}>
-                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button type="submit" disabled={isSaving}>
+                    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Save Pricing
                 </Button>
             </div>
@@ -131,7 +136,7 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (productId
     );
 }
 
-function ProductPricing({ products, onSave }: { products: Product[], onSave: (productId: string, sizes: any[]) => void }) {
+function ProductPricing({ products, onSave, isSaving }: { products: Product[], onSave: (productId: string, sizes: any[]) => void, isSaving: boolean }) {
     return (
         <div>
              <div className="flex items-center justify-between mb-6">
@@ -144,7 +149,7 @@ function ProductPricing({ products, onSave }: { products: Product[], onSave: (pr
                             <CardTitle>{product.name}</CardTitle>
                             <CardDescription>{product.category} - {product.fragrance}</CardDescription>
                         </CardHeader>
-                        <PricingForm product={product} onSave={onSave} />
+                        <PricingForm product={product} onSave={onSave} isSaving={isSaving} />
                     </Card>
                 ))}
             </div>
@@ -238,7 +243,7 @@ export default function ProductsPage() {
             <ProductList products={products} onAdd={handleCreateNew} />
         </TabsContent>
         <TabsContent value="pricing">
-            <ProductPricing products={products} onSave={handlePricingSave} />
+            <ProductPricing products={products} onSave={handlePricingSave} isSaving={isSaving} />
         </TabsContent>
       </Tabs>
     </div>
