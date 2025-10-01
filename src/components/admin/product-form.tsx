@@ -42,6 +42,12 @@ type ProductFormProps = {
   onCancel: () => void;
 };
 
+const fragranceOptions = {
+    'Shower Gels': ['Ocean Breeze', 'Lavender', 'Citrus Burst', 'Rose Petal'],
+    'Fabric Softeners': ['Fresh Linen', 'Spring Blossom', 'Cotton Flower'],
+    'Dishwash': ['Lemon Zest', 'Green Apple', 'Original'],
+};
+
 export default function ProductForm({
   product,
   onSave,
@@ -54,17 +60,18 @@ export default function ProductForm({
         category: product.category,
         fragrance: product.fragrance,
         description: product.description,
-        imageId: product.imageId, // imageId is now a URL
+        imageId: product.imageId,
     } : {
       name: '',
       category: 'Shower Gels',
       fragrance: '',
       description: '',
-      imageId: '', // imageId is now a URL
+      imageId: '',
     },
   });
 
   const [imageUrl, setImageUrl] = useState(product?.imageId || '');
+  const selectedCategory = form.watch('category');
 
   useEffect(() => {
     if (product) {
@@ -87,6 +94,11 @@ export default function ProductForm({
       setImageUrl('');
     }
   }, [product, form]);
+
+  // Reset fragrance when category changes
+  useEffect(() => {
+    form.setValue('fragrance', '');
+  }, [selectedCategory, form]);
 
   const handleImageUpload = (url: string) => {
     setImageUrl(url);
@@ -148,9 +160,20 @@ export default function ProductForm({
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Fragrance</FormLabel>
-                        <FormControl>
-                            <Input {...field} />
-                        </FormControl>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a fragrance" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {fragranceOptions[selectedCategory].map(fragrance => (
+                                    <SelectItem key={fragrance} value={fragrance}>
+                                        {fragrance}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                         <FormMessage />
                         </FormItem>
                     )}
