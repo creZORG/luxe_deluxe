@@ -1,10 +1,12 @@
 
 'use server';
 
-import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, query, where, Timestamp, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 import type { User } from '@/hooks/use-auth';
 import type { CartItem } from '@/hooks/use-cart';
+
+export type OrderStatus = 'Pending' | 'Shipped' | 'Delivered' | 'Cancelled';
 
 export type Order = {
     id: string;
@@ -15,7 +17,8 @@ export type Order = {
     subtotal: number;
     reference: string;
     orderDate: Timestamp;
-    status: 'Pending' | 'Shipped' | 'Delivered' | 'Cancelled';
+    status: OrderStatus;
+    trackingNumber?: string;
 };
 
 
@@ -43,35 +46,7 @@ export async function getAllUsers(): Promise<User[]> {
 export async function getAllOrders(): Promise<Order[]> {
     try {
         const ordersCollection = collection(db, 'orders');
-        const orderSnapshot = await getDocs(ordersCollection);
-        const orderList = orderSnapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-                id: doc.id,
-                userId: data.userId,
-                userName: data.userName,
-                userEmail: data.userEmail,
-                items: data.items.map((item: any) => ({
-                    ...item,
-                    productName: item.product?.name || 'Unknown Product'
-                })),
-                subtotal: data.subtotal,
-                reference: data.reference,
-                orderDate: data.orderDate,
-                status: data.status || 'Pending',
-            } as Order;
-        });
-        return orderList;
-    } catch (error) {
-        console.error("Error fetching all orders: ", error);
-        return [];
-    }
-}
-
-export async function getOrdersByUserId(userId: string): Promise<Order[]> {
-    try {
-        const ordersCollection = collection(db, 'orders');
-        const q = query(ordersCollection, where("userId", "==", userId));
+        const q = query(ordersCollection, orderBy('orderDate', 'desc'));
         const orderSnapshot = await getDocs(q);
         const orderList = orderSnapshot.docs.map(doc => {
             const data = doc.data();
@@ -88,10 +63,39 @@ export async function getOrdersByUserId(userId: string): Promise<Order[]> {
                 reference: data.reference,
                 orderDate: data.orderDate,
                 status: data.status || 'Pending',
+                trackingNumber: data.trackingNumber,
             } as Order;
         });
-         // Sort by date descending
-        orderList.sort((a, b) => b.orderDate.toMillis() - a.orderDate.toMillis());
+        return orderList;
+    } catch (error) {
+        console.error("Error fetching all orders: ", error);
+        return [];
+    }
+}
+
+export async function getOrdersByUserId(userId: string): Promise<Order[]> {
+    try {
+        const ordersCollection = collection(db, 'orders');
+        const q = query(ordersCollection, where("userId", "==", userId), orderBy('orderDate', 'desc'));
+        const orderSnapshot = await getDocs(q);
+        const orderList = orderSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                userId: data.userId,
+                userName: data.userName,
+                userEmail: data.userEmail,
+                items: data.items.map((item: any) => ({
+                    ...item,
+                    productName: item.product?.name || 'Unknown Product'
+                })),
+                subtotal: data.subtotal,
+                reference: data.reference,
+                orderDate: data.orderDate,
+                status: data.status || 'Pending',
+                trackingNumber: data.trackingNumber,
+            } as Order;
+        });
         return orderList;
     } catch (error) {
         console.error(`Error fetching orders for user ${userId}: `, error);

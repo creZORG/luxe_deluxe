@@ -1,5 +1,6 @@
 import fetch from 'node-fetch';
 import type { CartItem } from '@/hooks/use-cart';
+import type { Order } from './admin';
 
 const ZEPTO_API_URL = 'https://api.zeptomail.com/v1.1/email';
 const ZEPTO_TOKEN = process.env.ZEPTO_TOKEN;
@@ -30,30 +31,6 @@ async function sendEmail(payload: object) {
     }
 
     return response.json();
-}
-
-type WelcomeEmailProps = {
-    to: string;
-    name: string;
-};
-
-export async function sendWelcomeEmail({ to, name }: WelcomeEmailProps) {
-    const emailPayload = {
-        from: { address: FROM_EMAIL, name: FROM_NAME },
-        to: [{ email_address: { address: to, name: name } }],
-        subject: 'Welcome to Luna!',
-        htmlbody: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
-                <h1 style="color: #333;">Welcome, ${name}!</h1>
-                <p>We are so excited to have you join the Luna family. Get ready to elevate your everyday essentials.</p>
-                <p>You can start exploring our collections right away.</p>
-                <a href="https://your-store-url.com" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px;">Shop Now</a>
-                <p style="margin-top: 30px; font-size: 0.9em; color: #777;">Best,<br/>The Luna Team</p>
-            </div>
-        `,
-    };
-
-    return sendEmail(emailPayload);
 }
 
 type OrderConfirmationEmailProps = {
@@ -109,6 +86,62 @@ export async function sendOrderConfirmationEmail({ to, name, items, subtotal, re
                     </tfoot>
                 </table>
                  <p style="margin-top: 30px; font-size: 0.9em; color: #777;">We'll notify you again once your order has shipped.</p>
+                <p style="margin-top: 30px; font-size: 0.9em; color: #777;">Best,<br/>The Luna Team</p>
+            </div>
+        `,
+    };
+
+    return sendEmail(emailPayload);
+}
+
+export async function sendNewOrderAdminNotification(order: Order) {
+    const adminEmail = process.env.ADMIN_EMAIL_RECIPIENT;
+    if (!adminEmail) {
+        console.log('ADMIN_EMAIL_RECIPIENT not set, skipping admin notification.');
+        return;
+    }
+    const itemsHtml = order.items.map(item => `<li>${item.quantity} x ${item.productName} (${item.size})</li>`).join('');
+
+    const emailPayload = {
+        from: { address: FROM_EMAIL, name: 'Luna System' },
+        to: [{ email_address: { address: adminEmail, name: 'Luna Admin' } }],
+        subject: `[New Order] - #${order.reference}`,
+        htmlbody: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
+                <h1 style="color: #333;">New Order Received!</h1>
+                <p>A new order has been placed on the website.</p>
+                <ul>
+                    <li><strong>Order ID:</strong> #${order.reference}</li>
+                    <li><strong>Customer:</strong> ${order.userName} (${order.userEmail})</li>
+                    <li><strong>Total:</strong> KES ${order.subtotal.toFixed(2)}</li>
+                </ul>
+                <h3>Items:</h3>
+                <ul>${itemsHtml}</ul>
+                <a href="https://your-store-url.com/admin/orders" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px;">View Order in Admin Panel</a>
+            </div>
+        `,
+    };
+    return sendEmail(emailPayload);
+}
+
+type OrderShippedEmailProps = {
+    order: Order;
+};
+
+export async function sendOrderShippedEmail({ order }: OrderShippedEmailProps) {
+    const { userEmail, userName, reference, trackingNumber } = order;
+
+    const emailPayload = {
+        from: { address: FROM_EMAIL, name: FROM_NAME },
+        to: [{ email_address: { address: userEmail, name: userName } }],
+        subject: `Your Luna Order has Shipped! (#${reference})`,
+        htmlbody: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
+                <h1 style="color: #333;">Your order is on its way!</h1>
+                <p>Hi ${userName},</p>
+                <p>Great news! Your order #${reference} has been shipped.</p>
+                ${trackingNumber ? `<p>You can track your package with the following tracking number: <strong>${trackingNumber}</strong></p>` : ''}
+                <p>Thank you for your patience. We hope you love your products!</p>
                 <p style="margin-top: 30px; font-size: 0.9em; color: #777;">Best,<br/>The Luna Team</p>
             </div>
         `,

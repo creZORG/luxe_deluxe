@@ -21,7 +21,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 
 // Main user type
-export type UserRole = 'admin' | 'customer' | 'influencer' | 'sales';
+export type UserRole = 'admin' | 'customer' | 'influencer' | 'sales' | 'fulfillment';
 
 export type User = {
   uid: string;
@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userDoc = await getDoc(userDocRef);
       if (userDoc.exists()) {
         const role = userDoc.data().role || 'customer';
-        if (role === 'admin') router.push('/admin/dashboard');
+        if (role === 'admin' || role === 'fulfillment') router.push('/admin/dashboard');
         else if (role === 'influencer') router.push('/influencer-portal');
         else if (role === 'sales') router.push('/sales-portal');
         else router.push('/');

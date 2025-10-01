@@ -27,6 +27,8 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
+  const isAdmin = user?.role === 'admin';
+  const isFulfillment = user?.role === 'fulfillment';
 
   useEffect(() => {
     setIsClient(true);
@@ -34,7 +36,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isClient && !loading) {
-        if (!user || user.role !== 'admin') {
+        if (!user || (user.role !== 'admin' && user.role !== 'fulfillment')) {
             router.push('/login');
         }
     }
@@ -48,7 +50,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user || user.role !== 'admin') {
+  if (!user || (user.role !== 'admin' && user.role !== 'fulfillment')) {
     return null;
   }
 
@@ -73,78 +75,89 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith('/admin/users')}
-              >
-                <Link href="/admin/users">
-                  <UserCog />
-                  Users
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith('/admin/products')}
-              >
-                <Link href="/admin/products">
-                  <Package />
-                  Products
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <SidebarMenuButton href="#">
-                    <ShoppingCart />
-                    Orders
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith('/admin/influencers')}
-              >
-                <Link href="/admin/influencers">
-                  <Percent />
-                  Influencers
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith('/admin/sales-team')}
-              >
-                <Link href="/admin/sales-team">
-                  <Users />
-                  Sales Team
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith('/admin/site-content')}
-              >
-                <Link href="/admin/site-content">
-                  <ImageIcon />
-                  Site Content
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-             <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith('/admin/global-settings')}
-              >
-                <Link href="/admin/global-settings">
-                  <Settings />
-                  Global Settings
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            {(isAdmin || isFulfillment) && (
+                 <SidebarMenuItem>
+                    <SidebarMenuButton 
+                        asChild
+                        isActive={pathname.startsWith('/admin/orders')}
+                    >
+                        <Link href="/admin/orders">
+                            <ShoppingCart />
+                            Orders
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            )}
+            {isAdmin && (
+                <>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton
+                        asChild
+                        isActive={pathname.startsWith('/admin/users')}
+                    >
+                        <Link href="/admin/users">
+                        <UserCog />
+                        Users
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton
+                        asChild
+                        isActive={pathname.startsWith('/admin/products')}
+                    >
+                        <Link href="/admin/products">
+                        <Package />
+                        Products
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton
+                        asChild
+                        isActive={pathname.startsWith('/admin/influencers')}
+                    >
+                        <Link href="/admin/influencers">
+                        <Percent />
+                        Influencers
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton
+                        asChild
+                        isActive={pathname.startsWith('/admin/sales-team')}
+                    >
+                        <Link href="/admin/sales-team">
+                        <Users />
+                        Sales Team
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton
+                        asChild
+                        isActive={pathname.startsWith('/admin/site-content')}
+                    >
+                        <Link href="/admin/site-content">
+                        <ImageIcon />
+                        Site Content
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton
+                        asChild
+                        isActive={pathname.startsWith('/admin/global-settings')}
+                    >
+                        <Link href="/admin/global-settings">
+                        <Settings />
+                        Global Settings
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </>
+            )}
           </SidebarMenu>
         </SidebarContent>
         <div className="mt-auto p-2">
