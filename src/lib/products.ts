@@ -11,7 +11,7 @@ export type Product = {
 export const products: Product[] = [
   {
     id: 'sg-lav',
-    name: 'Laid Back Lavender Shower Gel',
+    name: 'Laid Back Lavender',
     category: 'Shower Gels',
     fragrance: 'Lavender',
     sizes: [
@@ -24,7 +24,7 @@ export const products: Product[] = [
   },
   {
     id: 'sg-rasp',
-    name: 'Sweet Raspberry Shower Gel',
+    name: 'Sweet Raspberry',
     category: 'Shower Gels',
     fragrance: 'Raspberry',
     sizes: [
@@ -37,7 +37,7 @@ export const products: Product[] = [
   },
   {
     id: 'sg-cocoa',
-    name: 'Cocoa Butter Shower Gel',
+    name: 'Cocoa Butter',
     category: 'Shower Gels',
     fragrance: 'Cocoa Butter',
     sizes: [
@@ -50,7 +50,7 @@ export const products: Product[] = [
   },
   {
     id: 'sg-lime',
-    name: 'Zingy Lime Shower Gel',
+    name: 'Zingy Lime',
     category: 'Shower Gels',
     fragrance: 'Lime',
     sizes: [
@@ -63,7 +63,7 @@ export const products: Product[] = [
   },
   {
     id: 'sg-mint',
-    name: 'Tingly Mint Shower Gel',
+    name: 'Tingly Mint',
     category: 'Shower Gels',
     fragrance: 'Mint',
     sizes: [
@@ -76,7 +76,7 @@ export const products: Product[] = [
   },
   {
     id: 'sg-lemon',
-    name: 'Zesty Lemon Shower Gel',
+    name: 'Zesty Lemon',
     category: 'Shower Gels',
     fragrance: 'Lemon',
     sizes: [
@@ -89,7 +89,7 @@ export const products: Product[] = [
   },
   {
     id: 'sg-ocean',
-    name: 'Ocean Breeze Shower Gel',
+    name: 'Ocean Breeze',
     category: 'Shower Gels',
     fragrance: 'Ocean Breeze',
     sizes: [
@@ -102,7 +102,7 @@ export const products: Product[] = [
   },
   {
     id: 'sg-vanilla',
-    name: 'Creamy Vanilla Shower Gel',
+    name: 'Creamy Vanilla',
     category: 'Shower Gels',
     fragrance: 'Vanilla',
     sizes: [
@@ -115,7 +115,7 @@ export const products: Product[] = [
   },
   {
     id: 'sg-mango',
-    name: 'Juicy Mango Shower Gel',
+    name: 'Juicy Mango',
     category: 'Shower Gels',
     fragrance: 'Mango',
     sizes: [
@@ -128,7 +128,7 @@ export const products: Product[] = [
   },
   {
     id: 'fs-apricot',
-    name: 'Apricot & Peach Fabric Softener',
+    name: 'Apricot & Peach',
     category: 'Fabric Softeners',
     fragrance: 'Apricot & Peach',
     sizes: [
@@ -139,7 +139,7 @@ export const products: Product[] = [
   },
   {
     id: 'fs-cool-lav',
-    name: 'Cool Lavender Fabric Softener',
+    name: 'Cool Lavender',
     category: 'Fabric Softeners',
     fragrance: 'Lavender',
     sizes: [
@@ -150,7 +150,7 @@ export const products: Product[] = [
   },
   {
     id: 'dw-lime',
-    name: 'Limeglow Dishwash',
+    name: 'Limeglow',
     category: 'Dishwash',
     fragrance: 'Lime',
     sizes: [
@@ -161,7 +161,7 @@ export const products: Product[] = [
   },
   {
     id: 'dw-citrus',
-    name: 'Citrus Bloom Dishwash',
+    name: 'Citrus Bloom',
     category: 'Dishwash',
     fragrance: 'Citrus',
     sizes: [
