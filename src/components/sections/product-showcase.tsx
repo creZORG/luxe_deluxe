@@ -3,16 +3,14 @@
 import { useState } from 'react';
 import { products, Product } from '@/lib/products';
 import ProductCard from '@/components/product-card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 
 type Category = 'Shower Gels' | 'Fabric Softeners' | 'Dishwash';
 
+const categories: Category[] = ['Shower Gels', 'Fabric Softeners', 'Dishwash'];
+
 export default function ProductShowcase() {
   const [activeCategory, setActiveCategory] = useState<Category>('Shower Gels');
-
-  const handleCategoryChange = (value: string) => {
-    setActiveCategory(value as Category);
-  };
 
   const filteredProducts = products.filter(
     (product) => product.category === activeCategory
@@ -30,14 +28,20 @@ export default function ProductShowcase() {
           </p>
         </div>
 
-        <Tabs defaultValue="Shower Gels" className="mt-12" onValueChange={handleCategoryChange}>
-          <TabsList className="grid w-full grid-cols-3 bg-background">
-            <TabsTrigger value="Shower Gels">Shower Gels</TabsTrigger>
-            <TabsTrigger value="Fabric Softeners">Fabric Softeners</TabsTrigger>
-            <TabsTrigger value="Dishwash">Dishwash</TabsTrigger>
-          </TabsList>
+        <div className="mt-12 flex justify-center gap-4">
+          {categories.map((category) => (
+            <Button
+              key={category}
+              variant={activeCategory === category ? 'default' : 'outline'}
+              onClick={() => setActiveCategory(category)}
+              className="rounded-full px-6 py-3 text-base"
+            >
+              {category}
+            </Button>
+          ))}
+        </div>
 
-          <TabsContent value={activeCategory} className="mt-10">
+        <div className="mt-10">
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
                 {filteredProducts.map((product) => (
@@ -49,8 +53,7 @@ export default function ProductShowcase() {
                 <p className="text-muted-foreground">No products found for this category.</p>
               </div>
             )}
-          </TabsContent>
-        </Tabs>
+        </div>
       </div>
     </section>
   );
