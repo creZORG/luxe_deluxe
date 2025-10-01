@@ -96,8 +96,14 @@ function PricingForm({ product, onSave, isSaving }: { product: Product, onSave: 
     });
 
     const onSubmit = (data: { sizes: { size: string, price: number, quantityAvailable: number }[] }) => {
-        const validSizes = data.sizes.filter(s => s.size && s.price > 0);
-        onSave(product.id, validSizes.map(s => ({...s, price: Number(s.price), quantityAvailable: Number(s.quantityAvailable) })));
+        const validSizes = data.sizes
+            .filter(s => s.size && s.price > 0)
+            .map(s => ({
+                ...s,
+                price: Number(s.price),
+                quantityAvailable: Number(s.quantityAvailable)
+            }));
+        onSave(product.id, validSizes);
     };
     
     return (
@@ -249,3 +255,5 @@ export default function ProductsPage() {
     </div>
   );
 }
+
+    
