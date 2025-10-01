@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Product } from '@/lib/products';
+import { Product, getAllProducts } from '@/lib/products';
 import {
   Table,
   TableBody,
@@ -14,7 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { MoreHorizontal, PlusCircle, Trash } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Trash, BarChart2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,22 +28,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { collection, getDocs, doc, setDoc, addDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 import { toast } from '@/hooks/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { cn } from '@/lib/utils';
 
-function ProductList({ products, onEdit, onAdd, onDelete }: { products: Product[], onEdit: (product: Product) => void, onAdd: () => void, onDelete: (product: Product) => void }) {
+
+function ProductList({ products, onEdit, onAdd, onToggleStatus }: { products: Product[], onEdit: (product: Product) => void, onAdd: () => void, onToggleStatus: (product: Product) => void }) {
     return (
         <div>
             <div className="flex items-center justify-between mb-6">
@@ -60,6 +51,7 @@ function ProductList({ products, onEdit, onAdd, onDelete }: { products: Product[
                         Image
                     </TableHead>
                     <TableHead>Name</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Fragrance</TableHead>
                     <TableHead>Description</TableHead>
@@ -88,45 +80,37 @@ function ProductList({ products, onEdit, onAdd, onDelete }: { products: Product[
                         </TableCell>
                         <TableCell className="font-medium">{product.name}</TableCell>
                         <TableCell>
-                            <Badge variant="outline">{product.category}</Badge>
+                            <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
+                                {product.status === 'active' ? 'Active' : 'Inactive'}
+                            </Badge>
                         </TableCell>
+                        <TableCell>{product.category}</TableCell>
                         <TableCell>{product.fragrance}</TableCell>
                         <TableCell className='max-w-xs truncate'>{product.description}</TableCell>
                         <TableCell>
-                            <AlertDialog>
-                                <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button
-                                    aria-haspopup="true"
-                                    size="icon"
-                                    variant="ghost"
-                                    >
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Toggle menu</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                    <DropdownMenuItem onClick={() => onEdit(product)}>Edit</DropdownMenuItem>
-                                    <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
-                                    </AlertDialogTrigger>
-                                </DropdownMenuContent>
-                                </DropdownMenu>
-                                <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete the product
-                                    &quot;{product.name}&quot;.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => onDelete(product)}>Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
+                           <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                aria-haspopup="true"
+                                size="icon"
+                                variant="ghost"
+                                >
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Toggle menu</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => onEdit(product)}>Edit</DropdownMenuItem>
+                                <DropdownMenuItem>
+                                    <BarChart2 className="mr-2 h-4 w-4" />
+                                    Analytics
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => onToggleStatus(product)}>
+                                    {product.status === 'active' ? 'Deactivate' : 'Activate'}
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                            </DropdownMenu>
                         </TableCell>
                         </TableRow>
                     );
@@ -211,9 +195,7 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     setLoading(true);
-    const productsCollection = collection(db, 'products');
-    const productSnapshot = await getDocs(productsCollection);
-    const productList = productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    const productList = await getAllProducts();
     setProducts(productList);
     setLoading(false);
   };
@@ -222,7 +204,7 @@ export default function ProductsPage() {
     fetchProducts();
   }, []);
 
-  const handleProductSave = async (productData: Omit<Product, 'id'> & { id?: string }) => {
+  const handleProductSave = async (productData: Omit<Product, 'id' | 'sizes' | 'status'> & { id?: string }) => {
     try {
         const { id, ...dataToSave } = productData;
         if (id) {
@@ -233,7 +215,7 @@ export default function ProductsPage() {
         } else {
             // Create new product
             const productsCollection = collection(db, 'products');
-            await addDoc(productsCollection, dataToSave);
+            await addDoc(productsCollection, { ...dataToSave, status: 'active', sizes: [] });
             toast({ title: "Success", description: "Product created successfully." });
         }
         await fetchProducts(); // Refetch products to update the list
@@ -246,24 +228,39 @@ export default function ProductsPage() {
     }
   };
 
-  const handleDelete = async (product: Product) => {
-    if (!product.id) return;
+  const handlePricingSave = async (product: Product) => {
     try {
-      await deleteDoc(doc(db, "products", product.id));
-      toast({
-        title: "Product Deleted",
-        description: `"${product.name}" has been deleted.`,
-      });
-      fetchProducts(); // Refresh the list
+      const productRef = doc(db, 'products', product.id);
+      await setDoc(productRef, { sizes: product.sizes }, { merge: true });
+      toast({ title: "Success", description: `Pricing for ${product.name} updated.` });
+      await fetchProducts();
     } catch (error) {
-      console.error("Error deleting product: ", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete product.",
-        variant: "destructive",
-      });
+      console.error("Error saving pricing: ", error);
+      toast({ title: "Error", description: "Failed to save pricing.", variant: "destructive" });
     }
   };
+
+  const handleToggleStatus = async (product: Product) => {
+    if (!product.id) return;
+    try {
+        const newStatus = product.status === 'active' ? 'inactive' : 'active';
+        const productRef = doc(db, 'products', product.id);
+        await setDoc(productRef, { status: newStatus }, { merge: true });
+        toast({
+            title: "Product Status Updated",
+            description: `"${product.name}" has been ${newStatus === 'active' ? 'activated' : 'deactivated'}.`,
+        });
+        fetchProducts(); // Refresh the list
+    } catch (error) {
+        console.error("Error updating product status: ", error);
+        toast({
+            title: "Error",
+            description: "Failed to update product status.",
+            variant: "destructive",
+        });
+    }
+  };
+
 
   const handleEdit = (product: Product) => {
     setSelectedProduct(product);
@@ -300,10 +297,10 @@ export default function ProductsPage() {
           <TabsTrigger value="pricing">Pricing</TabsTrigger>
         </TabsList>
         <TabsContent value="products">
-            <ProductList products={products} onEdit={handleEdit} onAdd={handleCreateNew} onDelete={handleDelete} />
+            <ProductList products={products} onEdit={handleEdit} onAdd={handleCreateNew} onToggleStatus={handleToggleStatus} />
         </TabsContent>
         <TabsContent value="pricing">
-            <ProductPricing products={products} onSave={(product) => handleProductSave(product)} />
+            <ProductPricing products={products} onSave={handlePricingSave} />
         </TabsContent>
       </Tabs>
     </div>

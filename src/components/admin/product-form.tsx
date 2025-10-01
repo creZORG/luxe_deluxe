@@ -37,7 +37,7 @@ type ProductFormValues = z.infer<typeof productSchema>;
 
 type ProductFormProps = {
   product: Product | null;
-  onSave: (data: Omit<Product, 'id' | 'sizes'>) => void;
+  onSave: (data: Omit<Product, 'id' | 'sizes' | 'status'>) => void;
   onCancel: () => void;
 };
 
