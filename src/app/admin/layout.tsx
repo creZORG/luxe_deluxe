@@ -17,7 +17,7 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon, Settings, Users, Percent, UserCog } from 'lucide-react';
+import { LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon, Settings, Users, Percent, UserCog, Megaphone } from 'lucide-react';
 import { useAuth, AuthProvider } from '@/hooks/use-auth';
 import { LunaLogo } from '@/components/icons';
 import { LoadingModal } from '@/components/ui/loading-modal';
@@ -31,6 +31,8 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const [isClient, setIsClient] = useState(false);
   const isAdmin = user?.role === 'admin';
   const isFulfillment = user?.role === 'fulfillment';
+  const isDigitalMarketer = user?.role === 'digital_marketer';
+
 
   useEffect(() => {
     setIsClient(true);
@@ -38,7 +40,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isClient && !loading) {
-        if (!user || (user.role !== 'admin' && user.role !== 'fulfillment')) {
+        if (!user || (user.role !== 'admin' && user.role !== 'fulfillment' && user.role !== 'digital_marketer')) {
             router.push('/login');
         }
     }
@@ -48,7 +50,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     return <LoadingModal />;
   }
 
-  if (!user || (user.role !== 'admin' && user.role !== 'fulfillment')) {
+  if (!user || (user.role !== 'admin' && user.role !== 'fulfillment' && user.role !== 'digital_marketer')) {
     return null;
   }
 
@@ -82,6 +84,19 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                         <Link href="/admin/orders">
                             <ShoppingCart />
                             Orders
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            )}
+            {(isAdmin || isDigitalMarketer) && (
+                 <SidebarMenuItem>
+                    <SidebarMenuButton 
+                        asChild
+                        isActive={pathname.startsWith('/admin/marketing')}
+                    >
+                        <Link href="/admin/marketing">
+                            <Megaphone />
+                            Marketing
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>

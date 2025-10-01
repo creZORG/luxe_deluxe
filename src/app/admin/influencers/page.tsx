@@ -14,7 +14,7 @@ export default function InfluencersPage() {
             <CardTitle>Coming Soon!</CardTitle>
             <CardDescription>
                 This section will allow you to manage your influencers, generate referral links,
-                create promo codes, and track their performance.
+                and track their performance. This section is separate from general marketing promo codes.
             </CardDescription>
         </CardHeader>
       </Card>
