@@ -13,7 +13,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, LogOut, Package, ShoppingCart } from 'lucide-react';
+import { LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon } from 'lucide-react';
 import { useAuth, AuthProvider } from '@/hooks/use-auth';
 import { LunaLogo } from '@/components/icons';
 
@@ -78,6 +78,15 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
               >
                 <Package />
                 Products
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                href="/admin/website-images"
+                isActive={pathname.startsWith('/admin/website-images')}
+              >
+                <ImageIcon />
+                Website Images
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
