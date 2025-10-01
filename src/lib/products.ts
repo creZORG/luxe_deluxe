@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { collection, getDocs, doc, getDoc, query, where } from 'firebase/firestore';
@@ -10,7 +11,7 @@ export type Product = {
   name: string;
   category: 'Shower Gels' | 'Fabric Softeners' | 'Dishwash';
   fragrance: string;
-  sizes: { size: string; price: number; quantity: number }[];
+  sizes: { size: string; price: number; quantityAvailable: number }[];
   imageId: string; // This is now a URL from Cloudinary
   description: string;
   status: 'active' | 'inactive';
@@ -87,3 +88,4 @@ export async function getProductById(id: string): Promise<Product | null> {
     return null;
   }
 }
+

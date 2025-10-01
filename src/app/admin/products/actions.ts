@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { doc, setDoc, addDoc, collection, updateDoc } from 'firebase/firestore';
@@ -46,7 +47,7 @@ export async function updateProductStatus(productId: string, status: 'active' | 
     }
 }
 
-export async function updateProductPricing(productId: string, sizes: { size: string, price: number, quantity: number }[]) {
+export async function updateProductPricing(productId: string, sizes: { size: string, price: number, quantityAvailable: number }[]) {
     try {
         const productRef = doc(db, 'products', productId);
         await updateDoc(productRef, { sizes });
@@ -57,3 +58,4 @@ export async function updateProductPricing(productId: string, sizes: { size: str
         return { success: false, error: "Failed to update pricing." };
     }
 }
+

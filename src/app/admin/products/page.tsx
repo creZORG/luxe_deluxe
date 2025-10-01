@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
@@ -78,7 +79,7 @@ function ProductList({ products, onEdit, onAdd, onToggleStatus }: { products: Pr
 function PricingForm({ product, onSave }: { product: Product, onSave: (productId: string, sizes: any[]) => void }) {
     const { register, control, handleSubmit, watch, setValue } = useForm({
         defaultValues: {
-            sizes: product.sizes && product.sizes.length > 0 ? product.sizes : [{ size: '', price: 0, quantity: 0 }]
+            sizes: product.sizes && product.sizes.length > 0 ? product.sizes.map(s => ({...s, quantityAvailable: s.quantityAvailable || 0})) : [{ size: '', price: 0, quantityAvailable: 0 }]
         }
     });
     const { fields, append, remove } = useFieldArray({
@@ -87,9 +88,9 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (productId
     });
     const [isPending, startTransition] = useTransition();
 
-    const onSubmit = (data: { sizes: { size: string, price: number, quantity: number }[] }) => {
+    const onSubmit = (data: { sizes: { size: string, price: number, quantityAvailable: number }[] }) => {
         startTransition(async () => {
-            await onSave(product.id, data.sizes.map(s => ({...s, price: Number(s.price), quantity: Number(s.quantity) })));
+            await onSave(product.id, data.sizes.map(s => ({...s, price: Number(s.price), quantityAvailable: Number(s.quantityAvailable) })));
         });
     };
     
@@ -120,13 +121,13 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (productId
                                 <Input {...register(`sizes.${index}.price` as const, { required: true, valueAsNumber: true })} type="number" step="0.01" placeholder="e.g. 2500" />
                             </div>
                              <div>
-                                <label className="text-sm font-medium">Quantity</label>
-                                <Input {...register(`sizes.${index}.quantity` as const, { required: true, valueAsNumber: true })} type="number" placeholder="e.g. 100" />
+                                <label className="text-sm font-medium">Quantity Available</label>
+                                <Input {...register(`sizes.${index}.quantityAvailable` as const, { required: true, valueAsNumber: true })} type="number" placeholder="e.g. 100" />
                             </div>
                         </div>
                     ))}
                 </div>
-                <Button type="button" variant="outline" className="mt-4" onClick={() => append({ size: availableSizes[0]?.name || '', price: 0, quantity: 0 })}>Add Size</Button>
+                <Button type="button" variant="outline" className="mt-4" onClick={() => append({ size: availableSizes[0]?.name || '', price: 0, quantityAvailable: 0 })}>Add Size</Button>
             </CardContent>
             <div className="flex justify-end p-6 pt-0">
                 <Button type="submit" disabled={isPending}>
@@ -279,3 +280,4 @@ export default function ProductsPage() {
     </div>
   );
 }
+
