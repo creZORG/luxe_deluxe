@@ -16,8 +16,10 @@ import {
   signOut,
   type User as FirebaseAuthUser,
 } from 'firebase/auth';
-import { app, db } from '@/lib/firebase/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { app } from '@/lib/firebase/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase/firebase';
+import { userSignupFlow } from '@/ai/flows/user-signup-flow';
 
 // Main user type
 type User = {
@@ -70,12 +72,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             role: userData.role || 'customer',
           });
         } else {
-          // This case might happen if user doc is not created on signup yet.
-          // For now, we'll assume a 'customer' role.
+          // This can happen if the user doc creation is pending
           setUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email,
-            name: 'New User',
+            name: firebaseUser.displayName || 'New User',
             role: 'customer',
           });
         }
@@ -114,11 +115,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
       const firebaseUser = userCredential.user;
 
-      // Create a user document in Firestore
-      await setDoc(doc(db, 'users', firebaseUser.uid), {
+      // Call the secure backend flow to create the user document in Firestore
+      await userSignupFlow({
+        uid: firebaseUser.uid,
         name: name,
         email: email,
-        role: 'customer', // Default role for new users
+      });
+
+      // Optimistically set the user state while Firestore syncs
+      setUser({
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        name: name,
+        role: 'customer',
       });
       
       setLoading(false);
