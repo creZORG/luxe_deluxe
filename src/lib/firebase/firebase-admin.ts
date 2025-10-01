@@ -1,10 +1,14 @@
+
 import * as admin from 'firebase-admin';
+import { firebaseConfig } from '../firebase/config';
 
 let app: admin.app.App;
 
 if (!admin.apps.length) {
     try {
-        app = admin.initializeApp();
+        app = admin.initializeApp({
+            projectId: firebaseConfig.projectId,
+        });
     } catch (e) {
         console.error("Firebase admin initialization error", e);
         // Throwing the error to make it visible, as a silent failure can cause issues downstream

@@ -1,6 +1,8 @@
+
 import fetch from 'node-fetch';
 import type { CartItem } from '@/hooks/use-cart';
 import type { Order } from './admin';
+import type { UserRole } from '@/hooks/use-auth';
 
 const ZEPTO_API_URL = 'https://api.zeptomail.com/v1.1/email';
 const ZEPTO_TOKEN = process.env.ZEPTO_TOKEN;
@@ -142,6 +144,56 @@ export async function sendOrderShippedEmail({ order }: OrderShippedEmailProps) {
                 <p>Great news! Your order #${reference} has been shipped.</p>
                 ${trackingNumber ? `<p>You can track your package with the following tracking number: <strong>${trackingNumber}</strong></p>` : ''}
                 <p>Thank you for your patience. We hope you love your products!</p>
+                <p style="margin-top: 30px; font-size: 0.9em; color: #777;">Best,<br/>The Luna Team</p>
+            </div>
+        `,
+    };
+
+    return sendEmail(emailPayload);
+}
+
+type RoleChangeEmailProps = {
+    to: string;
+    name: string;
+    newRole: UserRole;
+};
+
+export async function sendRoleChangeEmail({ to, name, newRole }: RoleChangeEmailProps) {
+    const roleName = newRole.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    
+    let roleDescription = '';
+    switch (newRole) {
+        case 'admin':
+            roleDescription = 'You now have full administrative access to the Luna dashboard. You can manage products, orders, users, and site content.';
+            break;
+        case 'customer':
+            roleDescription = 'You are a customer. You can browse products and make purchases.';
+            break;
+        case 'digital_marketer':
+            roleDescription = 'You now have access to the Marketing section of the admin dashboard to create promo codes and tracking links.';
+            break;
+        case 'fulfillment':
+            roleDescription = 'You now have access to the Orders section of the admin dashboard to process and ship orders.';
+            break;
+        case 'influencer':
+            roleDescription = 'You can now access the Influencer Portal to get your referral links and track your performance.';
+            break;
+        case 'sales':
+            roleDescription = 'You can now access the Sales Portal to manage your customer orders.';
+            break;
+    }
+
+    const emailPayload = {
+        from: { address: FROM_EMAIL, name: FROM_NAME },
+        to: [{ email_address: { address: to, name: name } }],
+        subject: `Your Role on Luna has been updated`,
+        htmlbody: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
+                <h1 style="color: #333;">Your Account Role has Changed</h1>
+                <p>Hi ${name},</p>
+                <p>An administrator has updated your role on the Luna platform. Your new role is: <strong>${roleName}</strong>.</p>
+                <p>${roleDescription}</p>
+                <p>If you have any questions or believe this change was made in error, please contact our support team.</p>
                 <p style="margin-top: 30px; font-size: 0.9em; color: #777;">Best,<br/>The Luna Team</p>
             </div>
         `,

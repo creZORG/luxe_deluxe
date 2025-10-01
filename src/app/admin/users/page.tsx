@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -13,22 +13,30 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { getAllUsers, getAllOrders, getOrdersByUserId, Order } from '@/lib/admin';
-import type { User } from '@/hooks/use-auth';
+import type { User, UserRole } from '@/hooks/use-auth';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { updateUserRole } from './actions';
+import { toast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 type EnrichedUser = User & { signupDate?: { toDate: () => Date } };
 
-function UserDetailsModal({ user, open, onOpenChange }: { user: EnrichedUser | null; open: boolean; onOpenChange: (open: boolean) => void; }) {
+function UserDetailsModal({ user, open, onOpenChange, onUserUpdate }: { user: EnrichedUser | null; open: boolean; onOpenChange: (open: boolean) => void; onUserUpdate: () => void; }) {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(false);
+    const [selectedRole, setSelectedRole] = useState<UserRole | undefined>(user?.role);
+    const [isSaving, startSaving] = useTransition();
 
     useEffect(() => {
         if (user && open) {
+            setSelectedRole(user.role);
             const fetchOrders = async () => {
                 setLoading(true);
                 const userOrders = await getOrdersByUserId(user.uid);
@@ -38,10 +46,29 @@ function UserDetailsModal({ user, open, onOpenChange }: { user: EnrichedUser | n
             fetchOrders();
         }
     }, [user, open]);
+
+    const handleRoleChange = (role: UserRole) => {
+        setSelectedRole(role);
+    };
+    
+    const handleSaveChanges = () => {
+        if (!user || !selectedRole || user.role === selectedRole) return;
+        startSaving(async () => {
+            const result = await updateUserRole(user.uid, user.email || '', user.name, selectedRole);
+            if (result.success) {
+                toast({ title: 'Role Updated', description: `${user.name}'s role has been changed to ${selectedRole}.`});
+                onUserUpdate();
+                onOpenChange(false);
+            } else {
+                toast({ title: 'Error', description: result.error, variant: 'destructive' });
+            }
+        });
+    }
     
     if (!user) return null;
 
     const getInitials = (name = '') => name.split(' ').map(n => n[0]).join('').toUpperCase();
+    const availableRoles: UserRole[] = ['customer', 'admin', 'influencer', 'sales', 'fulfillment', 'digital_marketer'];
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -60,37 +87,63 @@ function UserDetailsModal({ user, open, onOpenChange }: { user: EnrichedUser | n
                         </div>
                     </div>
                 </DialogHeader>
-                <div className="mt-4">
-                    <h3 className="text-lg font-semibold mb-2">Purchase History</h3>
-                    <div className="max-h-96 overflow-y-auto rounded-md border">
-                        {loading ? <p className="p-4">Loading orders...</p> : (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Order ID</TableHead>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Total</TableHead>
-                                        <TableHead>Status</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {orders.length > 0 ? orders.map(order => (
-                                        <TableRow key={order.id}>
-                                            <TableCell className="font-medium">{order.reference}</TableCell>
-                                            <TableCell>{format(order.orderDate.toDate(), 'PPp')}</TableCell>
-                                            <TableCell>KES {order.subtotal.toFixed(2)}</TableCell>
-                                            <TableCell><Badge>{order.status}</Badge></TableCell>
-                                        </TableRow>
-                                    )) : (
+                
+                <div className="mt-4 grid gap-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="user-role" className="text-base font-semibold">User Role</Label>
+                        <Select value={selectedRole} onValueChange={(value: UserRole) => handleRoleChange(value)}>
+                            <SelectTrigger id="user-role" className="w-[280px]">
+                                <SelectValue placeholder="Select a role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {availableRoles.map(role => (
+                                    <SelectItem key={role} value={role} className="capitalize">{role.replace('_', ' ')}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <p className="text-sm text-muted-foreground">Changing the role will affect user permissions and send an email notification.</p>
+                    </div>
+
+                    <div>
+                        <h3 className="text-lg font-semibold mb-2">Purchase History</h3>
+                        <div className="max-h-60 overflow-y-auto rounded-md border">
+                            {loading ? <p className="p-4">Loading orders...</p> : (
+                                <Table>
+                                    <TableHeader>
                                         <TableRow>
-                                            <TableCell colSpan={4} className="text-center">No orders found.</TableCell>
+                                            <TableHead>Order ID</TableHead>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead>Total</TableHead>
+                                            <TableHead>Status</TableHead>
                                         </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        )}
+                                    </TableHeader>
+                                    <TableBody>
+                                        {orders.length > 0 ? orders.map(order => (
+                                            <TableRow key={order.id}>
+                                                <TableCell className="font-medium">{order.reference}</TableCell>
+                                                <TableCell>{format(order.orderDate.toDate(), 'PPp')}</TableCell>
+                                                <TableCell>KES {order.subtotal.toFixed(2)}</TableCell>
+                                                <TableCell><Badge>{order.status}</Badge></TableCell>
+                                            </TableRow>
+                                        )) : (
+                                            <TableRow>
+                                                <TableCell colSpan={4} className="text-center">No orders found.</TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            )}
+                        </div>
                     </div>
                 </div>
+
+                 <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                    <Button onClick={handleSaveChanges} disabled={isSaving || user.role === selectedRole}>
+                        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Save Changes
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     );
@@ -103,6 +156,13 @@ export default function UsersPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedUser, setSelectedUser] = useState<EnrichedUser | null>(null);
     const [isModalOpen, setModalOpen] = useState(false);
+
+    const fetchUsers = async () => {
+        setLoading(true);
+        const userList = await getAllUsers();
+        setUsers(userList as EnrichedUser[]);
+        setLoading(false);
+    }
 
     useEffect(() => {
         const fetchData = async () => {
@@ -139,7 +199,7 @@ export default function UsersPage() {
 
     return (
         <div>
-            <UserDetailsModal user={selectedUser} open={isModalOpen} onOpenChange={setModalOpen} />
+            <UserDetailsModal user={selectedUser} open={isModalOpen} onOpenChange={setModalOpen} onUserUpdate={fetchUsers} />
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-3xl font-bold">User Management</h1>
             </div>
@@ -171,7 +231,7 @@ export default function UsersPage() {
                                         <TableRow key={user.uid} onClick={() => handleUserClick(user)} className="cursor-pointer">
                                             <TableCell className="font-medium">{user.name}</TableCell>
                                             <TableCell>{user.email}</TableCell>
-                                            <TableCell><Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>{user.role}</Badge></TableCell>
+                                            <TableCell><Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="capitalize">{user.role.replace('_', ' ')}</Badge></TableCell>
                                             <TableCell>{user.signupDate ? format(user.signupDate.toDate(), 'PPP') : 'N/A'}</TableCell>
                                         </TableRow>
                                     ))}
@@ -215,4 +275,3 @@ export default function UsersPage() {
         </div>
     );
 }
-
