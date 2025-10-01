@@ -3,6 +3,7 @@
 import {
   Menu,
   ShoppingCart,
+  User,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -87,6 +88,12 @@ export default function Header() {
                 <span className="sr-only">Luna Home</span>
               </Link>
             </div>
+            <Link href="/admin/login">
+              <Button variant="ghost" size="icon">
+                <User className="h-5 w-5" />
+                <span className="sr-only">Login</span>
+              </Button>
+            </Link>
             <div className="relative">
               <Button variant="ghost" size="icon" onClick={() => setCartOpen(true)}>
                   <ShoppingCart className="h-5 w-5" />
