@@ -65,7 +65,7 @@ export default function ProductForm({
       fragrance: '',
       description: '',
       imageId: '',
-      sizes: [{ size: '', price: 0 as any }],
+      sizes: [{ size: '', price: '' as any }],
     },
   });
 
@@ -87,7 +87,7 @@ export default function ProductForm({
         fragrance: '',
         description: '',
         imageId: '',
-        sizes: [{ size: '', price: 0 as any }],
+        sizes: [{ size: '', price: '' as any }],
       })
     }
   }, [product, form]);
@@ -238,7 +238,7 @@ export default function ProductForm({
             <Button
               type="button"
               variant="outline"
-              onClick={() => append({ size: '', price: 0 as any })}
+              onClick={() => append({ size: '', price: '' as any })}
             >
               Add Size
             </Button>
