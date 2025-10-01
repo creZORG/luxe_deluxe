@@ -19,19 +19,19 @@ import {
 } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useTransition } from 'react';
 import { usePaystackPayment } from 'react-paystack';
 import { useAuth } from '@/hooks/use-auth';
 import { processSuccessfulOrder } from '../actions';
 
 const checkoutSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
+  phone: z.string().min(10, { message: 'A valid phone number is required.' }),
   firstName: z.string().min(1, { message: 'First name is required.' }),
   lastName: z.string().min(1, { message: 'Last name is required.' }),
   address: z.string().min(1, { message: 'Address is required.' }),
   city: z.string().min(1, { message: 'City is required.' }),
-  zipCode: z.string().min(1, { message: 'Zip code is required.' }),
-  country: z.string().min(1, { message: 'Country is required.' }),
+  county: z.string().min(1, { message: 'County is required.' }),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
@@ -46,12 +46,12 @@ export default function CheckoutPage() {
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
       email: '',
+      phone: '',
       firstName: '',
       lastName: '',
       address: '',
       city: '',
-      zipCode: '',
-      country: '',
+      county: '',
     },
   });
 
@@ -73,7 +73,8 @@ export default function CheckoutPage() {
   const paystackConfig = {
     reference: new Date().getTime().toString(),
     email: form.getValues('email'),
-    amount: subtotal * 100, // Amount in kobo
+    amount: subtotal * 100, // Amount in cents
+    currency: 'KES',
     publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
   };
 
@@ -81,7 +82,6 @@ export default function CheckoutPage() {
 
   const onPaymentSuccess = (reference: { reference: string }) => {
     if (!user) {
-        // This should ideally not happen if checkout is protected
         toast({
             title: 'Authentication Error',
             description: 'You must be logged in to complete a purchase.',
@@ -112,13 +112,13 @@ export default function CheckoutPage() {
   };
 
   const onSubmit: SubmitHandler<CheckoutFormValues> = (data) => {
-    // Update paystack config with latest form data before initializing
     const config = {
       ...paystackConfig,
       email: data.email,
+      phone: data.phone,
       metadata: {
         name: `${data.firstName} ${data.lastName}`,
-        address: `${data.address}, ${data.city}, ${data.zipCode}, ${data.country}`,
+        address: `${data.address}, ${data.city}, ${data.county}`,
         cart: JSON.stringify(items.map(i => ({id: i.id, name: i.product.name, quantity: i.quantity})))
       },
     };
@@ -168,7 +168,7 @@ export default function CheckoutPage() {
                     <p className="text-sm text-muted-foreground">{item.size}</p>
                   </div>
                   <p className="font-medium">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    KES {(item.price * item.quantity).toFixed(2)}
                   </p>
                 </div>
               );
@@ -178,7 +178,7 @@ export default function CheckoutPage() {
           <div className="space-y-4 text-lg">
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span>${subtotal.toFixed(2)}</span>
+              <span>KES {subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>Shipping</span>
@@ -186,7 +186,7 @@ export default function CheckoutPage() {
             </div>
             <div className="flex justify-between font-bold">
               <span>Total</span>
-              <span>${subtotal.toFixed(2)}</span>
+              <span>KES {subtotal.toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -203,19 +203,10 @@ export default function CheckoutPage() {
             >
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold">Contact Information</h2>
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email Address</FormLabel>
-                      <FormControl>
-                        <Input placeholder="you@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                    <FormField control={form.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email Address</FormLabel><FormControl><Input placeholder="you@example.com" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    <FormField control={form.control} name="phone" render={({ field }) => ( <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="0712 345 678" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                </div>
               </div>
 
               <div className="space-y-4">
@@ -224,11 +215,10 @@ export default function CheckoutPage() {
                   <FormField control={form.control} name="firstName" render={({ field }) => ( <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                   <FormField control={form.control} name="lastName" render={({ field }) => ( <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                 </div>
-                <FormField control={form.control} name="address" render={({ field }) => ( <FormItem><FormLabel>Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <FormField control={form.control} name="address" render={({ field }) => ( <FormItem><FormLabel>Address</FormLabel><FormControl><Input placeholder="e.g. Street, Estate, Building, Apt No." {...field} /></FormControl><FormMessage /></FormItem> )} />
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <FormField control={form.control} name="city" render={({ field }) => ( <FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                  <FormField control={form.control} name="zipCode" render={({ field }) => ( <FormItem><FormLabel>Zip Code</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                  <FormField control={form.control} name="country" render={({ field }) => ( <FormItem><FormLabel>Country</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                  <FormField control={form.control} name="county" render={({ field }) => ( <FormItem><FormLabel>County</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                 </div>
               </div>
 
@@ -240,7 +230,7 @@ export default function CheckoutPage() {
               >
                 {form.formState.isSubmitting || isPending
                   ? 'Processing...'
-                  : `Pay $${subtotal.toFixed(2)}`}
+                  : `Pay KES ${subtotal.toFixed(2)}`}
               </Button>
             </form>
           </Form>

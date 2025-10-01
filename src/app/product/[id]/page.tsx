@@ -105,7 +105,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 <p className="ml-2 text-sm text-muted-foreground">(138 reviews)</p>
             </div>
             <p className="mt-6 text-2xl font-semibold text-foreground">
-              ${selectedSize?.price.toFixed(2)}
+              KES {selectedSize?.price.toFixed(2)}
             </p>
             <p className="mt-6 text-lg text-muted-foreground">
               {product.description}

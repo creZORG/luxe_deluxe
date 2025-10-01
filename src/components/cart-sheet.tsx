@@ -83,7 +83,7 @@ export default function CartSheet({ open, onOpenChange }: CartSheetProps) {
                             <Plus className="h-4 w-4" />
                           </Button>
                         </div>
-                        <p className="font-medium">${item.price.toFixed(2)}</p>
+                        <p className="font-medium">KES {item.price.toFixed(2)}</p>
                       </div>
                     </div>
                      <Button
@@ -111,7 +111,7 @@ export default function CartSheet({ open, onOpenChange }: CartSheetProps) {
                     <div className="w-full space-y-4">
                         <div className="flex justify-between font-medium">
                             <span>Subtotal</span>
-                            <span>${subtotal.toFixed(2)}</span>
+                            <span>KES {subtotal.toFixed(2)}</span>
                         </div>
                         <Button
                           size="lg"

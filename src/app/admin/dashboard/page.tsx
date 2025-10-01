@@ -5,18 +5,18 @@ import { DollarSign, Package, Users, CreditCard } from "lucide-react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
 
 const salesData = [
-    { name: "Jan", total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: "Feb", total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: "Mar", total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: "Apr", total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: "May", total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: "Jun", total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: "Jul", total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: "Aug", total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: "Sep", total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: "Oct", total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: "Nov", total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: "Dec", total: Math.floor(Math.random() * 5000) + 1000 },
+    { name: "Jan", total: Math.floor(Math.random() * 500000) + 100000 },
+    { name: "Feb", total: Math.floor(Math.random() * 500000) + 100000 },
+    { name: "Mar", total: Math.floor(Math.random() * 500000) + 100000 },
+    { name: "Apr", total: Math.floor(Math.random() * 500000) + 100000 },
+    { name: "May", total: Math.floor(Math.random() * 500000) + 100000 },
+    { name: "Jun", total: Math.floor(Math.random() * 500000) + 100000 },
+    { name: "Jul", total: Math.floor(Math.random() * 500000) + 100000 },
+    { name: "Aug", total: Math.floor(Math.random() * 500000) + 100000 },
+    { name: "Sep", total: Math.floor(Math.random() * 500000) + 100000 },
+    { name: "Oct", total: Math.floor(Math.random() * 500000) + 100000 },
+    { name: "Nov", total: Math.floor(Math.random() * 500000) + 100000 },
+    { name: "Dec", total: Math.floor(Math.random() * 500000) + 100000 },
   ]
 
 export default function DashboardPage() {
@@ -30,7 +30,7 @@ export default function DashboardPage() {
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">$45,231.89</div>
+                        <div className="text-2xl font-bold">KES 4,523,189</div>
                         <p className="text-xs text-muted-foreground">+20.1% from last month</p>
                     </CardContent>
                 </Card>
@@ -85,7 +85,7 @@ export default function DashboardPage() {
                                 fontSize={12}
                                 tickLine={false}
                                 axisLine={false}
-                                tickFormatter={(value) => `$${value}`}
+                                tickFormatter={(value) => `KES ${value}`}
                                 />
                                 <Bar dataKey="total" fill="currentColor" radius={[4, 4, 0, 0]} className="fill-primary" />
                             </BarChart>

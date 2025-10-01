@@ -218,7 +218,7 @@ export default function ProductForm({
                     <FormItem className="flex-1">
                       <FormLabel className='text-xs'>Price</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" placeholder="e.g. 20.99" {...field} />
+                        <Input type="number" step="0.01" placeholder="e.g. 2500" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

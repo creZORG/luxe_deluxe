@@ -108,7 +108,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <CardFooter className="p-6 pt-0">
         <div className="flex w-full items-center justify-between">
           <p className="text-2xl font-bold text-foreground">
-            ${selectedSize?.price.toFixed(2)}
+            KES {selectedSize?.price.toFixed(2)}
           </p>
           <div className="flex items-center gap-2">
             <Button onClick={handleAddToCart} className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={!selectedSize}>

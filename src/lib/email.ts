@@ -69,7 +69,7 @@ export async function sendOrderConfirmationEmail({ to, name, items, subtotal, re
         <tr>
             <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.product.name} (${item.size})</td>
             <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.quantity}</td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">$${(item.price * item.quantity).toFixed(2)}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">KES ${(item.price * item.quantity).toFixed(2)}</td>
         </tr>
     `).join('');
 
@@ -96,7 +96,7 @@ export async function sendOrderConfirmationEmail({ to, name, items, subtotal, re
                     <tfoot>
                         <tr>
                             <td colspan="2" style="padding: 10px; text-align: right; font-weight: bold;">Subtotal:</td>
-                            <td style="padding: 10px; text-align: right; font-weight: bold;">$${subtotal.toFixed(2)}</td>
+                            <td style="padding: 10px; text-align: right; font-weight: bold;">KES ${subtotal.toFixed(2)}</td>
                         </tr>
                          <tr>
                             <td colspan="2" style="padding: 10px; text-align: right; font-weight: bold;">Shipping:</td>
@@ -104,7 +104,7 @@ export async function sendOrderConfirmationEmail({ to, name, items, subtotal, re
                         </tr>
                         <tr>
                             <td colspan="2" style="padding: 10px; text-align: right; font-weight: bold; border-top: 2px solid #333;">Total:</td>
-                            <td style="padding: 10px; text-align: right; font-weight: bold; border-top: 2px solid #333;">$${subtotal.toFixed(2)}</td>
+                            <td style="padding: 10px; text-align: right; font-weight: bold; border-top: 2px solid #333;">KES ${subtotal.toFixed(2)}</td>
                         </tr>
                     </tfoot>
                 </table>
