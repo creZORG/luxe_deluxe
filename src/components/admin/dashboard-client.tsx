@@ -6,12 +6,23 @@ import type { Product } from '@/lib/products';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, Package, Users, CreditCard } from "lucide-react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { Timestamp } from 'firebase/firestore';
 
 type DashboardClientProps = {
     orders: Order[];
     products: Product[];
     users: User[];
 }
+
+// Helper function to safely convert a Firestore Timestamp or a JS Date to a JS Date
+const toJavaScriptDate = (date: any): Date | null => {
+  if (!date) return null;
+  if (date instanceof Timestamp) return date.toDate();
+  if (date.toDate) return date.toDate(); // It's a Firestore Timestamp from a different context
+  if (date instanceof Date) return date; // It's already a JS Date
+  return null; // Or handle as an error
+};
+
 
 export default function DashboardClient({ orders, products, users }: DashboardClientProps) {
 
@@ -31,8 +42,8 @@ export default function DashboardClient({ orders, products, users }: DashboardCl
     const currentYear = new Date().getFullYear();
 
     orders.forEach(order => {
-        const orderDate = order.orderDate.toDate();
-        if (orderDate.getFullYear() === currentYear) {
+        const orderDate = toJavaScriptDate(order.orderDate);
+        if (orderDate && orderDate.getFullYear() === currentYear) {
             const month = orderDate.getMonth();
             monthlySales[month] += order.subtotal;
         }
