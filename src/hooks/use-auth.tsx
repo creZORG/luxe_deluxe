@@ -19,7 +19,7 @@ import {
   type User as FirebaseAuthUser,
 } from 'firebase/auth';
 import { app } from '@/lib/firebase/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 import { LoadingModal } from '@/components/ui/loading-modal';
 import type { CartItem } from './use-cart';
@@ -45,6 +45,7 @@ export type User = {
   role: UserRole;
   shippingAddress?: ShippingAddress;
   loyaltyPoints?: number;
+  signupDate?: Timestamp;
 };
 
 type AuthContextType = {
@@ -92,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             role: userData.role || 'customer',
             shippingAddress: userData.shippingAddress,
             loyaltyPoints: userData.loyaltyPoints || 0,
+            signupDate: userData.signupDate,
           };
           setUser(loadedUser);
         } else {
@@ -101,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             name: firebaseUser.displayName || 'New User',
             role: 'customer',
             loyaltyPoints: 0,
+            signupDate: Timestamp.now(),
            };
            setUser(newUser);
         }
@@ -161,7 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: name,
         email: email,
         role: 'customer',
-        signupDate: new Date(),
+        signupDate: Timestamp.now(),
         loyaltyPoints: 0,
       });
       

@@ -28,12 +28,14 @@ export async function getAllUsers(): Promise<User[]> {
         const userSnapshot = await getDocs(usersCollection);
         const userList = userSnapshot.docs.map(doc => {
             const data = doc.data();
+            // Ensure signupDate is a Firestore Timestamp
+            const signupDate = data.signupDate instanceof Date ? Timestamp.fromDate(data.signupDate) : data.signupDate;
             return {
                 uid: doc.id,
                 name: data.name,
                 email: data.email,
                 role: data.role,
-                signupDate: data.signupDate,
+                signupDate: signupDate,
             } as User & { signupDate: Timestamp };
         });
         return userList;

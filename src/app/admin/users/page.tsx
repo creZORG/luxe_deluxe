@@ -25,8 +25,18 @@ import { Label } from '@/components/ui/label';
 import { updateUserRole } from './actions';
 import { toast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { Timestamp } from 'firebase/firestore';
 
-type EnrichedUser = User & { signupDate?: { toDate: () => Date } };
+type EnrichedUser = User & { signupDate?: Timestamp };
+
+// Helper function to safely convert a Firestore Timestamp or a JS Date to a JS Date
+const toJavaScriptDate = (date: any): Date | null => {
+  if (!date) return null;
+  if (date.toDate) return date.toDate(); // It's a Firestore Timestamp
+  if (date instanceof Date) return date; // It's already a JS Date
+  return null; // Or handle as an error
+};
+
 
 function UserDetailsModal({ user, open, onOpenChange, onUserUpdate }: { user: EnrichedUser | null; open: boolean; onOpenChange: (open: boolean) => void; onUserUpdate: () => void; }) {
     const [orders, setOrders] = useState<Order[]>([]);
@@ -69,6 +79,7 @@ function UserDetailsModal({ user, open, onOpenChange, onUserUpdate }: { user: En
 
     const getInitials = (name = '') => name.split(' ').map(n => n[0]).join('').toUpperCase();
     const availableRoles: UserRole[] = ['customer', 'admin', 'influencer', 'sales', 'fulfillment', 'digital_marketer'];
+    const signupDate = toJavaScriptDate(user.signupDate);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -82,7 +93,7 @@ function UserDetailsModal({ user, open, onOpenChange, onUserUpdate }: { user: En
                             <DialogTitle className="text-2xl">{user.name}</DialogTitle>
                             <DialogDescription>{user.email} - <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>{user.role}</Badge></DialogDescription>
                             <p className="text-sm text-muted-foreground mt-1">
-                                Joined on: {user.signupDate ? format(user.signupDate.toDate(), 'PPP') : 'N/A'}
+                                Joined on: {signupDate ? format(signupDate, 'PPP') : 'N/A'}
                             </p>
                         </div>
                     </div>
@@ -227,14 +238,16 @@ export default function UsersPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {filteredUsers.map(user => (
+                                    {filteredUsers.map(user => {
+                                        const signupDate = toJavaScriptDate(user.signupDate);
+                                        return (
                                         <TableRow key={user.uid} onClick={() => handleUserClick(user)} className="cursor-pointer">
                                             <TableCell className="font-medium">{user.name}</TableCell>
                                             <TableCell>{user.email}</TableCell>
                                             <TableCell><Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="capitalize">{user.role.replace('_', ' ')}</Badge></TableCell>
-                                            <TableCell>{user.signupDate ? format(user.signupDate.toDate(), 'PPP') : 'N/A'}</TableCell>
+                                            <TableCell>{signupDate ? format(signupDate, 'PPP') : 'N/A'}</TableCell>
                                         </TableRow>
-                                    ))}
+                                    )})}
                                 </TableBody>
                             </Table>
                         </CardContent>
