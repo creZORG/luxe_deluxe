@@ -1,24 +1,28 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
 import type { Product } from '@/lib/products';
 import ProductCard from '@/components/product-card';
-import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
-type Category = 'Shower Gels' | 'Fabric Softeners' | 'Dishwash';
+type Category = 'All' | 'Shower Gels' | 'Fabric Softeners' | 'Dishwash';
 
-const categories: Category[] = ['Shower Gels', 'Fabric Softeners', 'Dishwash'];
+const categories: Category[] = ['All', 'Shower Gels', 'Fabric Softeners', 'Dishwash'];
 
 type ProductShowcaseProps = {
   products: Product[];
 }
 
 export default function ProductShowcase({ products }: ProductShowcaseProps) {
-  const [activeCategory, setActiveCategory] = useState<Category>('Shower Gels');
+  const [activeCategory, setActiveCategory] = useState<Category>('All');
 
-  const filteredProducts = useMemo(() => products.filter(
-    (product) => product.category === activeCategory
-  ), [products, activeCategory]);
+  const filteredProducts = useMemo(() => {
+    if (activeCategory === 'All') {
+      return products;
+    }
+    return products.filter((product) => product.category === activeCategory);
+  }, [products, activeCategory]);
 
   return (
     <section id="products" className="py-16 sm:py-24 bg-card">
@@ -32,17 +36,23 @@ export default function ProductShowcase({ products }: ProductShowcaseProps) {
           </p>
         </div>
 
-        <div className="mt-12 flex justify-center gap-4">
-          {categories.map((category) => (
-            <Button
-              key={category}
-              variant={activeCategory === category ? 'default' : 'outline'}
-              onClick={() => setActiveCategory(category)}
-              className="rounded-full px-6 py-3 text-base"
-            >
-              {category}
-            </Button>
-          ))}
+        <div className="mt-12 flex justify-center">
+          <div className="flex space-x-1 rounded-full bg-muted p-1">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                className={cn(
+                  'rounded-full px-4 sm:px-6 py-2 text-sm sm:text-base font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  activeCategory === category
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-background/50'
+                )}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="mt-10">
