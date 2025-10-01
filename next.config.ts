@@ -44,9 +44,8 @@ const nextConfig: NextConfig = {
     CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
     ADMIN_EMAIL_RECIPIENT: process.env.ADMIN_EMAIL_RECIPIENT,
+    FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
   }
 };
 
 export default nextConfig;
-
-    
