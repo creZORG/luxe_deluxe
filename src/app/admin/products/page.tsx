@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
@@ -74,7 +75,7 @@ function ProductList({ products, onAdd }: { products: Product[], onAdd: () => vo
 }
 
 function PricingForm({ product, onSave, isSaving }: { product: Product, onSave: (productId: string, sizes: any[]) => void, isSaving: boolean }) {
-    const { register, control, handleSubmit, reset } = useForm({
+    const { register, control, handleSubmit, reset } = useForm<{ sizes: { size: string; price: number; quantityAvailable: number }[] }>({
         defaultValues: {
             sizes: product.sizes || []
         }
@@ -192,13 +193,13 @@ export default function ProductsPage() {
 
   const handlePricingSave = (productId: string, sizes: any[]) => {
     startSaving(async () => {
-        try {
-          await updateProductPricing(productId, sizes);
-          toast({ title: "Success", description: `Pricing updated.` });
-          await fetchProducts(); // Force a refetch
-        } catch (error) {
-          console.error("Error saving pricing: ", error);
-          toast({ title: "Error", description: "Failed to save pricing.", variant: "destructive" });
+        const result = await updateProductPricing(productId, sizes);
+        if (result.success) {
+            toast({ title: "Success", description: `Pricing updated.` });
+            await fetchProducts(); // Force a refetch
+        } else {
+            console.error("Error saving pricing: ", result.error);
+            toast({ title: "Error Saving Pricing", description: result.error, variant: "destructive" });
         }
     });
   };
