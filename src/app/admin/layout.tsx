@@ -1,6 +1,8 @@
+
 'use client';
 
 import { Inter } from 'next/font/google';
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
@@ -64,29 +66,35 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
-                href="/admin/dashboard"
+                asChild
                 isActive={pathname === '/admin/dashboard'}
               >
-                <LayoutDashboard />
-                Dashboard
+                <Link href="/admin/dashboard">
+                  <LayoutDashboard />
+                  Dashboard
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
-                href="/admin/products"
+                asChild
                 isActive={pathname.startsWith('/admin/products')}
               >
-                <Package />
-                Products
+                <Link href="/admin/products">
+                  <Package />
+                  Products
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
-                href="/admin/website-images"
+                asChild
                 isActive={pathname.startsWith('/admin/website-images')}
               >
-                <ImageIcon />
-                Website Images
+                <Link href="/admin/website-images">
+                  <ImageIcon />
+                  Website Images
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
