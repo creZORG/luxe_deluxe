@@ -81,7 +81,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <Link href={`/product/${product.id}`}>{product.name}</Link>
         </CardTitle>
         <CardDescription className="mt-2 flex-grow text-base">
-          {product.description}
+          {product.shortDescription}
         </CardDescription>
 
         {product.sizes.length > 0 && selectedSize ? (

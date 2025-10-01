@@ -2,18 +2,23 @@
 
 'use server';
 
-import { doc, setDoc, addDoc, collection, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, addDoc, collection, updateDoc, writeBatch } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
-import { db } from '@/lib/firebase/firebase';
+import { adminDb } from '@/lib/firebase/firebase-admin';
 import type { Product } from '@/lib/products';
 
-export async function createProduct(productData: Omit<Product, 'id' | 'sizes' | 'status'>) {
+export async function createProduct(productData: Omit<Product, 'id' | 'sizes' | 'status' | 'viewCount' | 'ratings' | 'reviewCount' | 'averageRating'>) {
     try {
-        const newProductRef = collection(db, 'products');
+        const newProductRef = collection(adminDb, 'products');
+        // Using `addDoc` with admin SDK works fine
         await addDoc(newProductRef, {
             ...productData,
             sizes: [],
-            status: 'inactive' // New products start as inactive
+            status: 'inactive', // New products start as inactive
+            viewCount: 0,
+            ratings: [],
+            reviewCount: 0,
+            averageRating: 0,
         });
         revalidatePath('/admin/products');
         return { success: true };
@@ -23,9 +28,9 @@ export async function createProduct(productData: Omit<Product, 'id' | 'sizes' | 
     }
 }
 
-export async function updateProduct(productId: string, productData: Omit<Product, 'id' | 'sizes' | 'status'>) {
+export async function updateProduct(productId: string, productData: Omit<Product, 'id' | 'sizes' | 'status' | 'viewCount' | 'ratings' | 'reviewCount' | 'averageRating'>) {
     try {
-        const productRef = doc(db, 'products', productId);
+        const productRef = doc(adminDb, 'products', productId);
         await updateDoc(productRef, productData);
         revalidatePath('/admin/products');
         revalidatePath(`/admin/products/${productId}/manage`);
@@ -38,7 +43,7 @@ export async function updateProduct(productId: string, productData: Omit<Product
 
 export async function updateProductStatus(productId: string, status: 'active' | 'inactive') {
     try {
-        const productRef = doc(db, 'products', productId);
+        const productRef = doc(adminDb, 'products', productId);
         await updateDoc(productRef, { status });
         revalidatePath('/admin/products');
         revalidatePath(`/admin/products/${productId}/manage`);
@@ -71,7 +76,7 @@ export async function updateProductPricing(productId: string, sizes: { size: str
     }
 
     try {
-        const productRef = doc(db, 'products', productId);
+        const productRef = doc(adminDb, 'products', productId);
         await updateDoc(productRef, { sizes });
         revalidatePath('/admin/products');
         revalidatePath(`/admin/products/${productId}/manage`);
@@ -82,5 +87,3 @@ export async function updateProductPricing(productId: string, sizes: { size: str
         return { success: false, error: `Failed to update pricing in database: ${errorMessage}` };
     }
 }
-
-

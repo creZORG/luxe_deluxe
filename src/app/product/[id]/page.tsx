@@ -1,20 +1,22 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { notFound, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import type { Product } from '@/lib/products';
-import { getProductById, getProducts } from '@/lib/products';
+import { getProductById, getProducts, incrementProductView, submitProductRating } from '@/lib/products';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/hooks/use-cart';
 import { toast } from '@/hooks/use-toast';
-import { Check, Star } from 'lucide-react';
+import { Check, Star, Loader2 } from 'lucide-react';
 import ProductCard from '@/components/product-card';
 import { PremiumSkeleton } from '@/components/ui/premium-skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/hooks/use-auth';
+import { getOrdersByUserId } from '@/lib/admin';
 
 type ProductPageProps = {
   params: {
@@ -22,30 +24,69 @@ type ProductPageProps = {
   };
 };
 
+function StarRating({ rating, onRatingChange, disabled }: { rating: number, onRatingChange?: (rating: number) => void, disabled?: boolean }) {
+    const [hoverRating, setHoverRating] = useState(0);
+
+    return (
+        <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                    key={star}
+                    className={cn(
+                        'h-5 w-5',
+                        (hoverRating || rating) >= star ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300',
+                        !disabled && 'cursor-pointer'
+                    )}
+                    onMouseEnter={!disabled ? () => setHoverRating(star) : undefined}
+                    onMouseLeave={!disabled ? () => setHoverRating(0) : undefined}
+                    onClick={!disabled ? () => onRatingChange?.(star) : undefined}
+                />
+            ))}
+        </div>
+    );
+}
+
 export default function ProductPage({ params }: ProductPageProps) {
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const [hasPurchased, setHasPurchased] = useState(false);
+  const [userRating, setUserRating] = useState(0);
+  const [isSubmittingRating, startRatingSubmission] = useTransition();
+
+  const fetchProductData = async () => {
+    setLoading(true);
+    incrementProductView(params.id);
+    const fetchedProduct = await getProductById(params.id);
+
+    if (fetchedProduct) {
+      setProduct(fetchedProduct);
+      if (user) {
+        const orders = await getOrdersByUserId(user.uid);
+        const purchased = orders.some(order => order.items.some(item => item.productId === fetchedProduct.id));
+        setHasPurchased(purchased);
+
+        const existingRating = fetchedProduct.ratings?.find(r => r.userId === user.uid);
+        if (existingRating) {
+            setUserRating(existingRating.rating);
+        }
+      }
+      
+      const allProducts = await getProducts();
+      const related = allProducts
+        .filter(p => p.category === fetchedProduct.category && p.id !== fetchedProduct.id)
+        .slice(0, 3);
+      setRelatedProducts(related);
+    } else {
+      notFound();
+    }
+    setLoading(false);
+  };
   
   useEffect(() => {
-    const fetchProductData = async () => {
-      setLoading(true);
-      const fetchedProduct = await getProductById(params.id);
-      if (fetchedProduct) {
-        setProduct(fetchedProduct);
-        const allProducts = await getProducts();
-        const related = allProducts
-          .filter(p => p.category === fetchedProduct.category && p.id !== fetchedProduct.id)
-          .slice(0, 3);
-        setRelatedProducts(related);
-      } else {
-        notFound();
-      }
-      setLoading(false);
-    };
-
     fetchProductData();
-  }, [params.id]);
+  }, [params.id, user]);
 
 
   const [selectedSize, setSelectedSize] = useState<{size: string, price: number, quantityAvailable: number} | null>(null);
@@ -91,6 +132,19 @@ export default function ProductPage({ params }: ProductPageProps) {
     });
     router.push('/checkout');
   };
+
+  const handleRatingSubmit = (newRating: number) => {
+      if (!user || !product) return;
+      startRatingSubmission(async () => {
+          const result = await submitProductRating(product.id, user.uid, newRating);
+          if (result.success) {
+              toast({ title: 'Rating Submitted', description: 'Thank you for your feedback!'});
+              await fetchProductData(); // Re-fetch to update average rating
+          } else {
+              toast({ title: 'Error', description: result.error, variant: 'destructive' });
+          }
+      })
+  }
   
   if (loading || !product) {
     return (
@@ -205,13 +259,13 @@ export default function ProductPage({ params }: ProductPageProps) {
             <Tabs defaultValue="description" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="description">Description</TabsTrigger>
-                    <TabsTrigger value="reviews">Ratings & Reviews</TabsTrigger>
+                    <TabsTrigger value="reviews">Ratings & Reviews ({product.reviewCount || 0})</TabsTrigger>
                 </TabsList>
                 <TabsContent value="description">
                     <Card>
                         <CardContent className="pt-6">
-                            <p className="text-lg text-muted-foreground">
-                                {product.description}
+                            <p className="text-lg text-muted-foreground whitespace-pre-wrap">
+                                {product.longDescription}
                             </p>
                         </CardContent>
                     </Card>
@@ -220,10 +274,40 @@ export default function ProductPage({ params }: ProductPageProps) {
                      <Card>
                         <CardHeader>
                             <CardTitle>Customer Reviews</CardTitle>
-                            <CardDescription>See what others are saying about this product.</CardDescription>
+                            <div className="flex items-center gap-4 mt-2">
+                                <StarRating rating={product.averageRating || 0} disabled />
+                                <p className="text-muted-foreground">
+                                    {product.averageRating?.toFixed(1) || '0.0'} out of 5
+                                    ({product.reviewCount || 0} ratings)
+                                </p>
+                            </div>
                         </CardHeader>
                         <CardContent>
-                            <p>Rating system coming soon!</p>
+                            {user ? (
+                                hasPurchased ? (
+                                    <div className="space-y-2">
+                                        <h3 className="font-semibold">
+                                            {userRating > 0 ? 'Update your rating' : 'Rate this product'}
+                                        </h3>
+                                        <div className="flex items-center gap-2">
+                                            <StarRating rating={userRating} onRatingChange={handleRatingSubmit} disabled={isSubmittingRating} />
+                                            {isSubmittingRating && <Loader2 className="h-5 w-5 animate-spin" />}
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">You can rate this product because you've purchased it.</p>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">You must purchase this product to leave a review.</p>
+                                )
+                            ) : (
+                                <p className="text-sm text-muted-foreground">
+                                    <Link href="/login" className="underline">Log in</Link> to rate products you've purchased.
+                                </p>
+                            )}
+
+                            <div className="mt-8">
+                                <h3 className="font-semibold mb-4">All Reviews</h3>
+                                <p className="text-sm text-muted-foreground">Review display is coming soon!</p>
+                            </div>
                         </CardContent>
                     </Card>
                 </TabsContent>

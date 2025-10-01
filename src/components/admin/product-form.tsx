@@ -30,7 +30,8 @@ const productSchema = z.object({
   name: z.string().min(1, 'Product name is required'),
   category: z.enum(['Shower Gels', 'Fabric Softeners', 'Dishwash']),
   fragrance: z.string().min(1, 'Fragrance is required'),
-  description: z.string().min(1, 'Description is required'),
+  shortDescription: z.string().min(1, 'A short description is required.'),
+  longDescription: z.string().min(1, 'A long description is required.'),
   imageId: z.string().min(1, 'Image is required'),
 });
 
@@ -38,7 +39,7 @@ type ProductFormValues = z.infer<typeof productSchema>;
 
 type ProductFormProps = {
   product: Product | null;
-  onSave: (data: Omit<Product, 'id' | 'sizes' | 'status'>) => void;
+  onSave: (data: Omit<Product, 'id' | 'sizes' | 'status' | 'viewCount' | 'ratings' | 'reviewCount' | 'averageRating'>) => void;
   onCancel: () => void;
 };
 
@@ -69,13 +70,15 @@ export default function ProductForm({
         name: product.name,
         category: product.category,
         fragrance: product.fragrance,
-        description: product.description,
+        shortDescription: product.shortDescription,
+        longDescription: product.longDescription,
         imageId: product.imageId,
     } : {
       name: '',
       category: 'Shower Gels',
       fragrance: '',
-      description: '',
+      shortDescription: '',
+      longDescription: '',
       imageId: '',
     },
   });
@@ -89,7 +92,8 @@ export default function ProductForm({
         name: product.name,
         category: product.category,
         fragrance: product.fragrance,
-        description: product.description,
+        shortDescription: product.shortDescription,
+        longDescription: product.longDescription,
         imageId: product.imageId,
       });
       setImageUrl(product.imageId);
@@ -98,7 +102,8 @@ export default function ProductForm({
         name: '',
         category: 'Shower Gels',
         fragrance: '',
-        description: '',
+        shortDescription: '',
+        longDescription: '',
         imageId: '',
       });
       setImageUrl('');
@@ -207,14 +212,28 @@ export default function ProductForm({
             />
         </div>
         
-        <FormField
+         <FormField
           control={form.control}
-          name="description"
+          name="shortDescription"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Short Description (One-liner)</FormLabel>
               <FormControl>
-                <Textarea {...field} />
+                <Input {...field} placeholder="e.g. An indulgent shower experience that softens skin." />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="longDescription"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Long Description</FormLabel>
+              <FormControl>
+                <Textarea {...field} rows={5} placeholder="Provide the full, detailed description that will appear on the product page."/>
               </FormControl>
               <FormMessage />
             </FormItem>

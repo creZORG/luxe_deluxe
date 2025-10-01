@@ -169,7 +169,7 @@ export default function ProductsPage() {
     fetchProducts();
   }, []);
 
-  const handleProductSave = (productData: Omit<Product, 'id' | 'sizes' | 'status'> & { id?: string }) => {
+  const handleProductSave = (productData: Omit<Product, 'id' | 'sizes' | 'status' | 'viewCount' | 'ratings' | 'reviewCount' | 'averageRating'> & { id?: string }) => {
     startSaving(async () => {
         try {
             const { id, ...dataToSave } = productData;
@@ -243,5 +243,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-
-    

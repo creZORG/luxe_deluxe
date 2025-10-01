@@ -65,7 +65,7 @@ export default function ManageProductPage({ params }: ManageProductPageProps) {
     }, [product, orders]);
 
 
-    const handleProductSave = (productData: Omit<Product, 'id' | 'sizes' | 'status'>) => {
+    const handleProductSave = (productData: Omit<Product, 'id' | 'sizes' | 'status' | 'viewCount' | 'ratings' | 'reviewCount' | 'averageRating'>) => {
         if (!product) return;
         startSaving(async () => {
             try {
@@ -124,8 +124,7 @@ export default function ManageProductPage({ params }: ManageProductPageProps) {
                 <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <div className="p-4 border rounded-lg">
                         <h3 className="text-sm font-medium text-muted-foreground">Views</h3>
-                        <p className="text-2xl font-bold">{Math.floor(Math.random() * 2000)}</p>
-                        <p className="text-xs text-muted-foreground">View tracking not enabled</p>
+                        <p className="text-2xl font-bold">{product.viewCount || 0}</p>
                     </div>
                      <div className="p-4 border rounded-lg">
                         <h3 className="text-sm font-medium text-muted-foreground">Orders</h3>
@@ -136,9 +135,9 @@ export default function ManageProductPage({ params }: ManageProductPageProps) {
                         <p className="text-2xl font-bold">KES {productAnalytics.totalRevenue.toFixed(2)}</p>
                     </div>
                      <div className="p-4 border rounded-lg">
-                        <h3 className="text-sm font-medium text-muted-foreground">Conversion Rate</h3>
-                        <p className="text-2xl font-bold">--</p>
-                         <p className="text-xs text-muted-foreground">Cannot be calculated</p>
+                        <h3 className="text-sm font-medium text-muted-foreground">Avg. Rating</h3>
+                        <p className="text-2xl font-bold">{product.averageRating?.toFixed(1) || 'N/A'}</p>
+                        <p className="text-xs text-muted-foreground">from {product.reviewCount || 0} reviews</p>
                     </div>
                 </CardContent>
                 <CardContent>
