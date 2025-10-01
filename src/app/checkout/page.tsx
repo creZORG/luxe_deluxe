@@ -21,8 +21,9 @@ import { toast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useEffect, useTransition } from 'react';
 import { usePaystackPayment } from 'react-paystack';
-import { useAuth } from '@/hooks/use-auth';
-import { processSuccessfulOrder } from '../actions';
+import { useAuth, type ShippingAddress } from '@/hooks/use-auth';
+import { processSuccessfulOrder, updateUserShippingAddress } from '../actions';
+import { Textarea } from '@/components/ui/textarea';
 
 const checkoutSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -32,6 +33,7 @@ const checkoutSchema = z.object({
   address: z.string().min(1, { message: 'Address is required.' }),
   city: z.string().min(1, { message: 'City is required.' }),
   county: z.string().min(1, { message: 'County is required.' }),
+  deliveryDescription: z.string().optional(),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
@@ -52,15 +54,24 @@ export default function CheckoutPage() {
       address: '',
       city: '',
       county: '',
+      deliveryDescription: '',
     },
   });
 
   useEffect(() => {
-    if (user && !form.getValues('email')) {
-      form.setValue('email', user.email || '');
-      const nameParts = user.name.split(' ');
-      form.setValue('firstName', nameParts[0] || '');
-      form.setValue('lastName', nameParts.slice(1).join(' ') || '');
+    if (user) {
+        const nameParts = user.name.split(' ');
+        const defaultValues: Partial<CheckoutFormValues> = {
+            email: user.email || '',
+            firstName: nameParts[0] || '',
+            lastName: nameParts.slice(1).join(' ') || '',
+        };
+
+        if (user.shippingAddress) {
+            Object.assign(defaultValues, user.shippingAddress);
+        }
+
+        form.reset(defaultValues);
     }
   }, [user, form]);
   
@@ -91,6 +102,19 @@ export default function CheckoutPage() {
     }
 
     startTransition(async () => {
+        // Save shipping info for next time
+        const shippingData = form.getValues();
+        await updateUserShippingAddress(user.uid, {
+            phone: shippingData.phone,
+            firstName: shippingData.firstName,
+            lastName: shippingData.lastName,
+            address: shippingData.address,
+            city: shippingData.city,
+            county: shippingData.county,
+            deliveryDescription: shippingData.deliveryDescription
+        });
+
+        // Process the order
         await processSuccessfulOrder({
             user: user,
             items,
@@ -103,7 +127,7 @@ export default function CheckoutPage() {
             description: 'Thank you for your purchase. A confirmation email has been sent.',
         });
         clearCart();
-        router.push('/');
+        router.push('/profile'); // Redirect to profile to see order status
     });
   };
 
@@ -198,14 +222,12 @@ export default function CheckoutPage() {
             >
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold">Contact Information</h2>
-                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                    <FormField control={form.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email Address</FormLabel><FormControl><Input placeholder="you@example.com" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                    <FormField control={form.control} name="phone" render={({ field }) => ( <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="0712 345 678" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                </div>
+                <FormField control={form.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email Address</FormLabel><FormControl><Input placeholder="you@example.com" {...field} disabled /></FormControl><FormMessage /></FormItem> )} />
               </div>
 
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold">Shipping Address</h2>
+                 <FormField control={form.control} name="phone" render={({ field }) => ( <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="0712 345 678" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <FormField control={form.control} name="firstName" render={({ field }) => ( <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                   <FormField control={form.control} name="lastName" render={({ field }) => ( <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
@@ -215,6 +237,7 @@ export default function CheckoutPage() {
                   <FormField control={form.control} name="city" render={({ field }) => ( <FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                   <FormField control={form.control} name="county" render={({ field }) => ( <FormItem><FormLabel>County</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                 </div>
+                 <FormField control={form.control} name="deliveryDescription" render={({ field }) => ( <FormItem><FormLabel>Delivery Instructions (Optional)</FormLabel><FormControl><Textarea placeholder="e.g., Leave at the reception, call upon arrival." {...field} /></FormControl><FormMessage /></FormItem> )} />
               </div>
 
               <Button
@@ -234,3 +257,5 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+    

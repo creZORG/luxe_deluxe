@@ -1,10 +1,11 @@
+
 'use server';
 
 import { sendOrderConfirmationEmail, sendNewOrderAdminNotification, sendOrderShippedEmail } from "@/lib/email";
 import type { CartItem } from "@/hooks/use-cart";
 import { collection, addDoc, Timestamp, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
-import type { User } from "@/hooks/use-auth";
+import type { User, ShippingAddress } from "@/hooks/use-auth";
 import type { Order } from "@/lib/admin";
 import { revalidatePath } from "next/cache";
 
@@ -90,3 +91,18 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
         return { success: false, error: 'Failed to update order status.' };
     }
 }
+
+export async function updateUserShippingAddress(userId: string, shippingAddress: ShippingAddress) {
+    try {
+        const userRef = doc(db, 'users', userId);
+        await updateDoc(userRef, { shippingAddress });
+        revalidatePath('/profile');
+        revalidatePath('/checkout');
+        return { success: true };
+    } catch (error) {
+        console.error('Error updating shipping address:', error);
+        return { success: false, error: 'Failed to update shipping address.' };
+    }
+}
+
+    

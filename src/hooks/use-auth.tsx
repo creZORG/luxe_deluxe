@@ -24,6 +24,17 @@ import { db } from '@/lib/firebase/firebase';
 import { LoadingModal } from '@/components/ui/loading-modal';
 import type { CartItem } from './use-cart';
 
+// Shipping address type
+export type ShippingAddress = {
+    phone: string;
+    firstName: string;
+    lastName: string;
+    address: string;
+    city: string;
+    county: string;
+    deliveryDescription?: string;
+}
+
 // Main user type
 export type UserRole = 'admin' | 'customer' | 'influencer' | 'sales' | 'fulfillment' | 'digital_marketer';
 
@@ -32,6 +43,7 @@ export type User = {
   email: string | null;
   name: string;
   role: UserRole;
+  shippingAddress?: ShippingAddress;
 };
 
 type AuthContextType = {
@@ -77,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: firebaseUser.email,
             name: userData.name || 'User',
             role: userData.role || 'customer',
+            shippingAddress: userData.shippingAddress,
           };
           setUser(loadedUser);
         } else {
@@ -204,3 +217,5 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </AuthContext.Provider>
   );
 }
+
+    
