@@ -103,17 +103,7 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (productId
                         <div key={field.id} className="grid grid-cols-1 md:grid-cols-4 items-end gap-4">
                             <div className="md:col-span-2">
                                 <label className="text-sm font-medium">Size</label>
-                                <Select 
-                                    onValueChange={(value) => setValue(`sizes.${index}.size`, value)} 
-                                    value={watch(`sizes.${index}.size`)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select a size" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {availableSizes.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
+                                <Input {...register(`sizes.${index}.size` as const, { required: true })} placeholder="e.g. 500ml" />
                             </div>
                             <div>
                                 <label className="text-sm font-medium">Price (KES)</label>
@@ -126,7 +116,7 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (productId
                         </div>
                     ))}
                 </div>
-                <Button type="button" variant="outline" className="mt-4" onClick={() => append({ size: availableSizes[0]?.name || '', price: 0, quantityAvailable: 0 })}>Add Size</Button>
+                <Button type="button" variant="outline" className="mt-4" onClick={() => append({ size: '', price: 0, quantityAvailable: 0 })}>Add Size</Button>
             </CardContent>
             <div className="flex justify-end p-6 pt-0">
                 <Button type="submit" disabled={isPending}>
