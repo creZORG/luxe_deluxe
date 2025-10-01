@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Instagram, Twitter, Youtube } from 'lucide-react';
-import { LuxeDailyLogo } from '@/components/icons';
+import { LunaLogo } from '@/components/icons';
 
 export default function Footer() {
   return (
@@ -8,7 +8,7 @@ export default function Footer() {
       <div className="container mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-between space-y-6 md:flex-row md:space-y-0">
           <div className="flex flex-col items-center md:items-start">
-            <LuxeDailyLogo />
+            <LunaLogo />
             <p className="mt-2 text-sm text-muted-foreground">Luxury in Every Drop.</p>
           </div>
 
@@ -36,7 +36,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 border-t pt-6 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Luxe Daily. All rights reserved.
+          © {new Date().getFullYear()} Luna. All rights reserved.
         </div>
       </div>
     </footer>

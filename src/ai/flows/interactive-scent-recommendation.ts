@@ -47,7 +47,7 @@ const prompt = ai.definePrompt({
   Mood: {{{mood}}}
   Preferences: {{{preferences}}}
 
-  Based on the mood and preferences, recommend a fragrance from Luxe Daily and provide a brief description of why it is suitable.`,
+  Based on the mood and preferences, recommend a fragrance from Luna and provide a brief description of why it is suitable.`,
 });
 
 const scentRecommendationFlow = ai.defineFlow(

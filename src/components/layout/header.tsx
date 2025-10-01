@@ -11,7 +11,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { LuxeDailyLogo } from '@/components/icons';
+import { LunaLogo } from '@/components/icons';
 import CartSheet from '@/components/cart-sheet';
 import { useState } from 'react';
 
@@ -34,7 +34,7 @@ export default function Header() {
             href="/"
             className="mr-6 flex items-center space-x-2"
           >
-            <LuxeDailyLogo className="text-xl" />
+            <LunaLogo className="text-xl" />
           </Link>
           {navLinks.map((link) => (
             <Link
@@ -61,7 +61,7 @@ export default function Header() {
           <SheetContent side="left">
             <div className="flex flex-col gap-6 pt-6">
                 <Link href="/" className="flex items-center" onClick={() => setMobileMenuOpen(false)}>
-                  <LuxeDailyLogo className="text-lg"/>
+                  <LunaLogo className="text-lg"/>
                 </Link>
                 <div className="flex flex-col gap-4">
                 {navLinks.map((link) => (
@@ -82,8 +82,8 @@ export default function Header() {
         <div className="flex flex-1 items-center justify-end space-x-4">
             <div className="md:hidden">
               <Link href="/">
-                <LuxeDailyLogo className="text-xl"/>
-                <span className="sr-only">Luxe Daily Home</span>
+                <LunaLogo className="text-xl"/>
+                <span className="sr-only">Luna Home</span>
               </Link>
             </div>
             <CartSheet open={isCartOpen} onOpenChange={setCartOpen}>
