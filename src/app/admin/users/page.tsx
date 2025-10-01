@@ -129,14 +129,17 @@ function UserDetailsModal({ user, open, onOpenChange, onUserUpdate }: { user: En
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {orders.length > 0 ? orders.map(order => (
-                                            <TableRow key={order.id}>
-                                                <TableCell className="font-medium">{order.reference}</TableCell>
-                                                <TableCell>{format(order.orderDate.toDate(), 'PPp')}</TableCell>
-                                                <TableCell>KES {order.subtotal.toFixed(2)}</TableCell>
-                                                <TableCell><Badge>{order.status}</Badge></TableCell>
-                                            </TableRow>
-                                        )) : (
+                                        {orders.length > 0 ? orders.map(order => {
+                                             const orderDate = toJavaScriptDate(order.orderDate);
+                                             return (
+                                                <TableRow key={order.id}>
+                                                    <TableCell className="font-medium">{order.reference}</TableCell>
+                                                    <TableCell>{orderDate ? format(orderDate, 'PPp') : 'N/A'}</TableCell>
+                                                    <TableCell>KES {order.subtotal.toFixed(2)}</TableCell>
+                                                    <TableCell><Badge>{order.status}</Badge></TableCell>
+                                                </TableRow>
+                                             )
+                                        }) : (
                                             <TableRow>
                                                 <TableCell colSpan={4} className="text-center">No orders found.</TableCell>
                                             </TableRow>
@@ -267,18 +270,21 @@ export default function UsersPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {filteredOrders.map(order => (
-                                        <TableRow key={order.id}>
-                                            <TableCell className="font-medium">{order.reference}</TableCell>
-                                            <TableCell>
-                                                <div>{order.userName}</div>
-                                                <div className="text-xs text-muted-foreground">{order.userEmail}</div>
-                                            </TableCell>
-                                            <TableCell>{format(order.orderDate.toDate(), 'PPp')}</TableCell>
-                                            <TableCell>KES {order.subtotal.toFixed(2)}</TableCell>
-                                            <TableCell><Badge>{order.status}</Badge></TableCell>
-                                        </TableRow>
-                                    ))}
+                                    {filteredOrders.map(order => {
+                                        const orderDate = toJavaScriptDate(order.orderDate);
+                                        return (
+                                            <TableRow key={order.id}>
+                                                <TableCell className="font-medium">{order.reference}</TableCell>
+                                                <TableCell>
+                                                    <div>{order.userName}</div>
+                                                    <div className="text-xs text-muted-foreground">{order.userEmail}</div>
+                                                </TableCell>
+                                                <TableCell>{orderDate ? format(orderDate, 'PPp') : 'N/A'}</TableCell>
+                                                <TableCell>KES {order.subtotal.toFixed(2)}</TableCell>
+                                                <TableCell><Badge>{order.status}</Badge></TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
                                 </TableBody>
                             </Table>
                         </CardContent>
@@ -288,3 +294,5 @@ export default function UsersPage() {
         </div>
     );
 }
+
+    

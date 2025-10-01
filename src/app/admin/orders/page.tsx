@@ -23,6 +23,13 @@ import { toast } from '@/hooks/use-toast';
 import { Loader2, Truck } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+// Helper function to safely convert a Firestore Timestamp or a JS Date to a JS Date
+const toJavaScriptDate = (date: any): Date | null => {
+  if (!date) return null;
+  if (date.toDate) return date.toDate(); // It's a Firestore Timestamp
+  if (date instanceof Date) return date; // It's already a JS Date
+  return null; // Or handle as an error
+};
 
 function UpdateStatusModal({ order, open, onOpenChange, onStatusUpdate }: { order: Order | null; open: boolean; onOpenChange: (open: boolean) => void; onStatusUpdate: () => void; }) {
     const [status, setStatus] = useState<OrderStatus>('Pending');
@@ -177,24 +184,27 @@ export default function OrdersPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {filteredOrders.length > 0 ? filteredOrders.map(order => (
-                                        <TableRow key={order.id}>
-                                            <TableCell className="font-medium">{order.reference}</TableCell>
-                                            <TableCell>{format(order.orderDate.toDate(), 'PPp')}</TableCell>
-                                            <TableCell>
-                                                <div>{order.userName}</div>
-                                                <div className="text-xs text-muted-foreground">{order.userEmail}</div>
-                                            </TableCell>
-                                            <TableCell>KES {order.subtotal.toFixed(2)}</TableCell>
-                                            <TableCell><Badge>{order.status}</Badge></TableCell>
-                                            <TableCell>
-                                                <Button variant="outline" size="sm" onClick={() => handleUpdateClick(order)}>
-                                                    <Truck className="mr-2 h-4 w-4" />
-                                                    Update
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    )) : (
+                                    {filteredOrders.length > 0 ? filteredOrders.map(order => {
+                                        const orderDate = toJavaScriptDate(order.orderDate);
+                                        return (
+                                            <TableRow key={order.id}>
+                                                <TableCell className="font-medium">{order.reference}</TableCell>
+                                                <TableCell>{orderDate ? format(orderDate, 'PPp') : 'N/A'}</TableCell>
+                                                <TableCell>
+                                                    <div>{order.userName}</div>
+                                                    <div className="text-xs text-muted-foreground">{order.userEmail}</div>
+                                                </TableCell>
+                                                <TableCell>KES {order.subtotal.toFixed(2)}</TableCell>
+                                                <TableCell><Badge>{order.status}</Badge></TableCell>
+                                                <TableCell>
+                                                    <Button variant="outline" size="sm" onClick={() => handleUpdateClick(order)}>
+                                                        <Truck className="mr-2 h-4 w-4" />
+                                                        Update
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        )
+                                    }) : (
                                          <TableRow>
                                             <TableCell colSpan={6} className="text-center h-24">
                                                 No orders found for this status.
@@ -210,3 +220,5 @@ export default function OrdersPage() {
         </div>
     );
 }
+
+    
