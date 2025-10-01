@@ -52,7 +52,7 @@ export default function SignupPage() {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">Create an Account</CardTitle>
             <CardDescription>
-              Enter your details to get started.
+              Join the Luna family. Enter your details to get started.
             </CardDescription>
           </CardHeader>
           <CardContent>
