@@ -5,7 +5,7 @@ import { useState, useEffect, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Product, getAllProducts } from '@/lib/products';
 import Image from 'next/image';
-import { PlusCircle, BarChart2, Loader2, Edit, ChevronRight } from 'lucide-react';
+import { PlusCircle, BarChart2, Loader2, ChevronRight, Trash2 } from 'lucide-react';
 import ProductForm from '@/components/admin/product-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,8 +13,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from '@/hooks/use-toast';
-import { globalSettings } from '@/lib/global-settings';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { createProduct, updateProduct, updateProductPricing } from './actions';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
@@ -76,11 +74,14 @@ function ProductList({ products, onAdd }: { products: Product[], onAdd: () => vo
 }
 
 function PricingForm({ product, onSave }: { product: Product, onSave: (productId: string, sizes: any[]) => void }) {
-    const { register, control, handleSubmit, watch, setValue } = useForm({
+    const { register, control, handleSubmit } = useForm({
         defaultValues: {
-            sizes: product.sizes && product.sizes.length > 0 ? product.sizes.map(s => ({...s, quantityAvailable: s.quantityAvailable || 0})) : [{ size: '', price: 0, quantityAvailable: 0 }]
+            sizes: product.sizes && product.sizes.length > 0 
+                ? product.sizes.map(s => ({ size: s.size, price: s.price, quantityAvailable: s.quantityAvailable || 0 })) 
+                : [{ size: '', price: 0, quantityAvailable: 0 }]
         }
     });
+
     const { fields, append, remove } = useFieldArray({
         control,
         name: "sizes"
@@ -89,30 +90,32 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (productId
 
     const onSubmit = (data: { sizes: { size: string, price: number, quantityAvailable: number }[] }) => {
         startTransition(async () => {
-            await onSave(product.id, data.sizes.map(s => ({...s, price: Number(s.price), quantityAvailable: Number(s.quantityAvailable) })));
+            const validSizes = data.sizes.filter(s => s.size && s.price > 0);
+            await onSave(product.id, validSizes.map(s => ({...s, price: Number(s.price), quantityAvailable: Number(s.quantityAvailable) })));
         });
     };
     
-    const availableSizes = globalSettings.productSizes;
-
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
             <CardContent>
                 <div className="space-y-4">
                     {fields.map((field, index) => (
-                        <div key={field.id} className="grid grid-cols-1 md:grid-cols-4 items-end gap-4">
-                            <div className="md:col-span-2">
-                                <label className="text-sm font-medium">Size</label>
+                        <div key={field.id} className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] items-end gap-4">
+                            <div>
+                                {index === 0 && <label className="text-sm font-medium">Size</label>}
                                 <Input {...register(`sizes.${index}.size` as const, { required: true })} placeholder="e.g. 500ml" />
                             </div>
                             <div>
-                                <label className="text-sm font-medium">Price (KES)</label>
+                                {index === 0 && <label className="text-sm font-medium">Price (KES)</label>}
                                 <Input {...register(`sizes.${index}.price` as const, { required: true, valueAsNumber: true })} type="number" step="0.01" placeholder="e.g. 2500" />
                             </div>
                              <div>
-                                <label className="text-sm font-medium">Quantity Available</label>
+                                {index === 0 && <label className="text-sm font-medium">Quantity Available</label>}
                                 <Input {...register(`sizes.${index}.quantityAvailable` as const, { required: true, valueAsNumber: true })} type="number" placeholder="e.g. 100" />
                             </div>
+                            <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} disabled={fields.length <= 1}>
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
                         </div>
                     ))}
                 </div>
