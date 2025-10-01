@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -6,6 +7,7 @@ import {
   User,
   LogOut,
   Shield,
+  UserCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -134,6 +136,12 @@ export default function Header() {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                        <Link href="/profile">
+                          <UserCircle className="mr-2 h-4 w-4" />
+                          <span>Profile</span>
+                        </Link>
+                    </DropdownMenuItem>
                     {user.role === 'admin' && (
                       <DropdownMenuItem asChild>
                          <Link href="/admin/dashboard">
@@ -142,6 +150,7 @@ export default function Header() {
                         </Link>
                       </DropdownMenuItem>
                     )}
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => logout()}>
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Log out</span>
