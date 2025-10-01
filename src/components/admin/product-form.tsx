@@ -43,9 +43,19 @@ type ProductFormProps = {
 };
 
 const fragranceOptions = {
-    'Shower Gels': ['Ocean Breeze', 'Lavender', 'Citrus Burst', 'Rose Petal'],
-    'Fabric Softeners': ['Fresh Linen', 'Spring Blossom', 'Cotton Flower'],
-    'Dishwash': ['Lemon Zest', 'Green Apple', 'Original'],
+    'Shower Gels': [
+        'Laid Back Lavender',
+        'Sweet Raspberry',
+        'Cocoa Butter',
+        'Zingy Lime',
+        'Tingly Mint',
+        'Zesty Lemon',
+        'Ocean Breeze',
+        'Creamy Vanilla',
+        'Juicy Mango'
+    ],
+    'Fabric Softeners': ['Apricot Peach', 'Cool Lavender'],
+    'Dishwash': ['Limeglow', 'Citrus Bloom'],
 };
 
 export default function ProductForm({
@@ -221,4 +231,3 @@ export default function ProductForm({
     </Form>
   );
 }
-
