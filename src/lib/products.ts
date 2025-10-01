@@ -53,9 +53,11 @@ export async function getProducts(): Promise<Product[]> {
     const productsCollection = collection(db, 'products');
     const q = query(productsCollection, where("status", "==", "active"));
     const productSnapshot = await getDocs(q);
+
     const productList = productSnapshot.docs
       .map(doc => ({ id: doc.id, ...doc.data() } as Product))
       .filter(p => p.sizes && p.sizes.length > 0); // Only show products with pricing
+    
     return productList;
   } catch (error) {
     console.error("Error fetching active products for storefront: ", error);
@@ -75,7 +77,7 @@ export async function getProductById(id: string): Promise<Product | null> {
       return { 
           id: productSnap.id, 
           ...productData, 
-          sizes: productData.sizes || [] 
+          sizes: productData?.sizes || [] 
       } as Product;
     } else {
       return null;
@@ -85,4 +87,3 @@ export async function getProductById(id: string): Promise<Product | null> {
     return null;
   }
 }
-

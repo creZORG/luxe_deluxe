@@ -12,8 +12,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase/firebase';
 import { toast } from '@/hooks/use-toast';
 import { globalSettings } from '@/lib/global-settings';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -90,8 +88,8 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (productId
     const [isPending, startTransition] = useTransition();
 
     const onSubmit = (data: { sizes: { size: string, price: number, quantity: number }[] }) => {
-        startTransition(() => {
-            onSave(product.id, data.sizes.map(s => ({...s, price: Number(s.price), quantity: Number(s.quantity) })));
+        startTransition(async () => {
+            await onSave(product.id, data.sizes.map(s => ({...s, price: Number(s.price), quantity: Number(s.quantity) })));
         });
     };
     
@@ -190,7 +188,7 @@ export default function ProductsPage() {
                 await createProduct(dataToSave);
                 toast({ title: "Success", description: "Product created successfully." });
             }
-            fetchProducts();
+            await fetchProducts(); // Force a refetch
         } catch (error) {
             console.error("Error saving product: ", error);
             toast({ title: "Error", description: "Failed to save product.", variant: "destructive" });
@@ -206,7 +204,7 @@ export default function ProductsPage() {
         try {
           await updateProductPricing(productId, sizes);
           toast({ title: "Success", description: `Pricing updated.` });
-          fetchProducts();
+          await fetchProducts(); // Force a refetch
         } catch (error) {
           console.error("Error saving pricing: ", error);
           toast({ title: "Error", description: "Failed to save pricing.", variant: "destructive" });
@@ -224,7 +222,7 @@ export default function ProductsPage() {
                 title: "Product Status Updated",
                 description: `"${product.name}" has been ${newStatus === 'active' ? 'activated' : 'deactivated'}.`,
             });
-            fetchProducts();
+            await fetchProducts(); // Force a refetch
         } catch (error) {
             console.error("Error updating product status: ", error);
             toast({
