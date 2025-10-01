@@ -19,6 +19,7 @@ import {
 import { app } from '@/lib/firebase/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
+import { userSignupFlow } from '@/ai/flows/user-signup-flow';
 
 // Main user type
 type User = {
@@ -99,7 +100,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return true;
     } catch (err: any) {
-      setError(err.message || 'An unknown error occurred.');
+      const errorCode = err.code;
+      if (errorCode === 'auth/invalid-credential' || errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password') {
+        setError('Invalid email or password. Please try again.');
+      } else {
+        setError(err.message || 'An unknown error occurred.');
+      }
       setLoading(false);
       return false;
     }
@@ -116,16 +122,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
       const firebaseUser = userCredential.user;
 
-      // Call the secure API route to create the user document in Firestore
-      const response = await fetch('/api/create-user', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uid: firebaseUser.uid, name, email }),
-      });
+      // Call the secure Genkit flow to create the user document
+      const result = await userSignupFlow({ uid: firebaseUser.uid, name, email });
 
-      if (!response.ok) {
-          const errorBody = await response.json();
-          throw new Error(errorBody.message || 'Failed to create user document.');
+      if (!result.success) {
+          throw new Error(result.message || 'Failed to create user document.');
       }
       
       // Optimistically set the user state
