@@ -17,7 +17,7 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon, Settings } from 'lucide-react';
+import { LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon, Settings, Users, Percent } from 'lucide-react';
 import { useAuth, AuthProvider } from '@/hooks/use-auth';
 import { LunaLogo } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -87,6 +87,34 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
+                <SidebarMenuButton href="#">
+                    <ShoppingCart />
+                    Orders
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith('/admin/influencers')}
+              >
+                <Link href="/admin/influencers">
+                  <Percent />
+                  Influencers
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith('/admin/sales-team')}
+              >
+                <Link href="/admin/sales-team">
+                  <Users />
+                  Sales Team
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith('/admin/site-content')}
@@ -96,12 +124,6 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                   Site Content
                 </Link>
               </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <SidebarMenuButton href="#">
-                    <ShoppingCart />
-                    Orders
-                </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
               <SidebarMenuButton

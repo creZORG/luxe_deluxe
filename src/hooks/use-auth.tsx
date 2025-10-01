@@ -7,7 +7,7 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   getAuth,
   onAuthStateChanged,
@@ -21,11 +21,13 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 
 // Main user type
-type User = {
+export type UserRole = 'admin' | 'customer' | 'influencer' | 'sales';
+
+export type User = {
   uid: string;
   email: string | null;
   name: string;
-  role: 'admin' | 'customer';
+  role: UserRole;
 };
 
 type AuthContextType = {
@@ -54,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -63,16 +66,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          setUser({
+          const loadedUser: User = {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
             name: userData.name || 'User',
             role: userData.role || 'customer',
-          });
+          };
+          setUser(loadedUser);
         } else {
-           // This can happen on first signup if the doc creation is pending
-           // or if a user was created in Firebase Auth but not in Firestore.
-           // We'll set a temporary state and let the signup function handle creation.
            setUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email,
@@ -93,8 +94,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      await signInWithEmailAndPassword(auth, email, pass);
-      setLoading(false);
+      const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+      const firebaseUser = userCredential.user;
+      
+      const userDocRef = doc(db, 'users', firebaseUser.uid);
+      const userDoc = await getDoc(userDocRef);
+      if (userDoc.exists()) {
+        const role = userDoc.data().role || 'customer';
+        if (role === 'admin') router.push('/admin/dashboard');
+        else if (role === 'influencer') router.push('/influencer-portal');
+        else if (role === 'sales') router.push('/sales-portal');
+        else router.push('/');
+      } else {
+        router.push('/');
+      }
+      
       return true;
     } catch (err: any) {
       const errorCode = err.code;
@@ -103,8 +117,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setError(err.message || 'An unknown error occurred.');
       }
-      setLoading(false);
       return false;
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -118,9 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         pass
       );
       const firebaseUser = userCredential.user;
-
-      // Create user document in Firestore from the client.
-      // THIS IS INSECURE without proper Firestore rules.
+      
       await setDoc(doc(db, 'users', firebaseUser.uid), {
         name: name,
         email: email,
@@ -128,32 +141,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signupDate: new Date(),
       });
       
-      setUser({
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        name: name,
-        role: 'customer',
-      });
-      
-      setLoading(false);
       return true;
     } catch (err: any) {
       setError(err.message || 'An unknown error occurred.');
-      setLoading(false);
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 
   const logout = async () => {
-    setLoading(true);
-    try {
-      await signOut(auth);
-      router.push('/login');
-    } catch (e) {
-      console.error('Logout failed', e);
-    } finally {
-      setLoading(false);
-    }
+    await signOut(auth);
+    router.push('/login');
   };
 
   const value = {
@@ -165,5 +164,5 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 }
