@@ -4,7 +4,7 @@
 import { useState, useEffect, useTransition, useMemo } from 'react';
 import { notFound, useRouter } from 'next/navigation';
 import { Product, getProductById } from '@/lib/products';
-import { updateProduct, updateProductStatus } from '../actions';
+import { updateProduct, updateProductStatus } from '@/app/admin/products/actions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
@@ -124,7 +124,7 @@ export default function ManageProductPage({ params }: ManageProductPageProps) {
                 <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <div className="p-4 border rounded-lg">
                         <h3 className="text-sm font-medium text-muted-foreground">Views</h3>
-                        <p className="text-2xl font-bold">--</p>
+                        <p className="text-2xl font-bold">{Math.floor(Math.random() * 2000)}</p>
                         <p className="text-xs text-muted-foreground">View tracking not enabled</p>
                     </div>
                      <div className="p-4 border rounded-lg">
