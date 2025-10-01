@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,15 +20,22 @@ import { LunaLogo } from '@/components/icons';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, error } = useAuth();
+  const { login, error, user } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (user) {
+        if (user.role === 'admin') {
+            router.push('/admin/dashboard');
+        } else {
+            router.push('/');
+        }
+    }
+  }, [user, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await login(email, password);
-    if (success) {
-      router.push('/admin/dashboard');
-    }
+    await login(email, password);
   };
 
   return (
@@ -39,9 +46,13 @@ export default function LoginPage() {
         </div>
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Admin Login</CardTitle>
+            <CardTitle className="text-2xl">Login</CardTitle>
             <CardDescription>
-              Enter your credentials to access the dashboard.
+              Enter your credentials to access your account.
+              <br />
+              <small className='text-xs text-muted-foreground'>admin: admin@luna.com / password</small>
+              <br />
+              <small className='text-xs text-muted-foreground'>customer: customer@luna.com / password</small>
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -58,7 +69,7 @@ export default function LoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@example.com"
+                  placeholder="you@example.com"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}

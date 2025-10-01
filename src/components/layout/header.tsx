@@ -4,6 +4,8 @@ import {
   Menu,
   ShoppingCart,
   User,
+  LogOut,
+  Shield,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -16,6 +18,16 @@ import { LunaLogo } from '@/components/icons';
 import CartSheet from '@/components/cart-sheet';
 import { useState } from 'react';
 import { useCart } from '@/hooks/use-cart';
+import { useAuth } from '@/hooks/use-auth';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 const navLinks = [
   { href: '/#products', label: 'Shop' },
@@ -27,6 +39,11 @@ export default function Header() {
   const [isCartOpen, setCartOpen] = useState(false);
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { totalItems } = useCart();
+  const { user, logout } = useAuth();
+
+  const getInitials = (name = '') => {
+    return name.split(' ').map(n => n[0]).join('');
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -47,6 +64,14 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
+          {user?.role === 'admin' && (
+             <Link
+                href="/admin/dashboard"
+                className="font-medium text-primary transition-colors hover:text-primary/80"
+              >
+                Admin
+              </Link>
+          )}
         </nav>
 
         <Sheet open={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -76,6 +101,15 @@ export default function Header() {
                     {link.label}
                     </Link>
                 ))}
+                 {user?.role === 'admin' && (
+                    <Link
+                        href="/admin/dashboard"
+                        className="text-lg font-medium text-primary transition-colors hover:text-primary/80"
+                        onClick={() => setMobileMenuOpen(false)}
+                    >
+                        Admin
+                    </Link>
+                )}
                 </div>
             </div>
           </SheetContent>
@@ -88,12 +122,48 @@ export default function Header() {
                 <span className="sr-only">Luna Home</span>
               </Link>
             </div>
-            <Link href="/admin/login">
-              <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
-                <span className="sr-only">Login</span>
-              </Button>
-            </Link>
+
+            {user ? (
+               <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.name}</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {user.role === 'admin' && (
+                      <DropdownMenuItem asChild>
+                         <Link href="/admin/dashboard">
+                          <Shield className="mr-2 h-4 w-4" />
+                          <span>Admin</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onClick={() => logout()}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+            ) : (
+              <Link href="/login">
+                <Button variant="ghost" size="sm">
+                  Login
+                </Button>
+              </Link>
+            )}
+
             <div className="relative">
               <Button variant="ghost" size="icon" onClick={() => setCartOpen(true)}>
                   <ShoppingCart className="h-5 w-5" />

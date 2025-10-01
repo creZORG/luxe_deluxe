@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 type User = {
   email: string;
   name: string;
+  role: 'admin' | 'customer';
 };
 
 type AuthContextType = {
@@ -40,8 +41,11 @@ const fakeAuth = {
       setTimeout(() => {
         // Hardcoded credentials for demonstration
         if (email === 'admin@luna.com' && pass === 'password') {
-          resolve({ email: 'admin@luna.com', name: 'Admin' });
-        } else {
+          resolve({ email: 'admin@luna.com', name: 'Admin', role: 'admin' });
+        } else if (email === 'customer@luna.com' && pass === 'password') {
+            resolve({ email: 'customer@luna.com', name: 'Customer', role: 'customer' });
+        }
+        else {
           reject(new Error('Invalid credentials. Please try again.'));
         }
       }, 500);
@@ -65,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Check for a logged-in user in session storage
     try {
-      const storedUser = sessionStorage.getItem('luna-admin-user');
+      const storedUser = sessionStorage.getItem('luna-user');
       if (storedUser) {
         setUser(JSON.parse(storedUser));
       }
@@ -81,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const loggedInUser = await fakeAuth.login(email, pass);
       setUser(loggedInUser);
-      sessionStorage.setItem('luna-admin-user', JSON.stringify(loggedInUser));
+      sessionStorage.setItem('luna-user', JSON.stringify(loggedInUser));
       setLoading(false);
       return true;
     } catch (err: any) {
@@ -95,9 +99,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     await fakeAuth.logout();
     setUser(null);
-    sessionStorage.removeItem('luna-admin-user');
+    sessionStorage.removeItem('luna-user');
     setLoading(false);
-    router.push('/admin/login');
+    router.push('/login');
   };
 
   const value = {

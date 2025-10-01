@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { CartProvider } from '@/hooks/use-cart';
+import { AuthProvider } from '@/hooks/use-auth';
 
 export const metadata: Metadata = {
   title: 'Luna',
@@ -31,14 +32,16 @@ export default function RootLayout({
           'min-h-screen bg-background font-body text-foreground antialiased'
         )}
       >
-        <CartProvider>
-          <div className="relative flex min-h-dvh flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-          <Toaster />
-        </CartProvider>
+        <AuthProvider>
+            <CartProvider>
+            <div className="relative flex min-h-dvh flex-col">
+                <Header />
+                <main className="flex-1">{children}</main>
+                <Footer />
+            </div>
+            <Toaster />
+            </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );
