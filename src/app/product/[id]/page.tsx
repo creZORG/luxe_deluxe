@@ -13,6 +13,8 @@ import { toast } from '@/hooks/use-toast';
 import { Check, Star } from 'lucide-react';
 import ProductCard from '@/components/product-card';
 import { PremiumSkeleton } from '@/components/ui/premium-skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 type ProductPageProps = {
   params: {
@@ -46,7 +48,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   }, [params.id]);
 
 
-  const [selectedSize, setSelectedSize] = useState<{size: string, price: number} | null>(null);
+  const [selectedSize, setSelectedSize] = useState<{size: string, price: number, quantityAvailable: number} | null>(null);
 
   useEffect(() => {
     if (product && product.sizes && product.sizes.length > 0) {
@@ -138,29 +140,11 @@ export default function ProductPage({ params }: ProductPageProps) {
             <h1 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
               {product.name}
             </h1>
-            <div className="mt-4 flex items-center">
-                <div className="flex items-center">
-                    {[0, 1, 2, 3, 4].map((rating) => (
-                    <Star
-                        key={rating}
-                        className={cn(
-                        'h-5 w-5 flex-shrink-0',
-                        4 > rating ? 'text-yellow-400' : 'text-gray-300'
-                        )}
-                        fill="currentColor"
-                    />
-                    ))}
-                </div>
-                <p className="ml-2 text-sm text-muted-foreground">(138 reviews)</p>
-            </div>
-
+            
             {product.sizes && product.sizes.length > 0 && selectedSize ? (
               <>
                 <p className="mt-6 text-2xl font-semibold text-foreground">
                   KES {selectedSize.price.toFixed(2)}
-                </p>
-                <p className="mt-6 text-lg text-muted-foreground">
-                  {product.description}
                 </p>
 
                 {/* Size Selector */}
@@ -202,12 +186,12 @@ export default function ProductPage({ params }: ProductPageProps) {
                     Buy Now
                   </Button>
                 </div>
+                 <div className="mt-4 text-center text-sm text-muted-foreground">
+                    <p>Promo codes can be applied at checkout.</p>
+                </div>
               </>
             ) : (
               <div className="mt-8">
-                 <p className="mt-6 text-lg text-muted-foreground">
-                  {product.description}
-                </p>
                 <p className="mt-6 text-xl font-semibold text-foreground">
                   Pricing coming soon. Please contact us for details.
                 </p>
@@ -216,6 +200,35 @@ export default function ProductPage({ params }: ProductPageProps) {
           </div>
         </div>
       </div>
+
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+            <Tabs defaultValue="description" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="description">Description</TabsTrigger>
+                    <TabsTrigger value="reviews">Ratings & Reviews</TabsTrigger>
+                </TabsList>
+                <TabsContent value="description">
+                    <Card>
+                        <CardContent className="pt-6">
+                            <p className="text-lg text-muted-foreground">
+                                {product.description}
+                            </p>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="reviews">
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Customer Reviews</CardTitle>
+                            <CardDescription>See what others are saying about this product.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <p>Rating system coming soon!</p>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
+        </div>
 
        {/* Related Products */}
        {relatedProducts.length > 0 && (
