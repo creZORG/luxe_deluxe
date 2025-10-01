@@ -14,14 +14,16 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { getAllOrders, Order, OrderStatus } from '@/lib/admin';
+import { getAllOrders, Order, OrderStatus, getUserById } from '@/lib/admin';
+import type { User } from '@/hooks/use-auth';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { updateOrderStatus } from '@/app/actions';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, Truck } from 'lucide-react';
+import { Loader2, Truck, Eye } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Image from 'next/image';
 
 // Helper function to safely convert a Firestore Timestamp or a JS Date to a JS Date
 const toJavaScriptDate = (date: any): Date | null => {
@@ -30,6 +32,108 @@ const toJavaScriptDate = (date: any): Date | null => {
   if (date instanceof Date) return date; // It's already a JS Date
   return null; // Or handle as an error
 };
+
+function OrderDetailsModal({ order, open, onOpenChange }: { order: Order | null; open: boolean; onOpenChange: (open: boolean) => void; }) {
+    const [customer, setCustomer] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchCustomer = async () => {
+            if (order) {
+                setLoading(true);
+                const user = await getUserById(order.userId);
+                setCustomer(user);
+                setLoading(false);
+            }
+        };
+        fetchCustomer();
+    }, [order]);
+
+    if (!order) return null;
+
+    const orderDate = toJavaScriptDate(order.orderDate);
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>Order Details</DialogTitle>
+                    <DialogDescription>
+                        Full details for order #{order.reference}.
+                    </DialogDescription>
+                </DialogHeader>
+                {loading ? (
+                    <div className="flex items-center justify-center p-8">
+                        <Loader2 className="h-8 w-8 animate-spin" />
+                    </div>
+                ) : (
+                    <div className="grid gap-6 py-4">
+                        {/* Customer & Shipping Details */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Customer & Shipping</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {customer?.shippingAddress ? (
+                                    <>
+                                        <p><strong>Name:</strong> {customer.name}</p>
+                                        <p><strong>Email:</strong> {customer.email}</p>
+                                        <p><strong>Phone:</strong> {customer.shippingAddress.phone}</p>
+                                        <div className="text-sm border-t pt-4 mt-4">
+                                            <h4 className="font-semibold mb-2">Shipping Address</h4>
+                                            <p>{customer.shippingAddress.firstName} {customer.shippingAddress.lastName}</p>
+                                            <p>{customer.shippingAddress.address}</p>
+                                            <p>{customer.shippingAddress.city}, {customer.shippingAddress.county}</p>
+                                            {customer.shippingAddress.deliveryDescription && <p className="text-muted-foreground mt-2"><strong>Instructions:</strong> {customer.shippingAddress.deliveryDescription}</p>}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <p>Shipping address not available.</p>
+                                )}
+                            </CardContent>
+                        </Card>
+                        {/* Order Items */}
+                         <Card>
+                            <CardHeader>
+                                <CardTitle>Order Items</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Product</TableHead>
+                                            <TableHead>Size</TableHead>
+                                            <TableHead>Qty</TableHead>
+                                            <TableHead className="text-right">Total</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {order.items.map((item, index) => (
+                                            <TableRow key={index}>
+                                                <TableCell className="flex items-center gap-2">
+                                                    <Image src={item.imageId} alt={item.productName} width={40} height={40} className="rounded-md object-cover" />
+                                                    {item.productName}
+                                                </TableCell>
+                                                <TableCell>{item.size}</TableCell>
+                                                <TableCell>{item.quantity}</TableCell>
+                                                <TableCell className="text-right">KES {(item.price * item.quantity).toFixed(2)}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                         </Card>
+                    </div>
+                )}
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button type="button" variant="outline">Close</Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
 
 function UpdateStatusModal({ order, open, onOpenChange, onStatusUpdate }: { order: Order | null; open: boolean; onOpenChange: (open: boolean) => void; onStatusUpdate: () => void; }) {
     const [status, setStatus] = useState<OrderStatus>('Pending');
@@ -113,7 +217,8 @@ export default function OrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-    const [isModalOpen, setModalOpen] = useState(false);
+    const [isUpdateModalOpen, setUpdateModalOpen] = useState(false);
+    const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<OrderStatus | 'All'>('All');
 
     const fetchOrders = async () => {
@@ -134,7 +239,12 @@ export default function OrdersPage() {
 
     const handleUpdateClick = (order: Order) => {
         setSelectedOrder(order);
-        setModalOpen(true);
+        setUpdateModalOpen(true);
+    };
+    
+    const handleDetailsClick = (order: Order) => {
+        setSelectedOrder(order);
+        setDetailsModalOpen(true);
     };
 
     const statusCounts = useMemo(() => {
@@ -152,9 +262,14 @@ export default function OrdersPage() {
         <div>
             <UpdateStatusModal
                 order={selectedOrder}
-                open={isModalOpen}
-                onOpenChange={setModalOpen}
+                open={isUpdateModalOpen}
+                onOpenChange={setUpdateModalOpen}
                 onStatusUpdate={fetchOrders}
+            />
+             <OrderDetailsModal
+                order={selectedOrder}
+                open={isDetailsModalOpen}
+                onOpenChange={setDetailsModalOpen}
             />
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-3xl font-bold">Order Management</h1>
@@ -196,7 +311,11 @@ export default function OrdersPage() {
                                                 </TableCell>
                                                 <TableCell>KES {order.subtotal.toFixed(2)}</TableCell>
                                                 <TableCell><Badge>{order.status}</Badge></TableCell>
-                                                <TableCell>
+                                                <TableCell className="flex gap-2">
+                                                    <Button variant="outline" size="sm" onClick={() => handleDetailsClick(order)}>
+                                                        <Eye className="mr-2 h-4 w-4" />
+                                                        Details
+                                                    </Button>
                                                     <Button variant="outline" size="sm" onClick={() => handleUpdateClick(order)}>
                                                         <Truck className="mr-2 h-4 w-4" />
                                                         Update

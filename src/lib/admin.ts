@@ -1,7 +1,7 @@
 
 'use server';
 
-import { collection, getDocs, query, where, Timestamp, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, where, Timestamp, orderBy, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 import type { User } from '@/hooks/use-auth';
 import type { CartItem } from '@/hooks/use-cart';
@@ -35,6 +35,7 @@ export async function getAllUsers(): Promise<User[]> {
                 name: data.name,
                 email: data.email,
                 role: data.role,
+                shippingAddress: data.shippingAddress,
                 signupDate: signupDate,
             } as User & { signupDate: Timestamp };
         });
@@ -42,6 +43,30 @@ export async function getAllUsers(): Promise<User[]> {
     } catch (error) {
         console.error("Error fetching all users: ", error);
         return [];
+    }
+}
+
+export async function getUserById(userId: string): Promise<User | null> {
+    try {
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+            const data = userSnap.data();
+            const signupDate = data.signupDate instanceof Date ? Timestamp.fromDate(data.signupDate) : data.signupDate;
+            return {
+                uid: userSnap.id,
+                name: data.name,
+                email: data.email,
+                role: data.role,
+                shippingAddress: data.shippingAddress,
+                signupDate: signupDate,
+            } as User & { signupDate: Timestamp };
+        }
+        return null;
+    } catch (error) {
+        console.error(`Error fetching user ${userId}:`, error);
+        return null;
     }
 }
 
