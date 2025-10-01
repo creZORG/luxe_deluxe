@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -13,7 +14,6 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { MoreHorizontal, PlusCircle, Trash, BarChart2 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -61,19 +61,15 @@ function ProductList({ products, onEdit, onAdd, onToggleStatus }: { products: Pr
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {products.map((product) => {
-                    const image = PlaceHolderImages.find(
-                        (img) => img.id === product.imageId
-                    );
-                    return (
+                    {products.map((product) => (
                         <TableRow key={product.id}>
                         <TableCell className="hidden sm:table-cell">
-                            {image && (
+                            {product.imageId && (
                             <Image
                                 alt={product.name}
                                 className="aspect-square rounded-md object-cover"
                                 height="64"
-                                src={image.imageUrl}
+                                src={product.imageId} // Use URL directly
                                 width="64"
                             />
                             )}
@@ -113,8 +109,7 @@ function ProductList({ products, onEdit, onAdd, onToggleStatus }: { products: Pr
                             </DropdownMenu>
                         </TableCell>
                         </TableRow>
-                    );
-                    })}
+                    ))}
                 </TableBody>
                 </Table>
             </div>

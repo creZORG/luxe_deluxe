@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -23,7 +24,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import type { Product } from '@/lib/products';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import ImageUploader from './image-uploader';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Product name is required'),
@@ -53,15 +54,17 @@ export default function ProductForm({
         category: product.category,
         fragrance: product.fragrance,
         description: product.description,
-        imageId: product.imageId,
+        imageId: product.imageId, // imageId is now a URL
     } : {
       name: '',
       category: 'Shower Gels',
       fragrance: '',
       description: '',
-      imageId: '',
+      imageId: '', // imageId is now a URL
     },
   });
+
+  const [imageUrl, setImageUrl] = useState(product?.imageId || '');
 
   useEffect(() => {
     if (product) {
@@ -72,6 +75,7 @@ export default function ProductForm({
         description: product.description,
         imageId: product.imageId,
       });
+      setImageUrl(product.imageId);
     } else {
       form.reset({
         name: '',
@@ -79,9 +83,15 @@ export default function ProductForm({
         fragrance: '',
         description: '',
         imageId: '',
-      })
+      });
+      setImageUrl('');
     }
   }, [product, form]);
+
+  const handleImageUpload = (url: string) => {
+    setImageUrl(url);
+    form.setValue('imageId', url, { shouldValidate: true });
+  };
 
   const onSubmit: SubmitHandler<ProductFormValues> = (data) => {
     onSave(data);
@@ -91,85 +101,79 @@ export default function ProductForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Product Name</FormLabel>
-                <FormControl>
-                    <Input {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Category</FormLabel>
-                <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                >
-                    <FormControl>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        <SelectItem value="Shower Gels">Shower Gels</SelectItem>
-                        <SelectItem value="Fabric Softeners">
-                            Fabric Softeners
-                        </SelectItem>
-                        <SelectItem value="Dishwash">Dishwash</SelectItem>
-                    </SelectContent>
-                </Select>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
+            <div className="space-y-6">
+                <FormField
                 control={form.control}
-                name="fragrance"
+                name="name"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Fragrance</FormLabel>
+                    <FormLabel>Product Name</FormLabel>
                     <FormControl>
                         <Input {...field} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
                 )}
-            />
-             <FormField
+                />
+                <FormField
                 control={form.control}
-                name="imageId"
+                name="category"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Image</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormLabel>Category</FormLabel>
+                    <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                    >
                         <FormControl>
                         <SelectTrigger>
-                            <SelectValue placeholder="Select an image" />
+                            <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                        {PlaceHolderImages.map(img => (
-                            <SelectItem key={img.id} value={img.id}>{img.id}</SelectItem>
-                        ))}
+                            <SelectItem value="Shower Gels">Shower Gels</SelectItem>
+                            <SelectItem value="Fabric Softeners">
+                                Fabric Softeners
+                            </SelectItem>
+                            <SelectItem value="Dishwash">Dishwash</SelectItem>
                         </SelectContent>
                     </Select>
                     <FormMessage />
                     </FormItem>
                 )}
                 />
+                 <FormField
+                    control={form.control}
+                    name="fragrance"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Fragrance</FormLabel>
+                        <FormControl>
+                            <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
+            <FormField
+              control={form.control}
+              name="imageId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Product Image</FormLabel>
+                  <FormControl>
+                    <ImageUploader 
+                      currentImageUrl={imageUrl} 
+                      onUploadSuccess={handleImageUpload} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
         </div>
-
+        
         <FormField
           control={form.control}
           name="description"
@@ -194,3 +198,4 @@ export default function ProductForm({
     </Form>
   );
 }
+

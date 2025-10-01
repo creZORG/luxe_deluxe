@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -5,7 +6,6 @@ import { notFound, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import type { Product } from '@/lib/products';
 import { getProductById, getProducts } from '@/lib/products';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/hooks/use-cart';
@@ -114,7 +114,6 @@ export default function ProductPage({ params }: ProductPageProps) {
     );
   }
 
-  const image = PlaceHolderImages.find((img) => img.id === product.imageId);
 
   return (
     <div>
@@ -123,13 +122,12 @@ export default function ProductPage({ params }: ProductPageProps) {
           {/* Product Image */}
           <div className="aspect-square w-full lg:aspect-[3/4]">
             <div className="relative h-full w-full overflow-hidden rounded-lg shadow-lg">
-              {image && (
+              {product.imageId && (
                 <Image
-                  src={image.imageUrl}
+                  src={product.imageId}
                   alt={product.name}
                   fill
                   className="object-cover"
-                  data-ai-hint={image.imageHint}
                 />
               )}
             </div>

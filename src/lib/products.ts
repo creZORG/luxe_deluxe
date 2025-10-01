@@ -1,3 +1,4 @@
+
 'use server';
 
 import { collection, getDocs, doc, getDoc, query, where } from 'firebase/firestore';
@@ -10,7 +11,7 @@ export type Product = {
   category: 'Shower Gels' | 'Fabric Softeners' | 'Dishwash';
   fragrance: string;
   sizes: { size: string; price: number }[];
-  imageId: string;
+  imageId: string; // This is now a URL from Cloudinary
   description: string;
   status: 'active' | 'inactive';
 };

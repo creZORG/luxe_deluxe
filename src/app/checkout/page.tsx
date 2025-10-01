@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCart } from '@/hooks/use-cart';
@@ -5,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -144,16 +144,12 @@ export default function CheckoutPage() {
         <div className="lg:col-span-1">
           <h1 className="font-headline text-3xl font-bold">Order Summary</h1>
           <div className="mt-8 space-y-6">
-            {items.map((item) => {
-              const image = PlaceHolderImages.find(
-                (img) => img.id === item.product.imageId
-              );
-              return (
+            {items.map((item) => (
                 <div key={item.id} className="flex items-center gap-4">
                   <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border">
-                    {image && (
+                    {item.product.imageId && (
                       <Image
-                        src={image.imageUrl}
+                        src={item.product.imageId}
                         alt={item.product.name}
                         fill
                         className="object-cover"
@@ -171,8 +167,7 @@ export default function CheckoutPage() {
                     KES {(item.price * item.quantity).toFixed(2)}
                   </p>
                 </div>
-              );
-            })}
+            ))}
           </div>
           <Separator className="my-8" />
           <div className="space-y-4 text-lg">

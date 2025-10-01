@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -10,7 +11,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { Product } from '@/lib/products';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -25,7 +25,6 @@ type ProductCardProps = {
 };
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const image = PlaceHolderImages.find((img) => img.id === product.imageId);
   const [selectedSize, setSelectedSize] = useState(product.sizes.length > 0 ? product.sizes[0] : null);
   const { addItem } = useCart();
   const router = useRouter();
@@ -65,13 +64,12 @@ export default function ProductCard({ product }: ProductCardProps) {
       <CardHeader className="p-0">
         <Link href={`/product/${product.id}`} className="group block">
           <div className="relative aspect-[3/4] w-full overflow-hidden">
-            {image && (
+            {product.imageId && (
               <Image
-                src={image.imageUrl}
+                src={product.imageId}
                 alt={product.name}
                 fill
                 className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-105"
-                data-ai-hint={image.imageHint}
               />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />

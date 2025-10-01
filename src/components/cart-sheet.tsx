@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -12,7 +13,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/hooks/use-cart';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -37,16 +37,12 @@ export default function CartSheet({ open, onOpenChange }: CartSheetProps) {
         {items.length > 0 ? (
           <div className="flex-1 overflow-y-auto">
             <div className="flex flex-col gap-6">
-              {items.map((item) => {
-                const image = PlaceHolderImages.find(
-                  (img) => img.id === item.product.imageId
-                );
-                return (
+              {items.map((item) => (
                   <div key={item.id} className="flex items-start gap-4">
                     <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md">
-                      {image && (
+                      {item.product.imageId && (
                         <Image
-                          src={image.imageUrl}
+                          src={item.product.imageId}
                           alt={item.product.name}
                           fill
                           className="object-cover"
@@ -95,8 +91,7 @@ export default function CartSheet({ open, onOpenChange }: CartSheetProps) {
                         <Trash2 className="h-4 w-4" />
                       </Button>
                   </div>
-                );
-              })}
+                ))}
             </div>
           </div>
         ) : (
