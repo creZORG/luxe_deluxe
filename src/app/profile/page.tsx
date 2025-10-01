@@ -24,6 +24,13 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
+// Helper function to safely convert a Firestore Timestamp or a JS Date to a JS Date
+const toJavaScriptDate = (date: any): Date | null => {
+  if (!date) return null;
+  if (date.toDate) return date.toDate(); // It's a Firestore Timestamp
+  if (date instanceof Date) return date; // It's already a JS Date
+  return null; // Or handle as an error
+};
 
 const shippingSchema = z.object({
   phone: z.string().min(10, { message: 'A valid phone number is required.' }),
@@ -165,14 +172,16 @@ function OrderHistory() {
                                 {loading ? (
                                     <TableRow><TableCell colSpan={4} className="h-24 text-center">Loading orders...</TableCell></TableRow>
                                 ) : filteredOrders.length > 0 ? (
-                                    filteredOrders.map(order => (
+                                    filteredOrders.map(order => {
+                                        const orderDate = toJavaScriptDate(order.orderDate);
+                                        return (
                                         <TableRow key={order.id}>
                                             <TableCell className="font-medium">{order.reference}</TableCell>
-                                            <TableCell>{format(order.orderDate.toDate(), 'PPp')}</TableCell>
+                                            <TableCell>{orderDate ? format(orderDate, 'PPp') : 'N/A'}</TableCell>
                                             <TableCell>KES {order.subtotal.toFixed(2)}</TableCell>
                                             <TableCell><Badge>{order.status}</Badge></TableCell>
                                         </TableRow>
-                                    ))
+                                    )})
                                 ) : (
                                     <TableRow>
                                         <TableCell colSpan={4} className="h-24 text-center">No orders found for this status.</TableCell>
