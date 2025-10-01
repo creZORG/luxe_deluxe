@@ -111,10 +111,8 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       </Sidebar>
       <SidebarInset>
         <div className="flex items-center gap-2 p-2 lg:p-4">
-            <SidebarTrigger asChild>
-                <Button variant="ghost" size="icon">
-                    <LayoutDashboard />
-                </Button>
+            <SidebarTrigger>
+                <LayoutDashboard />
             </SidebarTrigger>
             <h2 className="text-xl font-semibold">Admin Panel</h2>
         </div>
