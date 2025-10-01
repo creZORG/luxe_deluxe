@@ -66,7 +66,7 @@ export async function processSuccessfulOrder(orderDetails: OrderDetails) {
         await sendNewOrderAdminNotification(newOrderData);
 
 
-        return { success: true };
+        return { success: true, orderId: newOrderRef.id };
     } catch (error) {
         console.error('Error processing successful order:', error);
         // We return success true here because the payment was successful.

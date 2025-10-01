@@ -76,10 +76,10 @@ export default function CheckoutPage() {
   }, [user, form]);
   
   useEffect(() => {
-    if (items.length === 0) {
+    if (items.length === 0 && !isPending) {
       router.push('/');
     }
-  }, [items, router]);
+  }, [items, router, isPending]);
 
   const paystackConfig = {
     reference: new Date().getTime().toString(),
@@ -115,7 +115,7 @@ export default function CheckoutPage() {
         });
 
         // Process the order
-        await processSuccessfulOrder({
+        const result = await processSuccessfulOrder({
             user: user,
             items,
             subtotal,
@@ -123,11 +123,13 @@ export default function CheckoutPage() {
         });
 
         toast({
-            title: 'Order Placed!',
-            description: 'Thank you for your purchase. A confirmation email has been sent.',
+            title: 'Payment Successful!',
+            description: 'Thank you for your purchase. Redirecting you now...',
         });
+
         clearCart();
-        router.push('/profile'); // Redirect to profile to see order status
+        
+        router.push(`/order-confirmation?ref=${reference.reference}&amount=${subtotal}`);
     });
   };
 
