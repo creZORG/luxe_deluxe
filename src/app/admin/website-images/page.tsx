@@ -18,7 +18,6 @@ import { Upload } from 'lucide-react';
 
 export default function WebsiteImagesPage() {
   const [images, setImages] = useState<ImagePlaceholder[]>(initialWebsiteImages);
-  const [newImageFile, setNewImageFile] = useState<File | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, imageId: string) => {
     const file = e.target.files?.[0];
