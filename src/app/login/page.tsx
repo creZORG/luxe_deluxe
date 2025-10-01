@@ -50,9 +50,7 @@ export default function LoginPage() {
             <CardDescription>
               Enter your credentials to access your account.
               <br />
-              <small className='text-xs text-muted-foreground'>admin: admin@luna.com / password</small>
-              <br />
-              <small className='text-xs text-muted-foreground'>customer: customer@luna.com / password</small>
+              <small className='text-xs text-muted-foreground'>Try: admin@luna.com / password123</small>
             </CardDescription>
           </CardHeader>
           <CardContent>

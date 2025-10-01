@@ -7,11 +7,21 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter }from 'next/navigation';
+import {
+    getAuth,
+    onAuthStateChanged,
+    signInWithEmailAndPassword,
+    signOut,
+    type User as FirebaseAuthUser,
+} from 'firebase/auth';
+import { app, db } from '@/lib/firebase/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
-// Mock user type
+// Main user type
 type User = {
-  email: string;
+  uid: string;
+  email: string | null;
   name: string;
   role: 'admin' | 'customer';
 };
@@ -34,31 +44,7 @@ export function useAuth() {
   return context;
 }
 
-// Mock authentication function
-const fakeAuth = {
-  login: async (email: string, pass: string): Promise<User | null> => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Hardcoded credentials for demonstration
-        if (email === 'admin@luna.com' && pass === 'password') {
-          resolve({ email: 'admin@luna.com', name: 'Admin', role: 'admin' });
-        } else if (email === 'customer@luna.com' && pass === 'password') {
-            resolve({ email: 'customer@luna.com', name: 'Customer', role: 'customer' });
-        }
-        else {
-          reject(new Error('Invalid credentials. Please try again.'));
-        }
-      }, 500);
-    });
-  },
-  logout: async (): Promise<void> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, 200);
-    });
-  },
-};
+const auth = getAuth(app);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -67,25 +53,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Check for a logged-in user in session storage
-    try {
-      const storedUser = sessionStorage.getItem('luna-user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // User is signed in, now get the user role from Firestore
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setUser({
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                name: userData.name || 'User',
+                role: userData.role || 'customer',
+            });
+        } else {
+            // This case might happen if user doc is not created on signup yet.
+            // For now, we'll assume a 'customer' role.
+            setUser({
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                name: 'New User',
+                role: 'customer',
+            });
+        }
+      } else {
+        // User is signed out
+        setUser(null);
       }
-    } catch (e) {
-        console.error('Could not parse user from session storage', e);
-    }
-    setLoading(false);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const login = async (email: string, pass: string) => {
     setLoading(true);
     setError(null);
     try {
-      const loggedInUser = await fakeAuth.login(email, pass);
-      setUser(loggedInUser);
-      sessionStorage.setItem('luna-user', JSON.stringify(loggedInUser));
+      await signInWithEmailAndPassword(auth, email, pass);
       setLoading(false);
       return true;
     } catch (err: any) {
@@ -97,11 +103,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     setLoading(true);
-    await fakeAuth.logout();
-    setUser(null);
-    sessionStorage.removeItem('luna-user');
-    setLoading(false);
-    router.push('/login');
+    try {
+        await signOut(auth);
+        router.push('/login');
+    } catch (e) {
+        console.error('Logout failed', e)
+    } finally {
+        setLoading(false);
+    }
   };
 
   const value = {

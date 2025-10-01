@@ -64,14 +64,6 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
-          {user?.role === 'admin' && (
-             <Link
-                href="/admin/dashboard"
-                className="font-medium text-primary transition-colors hover:text-primary/80"
-              >
-                Admin
-              </Link>
-          )}
         </nav>
 
         <Sheet open={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
