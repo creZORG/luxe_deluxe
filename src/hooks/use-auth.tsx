@@ -17,7 +17,7 @@ import {
   type User as FirebaseAuthUser,
 } from 'firebase/auth';
 import { app } from '@/lib/firebase/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 
 // Main user type
@@ -70,32 +70,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             role: userData.role || 'customer',
           });
         } else {
-          // This can happen if the user doc creation is pending,
-          // or for users created before the firestore logic.
-          // We can try to create it here as a fallback.
-          try {
-            const name = firebaseUser.displayName || 'New User';
-            await setDoc(doc(db, 'users', firebaseUser.uid), {
-              name,
-              email: firebaseUser.email,
-              role: 'customer',
-            });
-            setUser({
-              uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              name,
-              role: 'customer',
-            });
-          } catch (docError) {
-             console.error("Failed to create user document on-the-fly:", docError);
-             // Set basic user data even if doc creation fails
-             setUser({
-                uid: firebaseUser.uid,
-                email: firebaseUser.email,
-                name: firebaseUser.displayName || 'New User',
-                role: 'customer',
-             });
-          }
+           // The user document might not have been created yet,
+           // especially on the first signup.
+           // The signup function handles creation.
+           // We can set a temporary state here, or wait for the doc.
+           // For now, setting a basic user object.
+           setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            name: firebaseUser.displayName || 'New User',
+            role: 'customer',
+         });
         }
       } else {
         setUser(null);
@@ -131,13 +116,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
       const firebaseUser = userCredential.user;
 
-      // Create the user document in Firestore
-      await setDoc(doc(db, 'users', firebaseUser.uid), {
-        name: name,
-        email: email,
-        role: 'customer', // Default role
+      // Call the secure API route to create the user document in Firestore
+      const response = await fetch('/api/create-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid: firebaseUser.uid, name, email }),
       });
 
+      if (!response.ok) {
+          const errorBody = await response.json();
+          throw new Error(errorBody.message || 'Failed to create user document.');
+      }
+      
       // Optimistically set the user state
       setUser({
         uid: firebaseUser.uid,
