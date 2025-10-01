@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Inter } from 'next/font/google';
@@ -17,10 +16,9 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon, Settings, Users, Percent } from 'lucide-react';
+import { LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon, Settings, Users, Percent, UserCog } from 'lucide-react';
 import { useAuth, AuthProvider } from '@/hooks/use-auth';
 import { LunaLogo } from '@/components/icons';
-import { Button } from '@/components/ui/button';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -72,6 +70,17 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                 <Link href="/admin/dashboard">
                   <LayoutDashboard />
                   Dashboard
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith('/admin/users')}
+              >
+                <Link href="/admin/users">
+                  <UserCog />
+                  Users
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

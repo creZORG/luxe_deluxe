@@ -92,7 +92,7 @@ export default function CheckoutPage() {
 
     startTransition(async () => {
         await processSuccessfulOrder({
-            user: { name: user.name, email: user.email! },
+            user: user,
             items,
             subtotal,
             reference: reference.reference
