@@ -16,7 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from '@/hooks/use-toast';
 import { updateUserShippingAddress } from '../actions';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Star } from 'lucide-react';
 import { getOrdersByUserId } from '@/lib/admin';
 import type { Order, OrderStatus } from '@/lib/admin';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -212,17 +212,28 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto max-w-4xl py-12 space-y-8">
-      <div className="flex items-center gap-6">
-         <Avatar className="h-24 w-24">
-            <AvatarFallback className="text-4xl">
-                {getInitials(user.name)}
-            </AvatarFallback>
-         </Avatar>
-         <div>
-            <h1 className="text-3xl font-bold">{user.name}</h1>
-            <p className="text-lg text-muted-foreground">{user.email}</p>
-         </div>
-      </div>
+        <Card>
+            <CardContent className="pt-6">
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                    <Avatar className="h-24 w-24">
+                        <AvatarFallback className="text-4xl">
+                            {getInitials(user.name)}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 text-center sm:text-left">
+                        <h1 className="text-3xl font-bold">{user.name}</h1>
+                        <p className="text-lg text-muted-foreground">{user.email}</p>
+                    </div>
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-2">
+                             <Star className="h-8 w-8 text-yellow-400 fill-yellow-400" />
+                             <p className="text-4xl font-bold">{user.loyaltyPoints || 0}</p>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Loyalty Points</p>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
       
       <ShippingAddressForm />
 
@@ -231,5 +242,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    

@@ -44,6 +44,7 @@ export type User = {
   name: string;
   role: UserRole;
   shippingAddress?: ShippingAddress;
+  loyaltyPoints?: number;
 };
 
 type AuthContextType = {
@@ -90,15 +91,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             name: userData.name || 'User',
             role: userData.role || 'customer',
             shippingAddress: userData.shippingAddress,
+            loyaltyPoints: userData.loyaltyPoints || 0,
           };
           setUser(loadedUser);
         } else {
-           setUser({
+           const newUser: User = {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
             name: firebaseUser.displayName || 'New User',
             role: 'customer',
-         });
+            loyaltyPoints: 0,
+           };
+           setUser(newUser);
         }
       } else {
         setUser(null);
@@ -158,6 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: email,
         role: 'customer',
         signupDate: new Date(),
+        loyaltyPoints: 0,
       });
       
       return true;
@@ -217,5 +222,3 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </AuthContext.Provider>
   );
 }
-
-    

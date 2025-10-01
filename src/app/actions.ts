@@ -3,7 +3,7 @@
 
 import { sendOrderConfirmationEmail, sendNewOrderAdminNotification, sendOrderShippedEmail } from "@/lib/email";
 import type { CartItem } from "@/hooks/use-cart";
-import { collection, addDoc, Timestamp, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, Timestamp, doc, updateDoc, getDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 import type { User, ShippingAddress } from "@/hooks/use-auth";
 import type { Order } from "@/lib/admin";
@@ -43,16 +43,26 @@ export async function processSuccessfulOrder(orderDetails: OrderDetails) {
         const newOrder = await getDoc(newOrderRef);
         const newOrderData = { id: newOrder.id, ...newOrder.data() } as Order;
 
-        // 2. Send confirmation email to customer
+        // 2. Award loyalty points
+        const pointsEarned = Math.floor(subtotal / 10);
+        if (pointsEarned > 0) {
+            const userRef = doc(db, 'users', user.uid);
+            await updateDoc(userRef, {
+                loyaltyPoints: increment(pointsEarned)
+            });
+        }
+
+        // 3. Send confirmation email to customer
         await sendOrderConfirmationEmail({
             to: user.email!,
             name: user.name,
             items: items,
             subtotal: subtotal,
-            reference: reference
+            reference: reference,
+            pointsEarned: pointsEarned
         });
 
-        // 3. Send notification email to admin
+        // 4. Send notification email to admin
         await sendNewOrderAdminNotification(newOrderData);
 
 
@@ -104,5 +114,3 @@ export async function updateUserShippingAddress(userId: string, shippingAddress:
         return { success: false, error: 'Failed to update shipping address.' };
     }
 }
-
-    

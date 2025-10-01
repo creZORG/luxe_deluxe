@@ -41,9 +41,10 @@ type OrderConfirmationEmailProps = {
     items: CartItem[];
     subtotal: number;
     reference: string;
+    pointsEarned: number;
 };
 
-export async function sendOrderConfirmationEmail({ to, name, items, subtotal, reference }: OrderConfirmationEmailProps) {
+export async function sendOrderConfirmationEmail({ to, name, items, subtotal, reference, pointsEarned }: OrderConfirmationEmailProps) {
     const itemsHtml = items.map(item => `
         <tr>
             <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.product.name} (${item.size})</td>
@@ -51,6 +52,12 @@ export async function sendOrderConfirmationEmail({ to, name, items, subtotal, re
             <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">KES ${(item.price * item.quantity).toFixed(2)}</td>
         </tr>
     `).join('');
+
+    const pointsHtml = pointsEarned > 0 ? `
+        <div style="margin-top: 20px; padding: 15px; background-color: #f0f8ff; border-radius: 5px; text-align: center;">
+            <p style="margin: 0; font-size: 1.1em; color: #333;">✨ You've earned <strong>${pointsEarned} loyalty points</strong> with this order! ✨</p>
+        </div>
+    ` : '';
 
     const emailPayload = {
         from: { address: FROM_EMAIL, name: FROM_NAME },
@@ -87,6 +94,7 @@ export async function sendOrderConfirmationEmail({ to, name, items, subtotal, re
                         </tr>
                     </tfoot>
                 </table>
+                ${pointsHtml}
                  <p style="margin-top: 30px; font-size: 0.9em; color: #777;">We'll notify you again once your order has shipped.</p>
                 <p style="margin-top: 30px; font-size: 0.9em; color: #777;">Best,<br/>The Luna Team</p>
             </div>
