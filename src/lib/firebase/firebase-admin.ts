@@ -3,20 +3,23 @@ import * as admin from 'firebase-admin';
 
 let app: admin.app.App;
 
-// Check if the environment variable for a service account is set.
-// This is useful for local development. In a hosted environment like
-// Firebase Hosting or Cloud Run, Google provides the credentials automatically.
-if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-    console.log("Initializing Firebase Admin with service account.");
-} else {
-    console.log("Initializing Firebase Admin with Application Default Credentials.");
+const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+const projectId = process.env.FIREBASE_PROJECT_ID;
+
+if (!serviceAccountKey) {
+    throw new Error('The FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set. Please download your service account key from the Firebase console and set it in your .env file.');
+}
+if (!projectId) {
+    throw new Error('The FIREBASE_PROJECT_ID environment variable is not set.');
 }
 
 
 if (!admin.apps.length) {
     try {
+        const serviceAccount = JSON.parse(serviceAccountKey);
         app = admin.initializeApp({
-            credential: admin.credential.applicationDefault(),
+            credential: admin.credential.cert(serviceAccount),
+            projectId: projectId,
         });
     } catch (e) {
         console.error("Firebase admin initialization error", e);
