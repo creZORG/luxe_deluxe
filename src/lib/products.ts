@@ -2,7 +2,7 @@
 
 'use server';
 
-import { collection, getDocs, doc, getDoc, query, where, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, where, Timestamp, updateDoc, increment } from 'firebase/firestore';
 import { adminDb } from '@/lib/firebase/firebase-admin';
 import { unstable_noStore as noStore } from 'next/cache';
 import { getOrdersByUserId } from './admin';
@@ -104,18 +104,13 @@ export async function incrementProductView(productId: string) {
     noStore();
     try {
         const productRef = doc(adminDb, 'products', productId);
-        const productSnap = await getDoc(productRef);
-
-        if (productSnap.exists()) {
-            const currentViews = productSnap.data().viewCount || 0;
-            await productRef.update({
-                viewCount: currentViews + 1
-            });
-            return { success: true };
-        }
-        return { success: false, error: 'Product not found.' };
+        await updateDoc(productRef, {
+            viewCount: increment(1)
+        });
+        return { success: true };
     } catch (error) {
         console.error(`Error incrementing view for product ${productId}:`, error);
+        // Fail silently on the client, but log error.
         return { success: false, error: 'Failed to update view count.' };
     }
 }
