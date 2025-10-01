@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { products, type Product } from '@/lib/products';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -28,6 +28,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCart();
+  const router = useRouter();
 
   const image = PlaceHolderImages.find((img) => img.id === product.imageId);
   const relatedProducts = products
@@ -51,6 +52,17 @@ export default function ProductPage({ params }: ProductPageProps) {
         </div>
       ),
     });
+  };
+
+  const handleBuyNow = () => {
+    if (!selectedSize) return;
+    addItem({
+      product,
+      size: selectedSize.size,
+      price: selectedSize.price,
+      quantity,
+    });
+    router.push('/checkout');
   };
 
   return (
@@ -125,8 +137,17 @@ export default function ProductPage({ params }: ProductPageProps) {
                 onClick={handleAddToCart}
                 disabled={!selectedSize}
                 className="flex-1"
+                variant="outline"
               >
                 Add to Bag
+              </Button>
+              <Button
+                size="lg"
+                onClick={handleBuyNow}
+                disabled={!selectedSize}
+                className="flex-1"
+              >
+                Buy Now
               </Button>
             </div>
           </div>

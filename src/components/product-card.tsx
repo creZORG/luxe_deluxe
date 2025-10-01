@@ -18,6 +18,7 @@ import { toast } from '@/hooks/use-toast';
 import { Check } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 type ProductCardProps = {
   product: Product;
@@ -27,6 +28,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const image = PlaceHolderImages.find((img) => img.id === product.imageId);
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
   const { addItem } = useCart();
+  const router = useRouter();
 
   const handleAddToCart = () => {
     addItem({
@@ -44,6 +46,16 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       ),
     });
+  };
+
+  const handleBuyNow = () => {
+    addItem({
+      product,
+      size: selectedSize.size,
+      price: selectedSize.price,
+      quantity: 1,
+    });
+    router.push('/checkout');
   };
 
   return (
@@ -98,9 +110,14 @@ export default function ProductCard({ product }: ProductCardProps) {
           <p className="text-2xl font-bold text-foreground">
             ${selectedSize?.price.toFixed(2)}
           </p>
-          <Button onClick={handleAddToCart} className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={!selectedSize}>
-            Add to Bag
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={handleAddToCart} className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={!selectedSize}>
+              Add to Bag
+            </Button>
+            <Button onClick={handleBuyNow} disabled={!selectedSize} variant="outline">
+              Buy Now
+            </Button>
+          </div>
         </div>
       </CardFooter>
     </Card>
