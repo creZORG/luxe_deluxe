@@ -3,7 +3,6 @@
 import { useCart } from '@/hooks/use-cart';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -21,6 +20,8 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { usePaystackPayment } from 'react-paystack';
+import { useAuth } from '@/hooks/use-auth';
 
 const checkoutSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -30,23 +31,14 @@ const checkoutSchema = z.object({
   city: z.string().min(1, { message: 'City is required.' }),
   zipCode: z.string().min(1, { message: 'Zip code is required.' }),
   country: z.string().min(1, { message: 'Country is required.' }),
-  cardName: z.string().min(1, { message: 'Name on card is required.' }),
-  cardNumber: z.string().regex(/^\d{16}$/, { message: 'Card number must be 16 digits.' }),
-  cardExpiry: z.string().regex(/^(0[1-9]|1[0-2])\/\d{2}$/, { message: 'Invalid expiry date (MM/YY).'}),
-  cardCvc: z.string().regex(/^\d{3,4}$/, { message: 'CVC must be 3 or 4 digits.' }),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
+  const { user } = useAuth();
   const router = useRouter();
-
-  useEffect(() => {
-    if (items.length === 0) {
-      router.push('/');
-    }
-  }, [items, router]);
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -58,15 +50,31 @@ export default function CheckoutPage() {
       city: '',
       zipCode: '',
       country: '',
-      cardName: '',
-      cardNumber: '',
-      cardExpiry: '',
-      cardCvc: '',
     },
   });
 
-  const onSubmit: SubmitHandler<CheckoutFormValues> = (data) => {
-    console.log('Checkout data:', data);
+  useEffect(() => {
+    if (user && !form.getValues('email')) {
+      form.setValue('email', user.email || '');
+    }
+  }, [user, form]);
+  
+  useEffect(() => {
+    if (items.length === 0) {
+      router.push('/');
+    }
+  }, [items, router]);
+
+  const paystackConfig = {
+    reference: new Date().getTime().toString(),
+    email: form.getValues('email'),
+    amount: subtotal * 100, // Amount in kobo
+    publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
+  };
+
+  const initializePayment = usePaystackPayment(paystackConfig);
+
+  const onPaymentSuccess = () => {
     toast({
       title: 'Order Placed!',
       description: 'Thank you for your purchase. Your order is on its way.',
@@ -75,14 +83,33 @@ export default function CheckoutPage() {
     router.push('/');
   };
 
+  const onPaymentClose = () => {
+    console.log('Payment closed');
+  };
+
+  const onSubmit: SubmitHandler<CheckoutFormValues> = (data) => {
+    // Update paystack config with latest form data before initializing
+    const config = {
+      ...paystackConfig,
+      email: data.email,
+      metadata: {
+        name: `${data.firstName} ${data.lastName}`,
+        address: `${data.address}, ${data.city}, ${data.zipCode}, ${data.country}`,
+        cart: JSON.stringify(items.map(i => ({id: i.id, name: i.product.name, quantity: i.quantity})))
+      },
+    };
+    initializePayment({ onSuccess: onPaymentSuccess, onClose: onPaymentClose, config });
+  };
+  
+
   if (items.length === 0) {
     return (
-        <div className="container mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-2xl font-bold">Your cart is empty.</h1>
-            <Button asChild className="mt-4">
-                <a href="/">Continue Shopping</a>
-            </Button>
-        </div>
+      <div className="container mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8 text-center">
+        <h1 className="text-2xl font-bold">Your cart is empty.</h1>
+        <Button asChild className="mt-4">
+          <a href="/">Continue Shopping</a>
+        </Button>
+      </div>
     );
   }
 
@@ -108,8 +135,8 @@ export default function CheckoutPage() {
                         className="object-cover"
                       />
                     )}
-                     <div className="absolute top-0 right-0 -mt-2 -mr-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-                        {item.quantity}
+                    <div className="absolute top-0 right-0 -mt-2 -mr-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                      {item.quantity}
                     </div>
                   </div>
                   <div className="flex-1">
@@ -142,9 +169,14 @@ export default function CheckoutPage() {
 
         {/* Checkout Form */}
         <div className="lg:col-span-1">
-          <h1 className="font-headline text-3xl font-bold">Shipping & Payment</h1>
+          <h1 className="font-headline text-3xl font-bold">
+            Shipping Information
+          </h1>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-8">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="mt-8 space-y-8"
+            >
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold">Contact Information</h2>
                 <FormField
@@ -176,18 +208,15 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                 <h2 className="text-xl font-semibold">Payment Details</h2>
-                 <FormField control={form.control} name="cardName" render={({ field }) => ( <FormItem><FormLabel>Name on Card</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                 <FormField control={form.control} name="cardNumber" render={({ field }) => ( <FormItem><FormLabel>Card Number</FormLabel><FormControl><Input placeholder="•••• •••• •••• ••••" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <FormField control={form.control} name="cardExpiry" render={({ field }) => ( <FormItem><FormLabel>Expiration (MM/YY)</FormLabel><FormControl><Input placeholder="MM/YY" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                    <FormField control={form.control} name="cardCvc" render={({ field }) => ( <FormItem><FormLabel>CVC</FormLabel><FormControl><Input placeholder="•••" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                 </div>
-              </div>
-              
-              <Button type="submit" size="lg" className="w-full" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Processing...' : `Pay $${subtotal.toFixed(2)}`}
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={form.formState.isSubmitting}
+              >
+                {form.formState.isSubmitting
+                  ? 'Processing...'
+                  : `Pay $${subtotal.toFixed(2)}`}
               </Button>
             </form>
           </Form>
