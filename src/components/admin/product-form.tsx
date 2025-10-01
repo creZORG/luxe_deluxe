@@ -37,7 +37,7 @@ type ProductFormValues = z.infer<typeof productSchema>;
 
 type ProductFormProps = {
   product: Product | null;
-  onSave: (data: Product) => void;
+  onSave: (data: Omit<Product, 'id' | 'sizes'>) => void;
   onCancel: () => void;
 };
 
@@ -48,7 +48,13 @@ export default function ProductForm({
 }: ProductFormProps) {
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
-    defaultValues: product ? product : {
+    defaultValues: product ? {
+        name: product.name,
+        category: product.category,
+        fragrance: product.fragrance,
+        description: product.description,
+        imageId: product.imageId,
+    } : {
       name: '',
       category: 'Shower Gels',
       fragrance: '',
@@ -59,7 +65,13 @@ export default function ProductForm({
 
   useEffect(() => {
     if (product) {
-      form.reset(product);
+      form.reset({
+        name: product.name,
+        category: product.category,
+        fragrance: product.fragrance,
+        description: product.description,
+        imageId: product.imageId,
+      });
     } else {
       form.reset({
         name: '',
@@ -72,7 +84,7 @@ export default function ProductForm({
   }, [product, form]);
 
   const onSubmit: SubmitHandler<ProductFormValues> = (data) => {
-    onSave({ ...data, id: product?.id || '', sizes: product?.sizes || [] });
+    onSave(data);
   };
 
   return (

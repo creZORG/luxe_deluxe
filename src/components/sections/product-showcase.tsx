@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { products, Product } from '@/lib/products';
+import { useState, useMemo } from 'react';
+import type { Product } from '@/lib/products';
 import ProductCard from '@/components/product-card';
 import { Button } from '@/components/ui/button';
 
@@ -9,12 +9,16 @@ type Category = 'Shower Gels' | 'Fabric Softeners' | 'Dishwash';
 
 const categories: Category[] = ['Shower Gels', 'Fabric Softeners', 'Dishwash'];
 
-export default function ProductShowcase() {
+type ProductShowcaseProps = {
+  products: Product[];
+}
+
+export default function ProductShowcase({ products }: ProductShowcaseProps) {
   const [activeCategory, setActiveCategory] = useState<Category>('Shower Gels');
 
-  const filteredProducts = products.filter(
+  const filteredProducts = useMemo(() => products.filter(
     (product) => product.category === activeCategory
-  );
+  ), [products, activeCategory]);
 
   return (
     <section id="products" className="py-16 sm:py-24 bg-card">

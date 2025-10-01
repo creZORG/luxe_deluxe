@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { products as initialProducts, Product } from '@/lib/products';
+import { Product } from '@/lib/products';
 import {
   Table,
   TableBody,
@@ -23,13 +23,27 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import ProductForm from '@/components/admin/product-form';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useFieldArray, useForm } from 'react-hook-form';
+import { collection, getDocs, doc, setDoc, addDoc, deleteDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase/firebase';
+import { toast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
-function ProductList({ products, onEdit, onAdd, onSave }: { products: Product[], onEdit: (product: Product) => void, onAdd: () => void, onSave: (product: Product) => void }) {
+function ProductList({ products, onEdit, onAdd, onDelete }: { products: Product[], onEdit: (product: Product) => void, onAdd: () => void, onDelete: (product: Product) => void }) {
     return (
         <div>
             <div className="flex items-center justify-between mb-6">
@@ -79,23 +93,40 @@ function ProductList({ products, onEdit, onAdd, onSave }: { products: Product[],
                         <TableCell>{product.fragrance}</TableCell>
                         <TableCell className='max-w-xs truncate'>{product.description}</TableCell>
                         <TableCell>
-                            <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button
-                                aria-haspopup="true"
-                                size="icon"
-                                variant="ghost"
-                                >
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Toggle menu</span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => onEdit(product)}>Edit</DropdownMenuItem>
-                                <DropdownMenuItem>Delete</DropdownMenuItem>
-                            </DropdownMenuContent>
-                            </DropdownMenu>
+                            <AlertDialog>
+                                <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                    aria-haspopup="true"
+                                    size="icon"
+                                    variant="ghost"
+                                    >
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Toggle menu</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                    <DropdownMenuItem onClick={() => onEdit(product)}>Edit</DropdownMenuItem>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                </DropdownMenuContent>
+                                </DropdownMenu>
+                                <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete the product
+                                    &quot;{product.name}&quot;.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => onDelete(product)}>Delete</AlertDialogAction>
+                                </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
                         </TableCell>
                         </TableRow>
                     );
@@ -173,20 +204,65 @@ function ProductPricing({ products, onSave }: { products: Product[], onSave: (pr
 }
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isFormOpen, setFormOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  const handleProductSave = (product: Product) => {
-    if (selectedProduct) {
-      setProducts(
-        products.map((p) => (p.id === product.id ? product : p))
-      );
-    } else {
-      setProducts([...products, { ...product, id: `prod-${Date.now()}` }]);
+  const fetchProducts = async () => {
+    setLoading(true);
+    const productsCollection = collection(db, 'products');
+    const productSnapshot = await getDocs(productsCollection);
+    const productList = productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    setProducts(productList);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const handleProductSave = async (productData: Omit<Product, 'id'> & { id?: string }) => {
+    try {
+        const { id, ...dataToSave } = productData;
+        if (id) {
+            // Update existing product
+            const productRef = doc(db, 'products', id);
+            await setDoc(productRef, dataToSave, { merge: true });
+            toast({ title: "Success", description: "Product updated successfully." });
+        } else {
+            // Create new product
+            const productsCollection = collection(db, 'products');
+            await addDoc(productsCollection, dataToSave);
+            toast({ title: "Success", description: "Product created successfully." });
+        }
+        await fetchProducts(); // Refetch products to update the list
+    } catch (error) {
+        console.error("Error saving product: ", error);
+        toast({ title: "Error", description: "Failed to save product.", variant: "destructive" });
+    } finally {
+        setSelectedProduct(null);
+        setFormOpen(false);
     }
-    setSelectedProduct(null);
-    setFormOpen(false);
+  };
+
+  const handleDelete = async (product: Product) => {
+    if (!product.id) return;
+    try {
+      await deleteDoc(doc(db, "products", product.id));
+      toast({
+        title: "Product Deleted",
+        description: `"${product.name}" has been deleted.`,
+      });
+      fetchProducts(); // Refresh the list
+    } catch (error) {
+      console.error("Error deleting product: ", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete product.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEdit = (product: Product) => {
@@ -199,6 +275,10 @@ export default function ProductsPage() {
     setFormOpen(true);
   };
 
+  if (loading) {
+    return <div>Loading products...</div>
+  }
+
   return (
     <div>
         <Dialog open={isFormOpen} onOpenChange={setFormOpen}>
@@ -208,7 +288,7 @@ export default function ProductsPage() {
                 </DialogHeader>
                 <ProductForm
                     product={selectedProduct}
-                    onSave={handleProductSave}
+                    onSave={(data) => handleProductSave(selectedProduct ? { ...data, id: selectedProduct.id } : data)}
                     onCancel={() => { setSelectedProduct(null); setFormOpen(false); }}
                 />
             </DialogContent>
@@ -220,10 +300,10 @@ export default function ProductsPage() {
           <TabsTrigger value="pricing">Pricing</TabsTrigger>
         </TabsList>
         <TabsContent value="products">
-            <ProductList products={products} onEdit={handleEdit} onAdd={handleCreateNew} onSave={handleProductSave} />
+            <ProductList products={products} onEdit={handleEdit} onAdd={handleCreateNew} onDelete={handleDelete} />
         </TabsContent>
         <TabsContent value="pricing">
-            <ProductPricing products={products} onSave={handleProductSave} />
+            <ProductPricing products={products} onSave={(product) => handleProductSave(product)} />
         </TabsContent>
       </Tabs>
     </div>

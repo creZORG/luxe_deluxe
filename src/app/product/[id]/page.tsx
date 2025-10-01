@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { notFound, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { products, type Product } from '@/lib/products';
+import type { Product } from '@/lib/products';
+import { getProductById, getProducts } from '@/lib/products';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -11,6 +12,7 @@ import { useCart } from '@/hooks/use-cart';
 import { toast } from '@/hooks/use-toast';
 import { Check, Star } from 'lucide-react';
 import ProductCard from '@/components/product-card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type ProductPageProps = {
   params: {
@@ -19,24 +21,47 @@ type ProductPageProps = {
 };
 
 export default function ProductPage({ params }: ProductPageProps) {
-  const product = products.find((p) => p.id === params.id);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchProductData = async () => {
+      setLoading(true);
+      const fetchedProduct = await getProductById(params.id);
+      if (fetchedProduct) {
+        setProduct(fetchedProduct);
+        const allProducts = await getProducts();
+        const related = allProducts
+          .filter(p => p.category === fetchedProduct.category && p.id !== fetchedProduct.id)
+          .slice(0, 3);
+        setRelatedProducts(related);
+      } else {
+        notFound();
+      }
+      setLoading(false);
+    };
 
-  if (!product) {
-    notFound();
-  }
+    fetchProductData();
+  }, [params.id]);
 
-  const [selectedSize, setSelectedSize] = useState(product.sizes.length > 0 ? product.sizes[0] : null);
+
+  const [selectedSize, setSelectedSize] = useState<{size: string, price: number} | null>(null);
+
+  useEffect(() => {
+    if (product && product.sizes && product.sizes.length > 0) {
+      setSelectedSize(product.sizes[0]);
+    } else {
+      setSelectedSize(null);
+    }
+  }, [product]);
+
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCart();
   const router = useRouter();
 
-  const image = PlaceHolderImages.find((img) => img.id === product.imageId);
-  const relatedProducts = products
-    .filter((p) => p.category === product.category && p.id !== product.id)
-    .slice(0, 3);
-  
   const handleAddToCart = () => {
-    if (!selectedSize) return;
+    if (!product || !selectedSize) return;
     addItem({
       product,
       size: selectedSize.size,
@@ -55,7 +80,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   };
 
   const handleBuyNow = () => {
-    if (!selectedSize) return;
+    if (!product || !selectedSize) return;
     addItem({
       product,
       size: selectedSize.size,
@@ -64,6 +89,32 @@ export default function ProductPage({ params }: ProductPageProps) {
     });
     router.push('/checkout');
   };
+  
+  if (loading || !product) {
+    return (
+      <div className="container mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
+          <Skeleton className="aspect-square w-full lg:aspect-[3/4] rounded-lg" />
+          <div className="flex flex-col justify-center gap-4">
+            <Skeleton className="h-12 w-3/4" />
+            <Skeleton className="h-6 w-1/4" />
+            <Skeleton className="h-8 w-1/3" />
+            <Skeleton className="h-20 w-full" />
+            <div className="flex gap-4 mt-4">
+              <Skeleton className="h-12 w-1/2 rounded-full" />
+              <Skeleton className="h-12 w-1/2 rounded-full" />
+            </div>
+            <div className="flex gap-4 mt-4">
+                <Skeleton className="h-12 flex-1" />
+                <Skeleton className="h-12 flex-1" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const image = PlaceHolderImages.find((img) => img.id === product.imageId);
 
   return (
     <div>
@@ -105,7 +156,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 <p className="ml-2 text-sm text-muted-foreground">(138 reviews)</p>
             </div>
 
-            {product.sizes.length > 0 && selectedSize ? (
+            {product.sizes && product.sizes.length > 0 && selectedSize ? (
               <>
                 <p className="mt-6 text-2xl font-semibold text-foreground">
                   KES {selectedSize.price.toFixed(2)}
