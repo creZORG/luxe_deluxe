@@ -168,7 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
-        {loading ? <LoadingModal /> : children}
+        {loading && !pathname.startsWith('/admin') ? <LoadingModal /> : children}
     </AuthContext.Provider>
   );
 }
