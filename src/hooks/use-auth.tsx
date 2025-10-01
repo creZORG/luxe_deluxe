@@ -17,9 +17,8 @@ import {
   type User as FirebaseAuthUser,
 } from 'firebase/auth';
 import { app } from '@/lib/firebase/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
-import { userSignupFlow } from '@/ai/flows/user-signup-flow';
 
 // Main user type
 type User = {
@@ -71,11 +70,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             role: userData.role || 'customer',
           });
         } else {
-           // The user document might not have been created yet,
-           // especially on the first signup.
-           // The signup function handles creation.
-           // We can set a temporary state here, or wait for the doc.
-           // For now, setting a basic user object.
+           // This can happen on first signup if the doc creation is pending
+           // or if a user was created in Firebase Auth but not in Firestore.
+           // We'll set a temporary state and let the signup function handle creation.
            setUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email,
@@ -122,14 +119,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
       const firebaseUser = userCredential.user;
 
-      // Call the secure Genkit flow to create the user document
-      const result = await userSignupFlow({ uid: firebaseUser.uid, name, email });
-
-      if (!result.success) {
-          throw new Error(result.message || 'Failed to create user document.');
-      }
+      // Create user document in Firestore from the client.
+      // THIS IS INSECURE without proper Firestore rules.
+      await setDoc(doc(db, 'users', firebaseUser.uid), {
+        name: name,
+        email: email,
+        role: 'customer',
+        signupDate: new Date(),
+      });
       
-      // Optimistically set the user state
       setUser({
         uid: firebaseUser.uid,
         email: firebaseUser.email,
