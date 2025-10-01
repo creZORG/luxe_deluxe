@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { MoreHorizontal, PlusCircle, Trash, BarChart2, Loader2 } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Trash, BarChart2, Loader2, Edit } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +25,7 @@ import {
 import ProductForm from '@/components/admin/product-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { collection, doc, setDoc, addDoc } from 'firebase/firestore';
@@ -45,75 +45,48 @@ function ProductList({ products, onEdit, onAdd, onToggleStatus }: { products: Pr
                     <PlusCircle className="mr-2 h-4 w-4" /> Add New
                 </Button>
             </div>
-            <div className="rounded-lg border">
-                <Table>
-                <TableHeader>
-                    <TableRow>
-                    <TableHead className="hidden w-[100px] sm:table-cell">
-                        Image
-                    </TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Fragrance</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>
-                        <span className="sr-only">Actions</span>
-                    </TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {products.map((product) => (
-                        <TableRow key={product.id}>
-                        <TableCell className="hidden sm:table-cell">
-                            {product.imageId && (
-                            <Image
-                                alt={product.name}
-                                className="aspect-square rounded-md object-cover"
-                                height="64"
-                                src={product.imageId} // Use URL directly
-                                width="64"
-                            />
-                            )}
-                        </TableCell>
-                        <TableCell className="font-medium">{product.name}</TableCell>
-                        <TableCell>
-                            <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
-                                {product.status === 'active' ? 'Active' : 'Inactive'}
-                            </Badge>
-                        </TableCell>
-                        <TableCell>{product.category}</TableCell>
-                        <TableCell>{product.fragrance}</TableCell>
-                        <TableCell className='max-w-xs truncate'>{product.description}</TableCell>
-                        <TableCell>
-                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button
-                                aria-haspopup="true"
-                                size="icon"
-                                variant="ghost"
-                                >
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Toggle menu</span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => onEdit(product)}>Edit</DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <BarChart2 className="mr-2 h-4 w-4" />
-                                    Analytics
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => onToggleStatus(product)}>
-                                    {product.status === 'active' ? 'Deactivate' : 'Activate'}
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-                </Table>
+             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {products.map((product) => (
+                    <Card key={product.id} className="overflow-hidden">
+                        <CardHeader className="p-0">
+                            <div className="relative aspect-video w-full">
+                                {product.imageId ? (
+                                    <Image
+                                        alt={product.name}
+                                        className="object-cover"
+                                        layout="fill"
+                                        src={product.imageId}
+                                    />
+                                ) : (
+                                    <div className="flex h-full items-center justify-center bg-secondary">
+                                        <BarChart2 className="h-10 w-10 text-muted-foreground" />
+                                    </div>
+                                )}
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-4">
+                            <CardTitle className="text-lg truncate">{product.name}</CardTitle>
+                            <div className="mt-2">
+                                <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
+                                    {product.status === 'active' ? 'Active' : 'Inactive'}
+                                </Badge>
+                            </div>
+                        </CardContent>
+                        <CardFooter className="p-4 pt-0 flex justify-between">
+                             <Button variant="outline" size="sm" onClick={() => onEdit(product)}>
+                                <Edit className="mr-2 h-4 w-4"/>
+                                Edit
+                            </Button>
+                            <Button
+                                variant={product.status === 'active' ? 'destructive' : 'default'}
+                                size="sm"
+                                onClick={() => onToggleStatus(product)}
+                            >
+                                {product.status === 'active' ? 'Deactivate' : 'Activate'}
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                ))}
             </div>
         </div>
     );
