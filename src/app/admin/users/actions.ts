@@ -8,6 +8,11 @@ import type { UserRole } from "@/hooks/use-auth";
 import { sendRoleChangeEmail } from "@/lib/email";
 
 export async function updateUserRole(uid: string, email: string, name: string, newRole: UserRole) {
+    if (!adminDb) {
+        const errorMsg = 'Admin SDK not initialized. Cannot update user role.';
+        console.error(errorMsg);
+        return { success: false, error: errorMsg };
+    }
     if (!uid || !newRole) {
         return { success: false, error: 'User ID and new role are required.' };
     }

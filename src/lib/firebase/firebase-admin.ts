@@ -3,31 +3,27 @@ import * as admin from 'firebase-admin';
 
 let app: admin.app.App;
 
-// IMPORTANT: The service account key is hardcoded here to resolve a persistent environment variable issue.
-// For production, it's recommended to load this from a secure secret manager.
-const serviceAccountKeyB64 = "eyJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsICJwcm9qZWN0X2lkIjogInN0dWRpby0zMjI3MDEwODY1LWQ3YTAxIiwgInByaXZhdGVfa2V5X2lkIjogImY0ZTZkODc1YmFkZTY2NWJiNTY4MzczNGVkZDdkYjA1M2RiM2IwMTMiLCAicHJpdmF0ZV9rZXkiOiAiLS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tXG5NSUlFdXdJQkFEQU5CZ2txaGtpRzl3MEJBUUVGQUFTQ0JLVXdnZ1NoQWdFQUFvSUJBUUMwcWxUMlBhbWFJMjB2XG5zTnZTRUN2Rk5WRDBYVVJoc3FpZlRGa0d5blRnTWx3M2RiRXA1TjFnQ3dwUGJwN0xmRWR3TWx2Vis4SUFQTXJ0XG5KZmRYYnBJaDFUc3ZYb0crMmZUUkdFNHJVK2ZscU10SzJsdnZOeVZqMS9waXdRZ2ZrUDZ0MGtZWjA3OCtWU0hMXG5Vb0gzS051WjVmSnhneTJJR2N5cFk1bzVyQjUyZmlwaitJQWdPOHdmY0VNZzA2NGZEVVpZUGFmVG1mYnNoZ0s4XG56L2txZnByWkxyUDg2SnhtVzJPMTEvdGlZUGR4YzVNVjZTd0NBMmxWTnJ6YzIwTyt2M1hDWGU2SkVQdTJVNVBSXG5ySWhQeUk3bEF0R3JoL0J0STU1MmZKU3FvbFlHYklHMEFvMTVOc1Q0V1NwNFVUeTFNaFgwTzJyTXBnSEN0YVNpXG54RmJtRDlKTkFnTUJBQUVDZ2Y5bzIraHA0ZUdXV2JqaG5XTFNEWGwwQ2RYckc1dnFSSkdWSklkV2JFV2RpQmxvXG5BbkJxSTZ5U2J5dFQ1MmNyL3VGdGZoQlY2YS9oUFJvZVI0aXg4S0ljQTVKd1dJNDduRzc5SzUrTnVnNDVGSWtJXG4zcmJMQk1wTWt4UGlVa0ZTcHZtN2gyZDJMQkRFZnpybE9iTkNRblNpWFN4dkxOckpqZUpPREVEUjhxZmxFSXgrXG5LaU9jVjlTeTIrNjYzRU43Rll5M1BET3NpNFNVS1R1MmtiNWl0TWQ1SzJMZjNHNWVndEVCZnJDWUdGSEl0MU95XG5JZXdNTzFFa0UrUnhSTWlyaEZmcTIwajlqUVVRbVNxMWRsc09DL0ZYbENaTFoxc3FqT1BrRWU1djhMRWVPeVV1XG5SNER5T1FRd0wwRVZjNmo3OWEzOTJ0RFQzMlVQSktPNmd2cG9VdmtDZ1lFQStxcDhwR0xQSHg4S2o3QXhQcm01XG5DQVNYazJpY1Jkait5YmpyVnVtaE0xMlJJZy96dkUrSFI4OFRCNHprbVdrUjB5UUIvcEpHQUxSMGsxOGFUZkJvXG5oRTNDSTBuREJVMnRtanVNR0g4WDFvWlRHOEFDZXJ4djRhZEwxeXowTW5OS1JOM1dxMHIyT0sydEl4d1ZPdFF4XG5MK09lQkxiMWVGdDdLcmllcDRhelMzTUNnWUVBdUlLRGltL1BwdjdCaTg2OTdRUHplMWEzaWE0Wk9UZHh5dTVPXG5LWklnelJZYXY4Smx3OWowcWVoMTZPUUJXckRlcTI0d0R3Mmljd2wwVklWQlo5VWhFTFVGWUxtcmlmaC96NTdTXG53b2RiUWU3Z3VUT0tFSGRkQWZDbnppakQ3bkp0UjFvamlMMklsNFd3Rmt5MmJWY2hOQ1pNLzJFVHpjc1EyRTNWXG5OcTZRZXo4Q2dZRUE2Rjgzb09TQWdhY3pFVFVTMGNVMkJIck5VVGUrOXZsTWFSQm1DbklXb0Jsek81SnlMdlhDXG53UXp6NVNIMW9VbkgzbVlZK3pmNmNSallvTzJlNHZXbEowLzJVdVJFU0J4VWZSQUt0WUxNUkhETmhvSWZTa3g1XG5vMFNGaC9vQ2Z1cGx4U1dwcGEyZVI3aXBNazBNV1Rid1NpYkdERFRYcGpXWUhtaDdtMjNCdElVQ2dZQmYySXgwXG5VWGpSQ3UySHJySENlWmIxcnlwUWZ2dmpXUVhub0x0QnBRTWRCaXFIQ25qS3I5MElsaFVLRWNjU1VXYWFMdmNRXG5Hc2tVY1FqWkR3L1czRVA4NWN3Ulh1SFpIaGxteE40KzV3bGt5cTQ2QnFmbHZkdTJza2k1TXp2MGxjUm1tRkIxXG5LOS9VdGtHdWs5TUFJWTdDQkZOakpnNmZqS2tIZEFjYURMeEpDUUtCZ0Y4OXNISkZ1d2dtTElRS0RpL2R2NFRXXG51bXh5S0FZT1RVM0RUU0hPUFhTRklITnNITmM0VnI1Z2wxTXpGT1ZnRW9Fa0dSdE9YdTNsWStuZjk2N3FSU3lBXG5HZFgySThDVzdXSzRid1V3MTQwTDBHUk1lbzA2UE1oWklpMzZ1ZnptVUxmWGZYUHRjUkp3M1Fub2dwNkRJTndYXG5jMzVDL1dGczJEVFFGMXVoM0V3alxuLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLSIsICJjbGllbnRfZW1haWwiOiAiZmlyZWJhc2UtYWRtaW5zZGstZmJzdmNAc3R1ZGlvLTMyMjcwMTA4NjUtZDdhMDEuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCAiY2xpZW50X2lkIjogIjEwODk2ODgyODA0MTE2MzAxODM0MiIsICJhdXRoX3VyaSI6ICJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20vby9vYXV0aDIvYXV0aCIsICJ0b2tlbl91cmkiOiAiaHR0cHM6Ly9vYXV0aDIuZ29vZ2xlYXBpcy5jb20vdG9rZW4iLCAiYXV0aF9wcm92aWRlcl94NTA5X2NlcnRfdXJsIjogImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29tL29hdXRoMi92MS9jZXJ0cyIsICJjbGllbnRfeDUwOV9jZXJ0X3VybCI6ICJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9yb2JvdC92MS9tZXRhZGF0YS94NTA5L2ZpcmViYXNlLWFkbWluc2RrLWZic3ZjJTQwc3R1ZGlvLTMyMjcwMTA4NjUtZDdhMDEuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCAidW5pdmVyc2VfZG9tYWluIjogImdvb2dsZWFwaXMuY29tIn0=";
-const projectId = "studio-3227010865-d7a01";
-
+// This configuration is intended to be used in a server environment
+// that has Application Default Credentials configured.
+// For local development, you would set the GOOGLE_APPLICATION_CREDENTIALS
+// environment variable to point to your service account key file.
 if (!admin.apps.length) {
     try {
-        const serviceAccountJson = Buffer.from(serviceAccountKeyB64, 'base64').toString('utf8');
-        const serviceAccount = JSON.parse(serviceAccountJson);
-        
         app = admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-            projectId: projectId,
+            credential: admin.credential.applicationDefault(),
         });
     } catch (e) {
         console.error("Firebase admin initialization error", e);
-        // Throwing the error to make it visible, as a silent failure can cause issues downstream
-        throw new Error(`Firebase admin initialization failed: ${(e as Error).message}. Check if FIREBASE_SERVICE_ACCOUNT_KEY is a valid Base64-encoded service account JSON.`);
+        // We are not throwing an error here anymore to prevent app crashes at startup.
+        // Functions that depend on adminDb will fail gracefully if initialization fails.
+        console.log('Admin SDK not initialized. Server-side admin functions will not be available.');
     }
 } else {
     app = admin.app();
 }
 
-export const adminDb = admin.firestore();
-export const adminAuth = admin.auth();
+// These exports might be undefined if initialization fails.
+// Code using them should handle this possibility.
+export const adminDb = app ? admin.firestore() : undefined;
+export const adminAuth = app ? admin.auth() : undefined;
 export default app;
-
-    

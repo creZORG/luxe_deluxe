@@ -3,7 +3,7 @@
 'use server';
 
 import { collection, getDocs, doc, getDoc, query, where, Timestamp, updateDoc, increment } from 'firebase/firestore';
-import { adminDb } from '@/lib/firebase/firebase-admin';
+import { db } from '@/lib/firebase/firebase';
 import { unstable_noStore as noStore } from 'next/cache';
 import { getOrdersByUserId } from './admin';
 
@@ -27,7 +27,7 @@ export type Product = {
 export async function getAllProducts(): Promise<Product[]> {
     noStore();
     try {
-      const productsCollection = collection(adminDb, 'products');
+      const productsCollection = collection(db, 'products');
       const productSnapshot = await getDocs(productsCollection);
       console.log(`[Admin] Found ${productSnapshot.docs.length} total products in the collection.`);
 
@@ -62,7 +62,7 @@ export async function getAllProducts(): Promise<Product[]> {
 export async function getProducts(): Promise<Product[]> {
   noStore();
   try {
-    const productsCollection = collection(adminDb, 'products');
+    const productsCollection = collection(db, 'products');
     const q = query(productsCollection, where("status", "==", "active"));
     const productSnapshot = await getDocs(q);
 
@@ -80,7 +80,7 @@ export async function getProducts(): Promise<Product[]> {
 export async function getProductById(id: string): Promise<Product | null> {
   noStore();
   try {
-    const productRef = doc(adminDb, 'products', id);
+    const productRef = doc(db, 'products', id);
     const productSnap = await getDoc(productRef);
 
     if (productSnap.exists()) {
@@ -103,7 +103,7 @@ export async function getProductById(id: string): Promise<Product | null> {
 export async function incrementProductView(productId: string) {
     noStore();
     try {
-        const productRef = doc(adminDb, 'products', productId);
+        const productRef = doc(db, 'products', productId);
         await updateDoc(productRef, {
             viewCount: increment(1)
         });
@@ -121,7 +121,7 @@ export async function submitProductRating(productId: string, userId: string, rat
     }
     
     try {
-        const productRef = doc(adminDb, 'products', productId);
+        const productRef = doc(db, 'products', productId);
         const productSnap = await getDoc(productRef);
 
         if (!productSnap.exists()) {
@@ -154,7 +154,7 @@ export async function submitProductRating(productId: string, userId: string, rat
         const averageRating = totalRating / ratings.length;
         const reviewCount = ratings.length;
 
-        await productRef.update({
+        await updateDoc(productRef, {
             ratings: ratings,
             averageRating: averageRating,
             reviewCount: reviewCount
