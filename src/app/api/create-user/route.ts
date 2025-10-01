@@ -24,6 +24,7 @@ export async function POST(request: Request) {
             name,
             email,
             role: 'customer', // Default role for new users
+            signupDate: new Date(),
         });
         
         // After creating user, send welcome email
