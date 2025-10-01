@@ -30,6 +30,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Skeleton } from '../ui/skeleton';
 
 const navLinks = [
   { href: '/#products', label: 'Shop' },
@@ -41,7 +42,7 @@ export default function Header() {
   const [isCartOpen, setCartOpen] = useState(false);
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { totalItems } = useCart();
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
 
   const getInitials = (name = '') => {
     return name.split(' ').map(n => n[0]).join('');
@@ -95,7 +96,7 @@ export default function Header() {
                     {link.label}
                     </Link>
                 ))}
-                 {user?.role === 'admin' && (
+                 {user?.role === 'admin' && !loading && (
                     <Link
                         href="/admin/dashboard"
                         className="text-lg font-medium text-primary transition-colors hover:text-primary/80"
@@ -116,8 +117,10 @@ export default function Header() {
                 <span className="sr-only">Luna Home</span>
               </Link>
             </div>
-
-            {user ? (
+            
+            {loading ? (
+              <Skeleton className="h-8 w-8 rounded-full" />
+            ) : user ? (
                <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
