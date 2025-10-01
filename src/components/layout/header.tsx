@@ -33,7 +33,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Skeleton } from '../ui/skeleton';
 
 const navLinks = [
-  { href: '/#products', label: 'Shop' },
+  { href: '/shop', label: 'Shop' },
   { href: '/#about', label: 'About' },
   { href: '/#sustainability', label: 'Sustainability' },
 ];

@@ -27,7 +27,7 @@ export default function Footer() {
           </div>
 
           <div className="flex space-x-6 text-sm font-medium">
-            <Link href="/#products" className="text-muted-foreground transition-colors hover:text-foreground">Shop</Link>
+            <Link href="/shop" className="text-muted-foreground transition-colors hover:text-foreground">Shop</Link>
             <Link href="/#about" className="text-muted-foreground transition-colors hover:text-foreground">About</Link>
             <Link href="/#sustainability" className="text-muted-foreground transition-colors hover:text-foreground">Sustainability</Link>
           </div>
