@@ -71,7 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             role: userData.role || 'customer',
           });
         } else {
-          // This can happen if the user doc creation is pending
+          // This can happen if the user doc creation is pending,
+          // or for users created before the firestore logic.
+          // We can optimistically set a default state.
           setUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email,
