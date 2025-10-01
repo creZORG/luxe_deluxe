@@ -26,7 +26,7 @@ export default function HeroSection() {
         <p className="mt-4 max-w-2xl text-lg text-white/90 md:text-xl">
           Shower Gels, Fabric Softeners & Dishwash crafted with care, available in 40ml, 500ml, and 800ml.
         </p>
-        <Link href="#products" passHref>
+        <Link href="/shop" passHref>
           <Button
             size="lg"
             className="mt-8 rounded-full border border-white/20 bg-white/10 px-8 text-base font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
