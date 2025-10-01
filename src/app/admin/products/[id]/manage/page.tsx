@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition, useMemo } from 'react';
 import { notFound, useRouter } from 'next/navigation';
 import { Product, getProductById } from '@/lib/products';
-import { updateProduct, updateProductStatus } from '../../actions';
+import { updateProduct, updateProductStatus } from '../actions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
@@ -12,6 +12,7 @@ import { Loader2 } from 'lucide-react';
 import ProductForm from '@/components/admin/product-form';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { getAllOrders, Order } from '@/lib/admin';
 
 type ManageProductPageProps = {
     params: { id: string };
@@ -19,23 +20,50 @@ type ManageProductPageProps = {
 
 export default function ManageProductPage({ params }: ManageProductPageProps) {
     const [product, setProduct] = useState<Product | null>(null);
+    const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSaving, startSaving] = useTransition();
     const router = useRouter();
 
     useEffect(() => {
-        const fetchProduct = async () => {
+        const fetchData = async () => {
             setLoading(true);
-            const fetchedProduct = await getProductById(params.id);
+            const [fetchedProduct, allOrders] = await Promise.all([
+                getProductById(params.id),
+                getAllOrders()
+            ]);
+            
             if (fetchedProduct) {
                 setProduct(fetchedProduct);
+                setOrders(allOrders);
             } else {
                 notFound();
             }
             setLoading(false);
         };
-        fetchProduct();
+        fetchData();
     }, [params.id]);
+
+    const productAnalytics = useMemo(() => {
+        if (!product) return { totalOrders: 0, totalRevenue: 0 };
+
+        const relevantOrders = orders.filter(order => 
+            order.items.some(item => item.productId === product.id)
+        );
+
+        const totalRevenue = relevantOrders.reduce((sum, order) => {
+            const productItems = order.items.filter(item => item.productId === product.id);
+            const orderRevenue = productItems.reduce((itemSum, item) => itemSum + (item.price * item.quantity), 0);
+            return sum + orderRevenue;
+        }, 0);
+
+        return {
+            totalOrders: relevantOrders.length,
+            totalRevenue: totalRevenue,
+        };
+
+    }, [product, orders]);
+
 
     const handleProductSave = (productData: Omit<Product, 'id' | 'sizes' | 'status'>) => {
         if (!product) return;
@@ -96,23 +124,25 @@ export default function ManageProductPage({ params }: ManageProductPageProps) {
                 <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <div className="p-4 border rounded-lg">
                         <h3 className="text-sm font-medium text-muted-foreground">Views</h3>
-                        <p className="text-2xl font-bold">1,234</p>
+                        <p className="text-2xl font-bold">--</p>
+                        <p className="text-xs text-muted-foreground">View tracking not enabled</p>
                     </div>
                      <div className="p-4 border rounded-lg">
                         <h3 className="text-sm font-medium text-muted-foreground">Orders</h3>
-                        <p className="text-2xl font-bold">56</p>
+                        <p className="text-2xl font-bold">{productAnalytics.totalOrders}</p>
                     </div>
                      <div className="p-4 border rounded-lg">
                         <h3 className="text-sm font-medium text-muted-foreground">Total Revenue</h3>
-                        <p className="text-2xl font-bold">KES 78,900</p>
+                        <p className="text-2xl font-bold">KES {productAnalytics.totalRevenue.toFixed(2)}</p>
                     </div>
                      <div className="p-4 border rounded-lg">
                         <h3 className="text-sm font-medium text-muted-foreground">Conversion Rate</h3>
-                        <p className="text-2xl font-bold">4.5%</p>
+                        <p className="text-2xl font-bold">--</p>
+                         <p className="text-xs text-muted-foreground">Cannot be calculated</p>
                     </div>
                 </CardContent>
                 <CardContent>
-                    <p className="text-center text-muted-foreground">Detailed sales breakdown coming soon.</p>
+                    <p className="text-center text-muted-foreground">Sales breakdown by channel (influencer, sales team, etc.) coming soon.</p>
                 </CardContent>
             </Card>
 
