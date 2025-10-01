@@ -1,5 +1,5 @@
 
-import { websiteImages } from './website-images';
+import { siteContent } from './site-content';
 
 export type ImagePlaceholder = {
   id: string;
@@ -10,5 +10,5 @@ export type ImagePlaceholder = {
 
 // productImages are now managed via upload, so we only need website images here.
 export const PlaceHolderImages: ImagePlaceholder[] = [
-    ...websiteImages,
+    ...siteContent.images,
 ];

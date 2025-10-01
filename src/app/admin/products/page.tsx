@@ -32,6 +32,8 @@ import { collection, doc, setDoc, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { globalSettings } from '@/lib/global-settings';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 function ProductList({ products, onEdit, onAdd, onToggleStatus }: { products: Product[], onEdit: (product: Product) => void, onAdd: () => void, onToggleStatus: (product: Product) => void }) {
@@ -118,7 +120,7 @@ function ProductList({ products, onEdit, onAdd, onToggleStatus }: { products: Pr
 }
 
 function PricingForm({ product, onSave }: { product: Product, onSave: (product: Product) => void }) {
-    const { register, control, handleSubmit, formState: { errors } } = useForm({
+    const { register, control, handleSubmit, watch } = useForm({
         defaultValues: {
             sizes: product.sizes || [{ size: '', price: 0 }]
         }
@@ -131,6 +133,8 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (product: 
     const onSubmit = (data: { sizes: { size: string, price: number }[] }) => {
         onSave({ ...product, sizes: data.sizes.map(s => ({...s, price: Number(s.price)})) });
     };
+    
+    const availableSizes = globalSettings.productSizes;
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -140,7 +144,21 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (product: 
                         <div key={field.id} className="flex items-end gap-4">
                             <div className="flex-1">
                                 <label className="text-sm font-medium">Size</label>
-                                <Input {...register(`sizes.${index}.size` as const, { required: true })} placeholder="e.g. 400ml" />
+                                <Select 
+                                    onValueChange={(value) => {
+                                        const newSizes = watch('sizes');
+                                        newSizes[index].size = value;
+                                        form.setValue('sizes', newSizes);
+                                    }} 
+                                    value={field.size}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a size" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {availableSizes.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="flex-1">
                                 <label className="text-sm font-medium">Price (KES)</label>
@@ -152,7 +170,7 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (product: 
                         </div>
                     ))}
                 </div>
-                <Button type="button" variant="outline" className="mt-4" onClick={() => append({ size: '', price: 0 })}>Add Size</Button>
+                <Button type="button" variant="outline" className="mt-4" onClick={() => append({ size: availableSizes[0]?.name || '', price: 0 })}>Add Size</Button>
             </CardContent>
             <div className="flex justify-end p-6 pt-0">
                 <Button type="submit">Save Pricing</Button>

@@ -17,7 +17,7 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon } from 'lucide-react';
+import { LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon, Settings } from 'lucide-react';
 import { useAuth, AuthProvider } from '@/hooks/use-auth';
 import { LunaLogo } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -89,11 +89,11 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={pathname.startsWith('/admin/website-images')}
+                isActive={pathname.startsWith('/admin/site-content')}
               >
-                <Link href="/admin/website-images">
+                <Link href="/admin/site-content">
                   <ImageIcon />
-                  Website Images
+                  Site Content
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -102,6 +102,17 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                     <ShoppingCart />
                     Orders
                 </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith('/admin/global-settings')}
+              >
+                <Link href="/admin/global-settings">
+                  <Settings />
+                  Global Settings
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>

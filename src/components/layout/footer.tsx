@@ -1,8 +1,22 @@
+
 import Link from 'next/link';
-import { Instagram, Twitter, Youtube } from 'lucide-react';
+import { Instagram, Twitter, Youtube, Facebook, Linkedin, LucideIcon } from 'lucide-react';
 import { LunaLogo } from '@/components/icons';
+import { siteContent } from '@/lib/site-content';
+
+// Map platform names to Lucide icons
+const iconMap: { [key: string]: LucideIcon } = {
+  Instagram: Instagram,
+  Twitter: Twitter,
+  Youtube: Youtube,
+  Facebook: Facebook,
+  Linkedin: Linkedin,
+  // Add other platforms and their icons here
+};
 
 export default function Footer() {
+  const { contact, socialMedia } = siteContent;
+
   return (
     <footer className="bg-card text-card-foreground">
       <div className="container mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -19,23 +33,22 @@ export default function Footer() {
           </div>
 
           <div className="flex space-x-6">
-            <Link href="#" className="text-muted-foreground transition-colors hover:text-foreground">
-              <Instagram className="h-5 w-5" />
-              <span className="sr-only">Instagram</span>
-            </Link>
-            <Link href="#" className="text-muted-foreground transition-colors hover:text-foreground">
-              <Twitter className="h-5 w-5" />
-              <span className="sr-only">Twitter</span>
-            </Link>
-            <Link href="#" className="text-muted-foreground transition-colors hover:text-foreground">
-              <Youtube className="h-5 w-5" />
-              <span className="sr-only">YouTube</span>
-            </Link>
+            {socialMedia.map((social) => {
+              const Icon = iconMap[social.platform];
+              if (!Icon) return null;
+              return (
+                <Link key={social.platform} href={social.url} className="text-muted-foreground transition-colors hover:text-foreground">
+                  <Icon className="h-5 w-5" />
+                  <span className="sr-only">{social.platform}</span>
+                </Link>
+              );
+            })}
           </div>
         </div>
 
-        <div className="mt-8 border-t pt-6 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Luna. All rights reserved.
+        <div className="mt-8 border-t pt-6 text-center text-sm text-muted-foreground space-y-2">
+            <p>© {new Date().getFullYear()} Luna. All rights reserved.</p>
+            <p>{contact.email} | {contact.phone} | {contact.address}</p>
         </div>
       </div>
     </footer>
