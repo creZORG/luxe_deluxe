@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useForm, useFieldArray, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,6 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import type { Product } from '@/lib/products';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Trash } from 'lucide-react';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Product name is required'),
@@ -32,13 +31,6 @@ const productSchema = z.object({
   fragrance: z.string().min(1, 'Fragrance is required'),
   description: z.string().min(1, 'Description is required'),
   imageId: z.string().min(1, 'Image is required'),
-  sizes: z.array(z.object({
-      size: z.string().min(1, 'Size is required'),
-      price: z.preprocess(
-        (a) => parseFloat(z.string().parse(a)),
-        z.number().positive('Price must be positive')
-      ),
-    })).min(1, 'At least one size is required'),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -56,30 +48,18 @@ export default function ProductForm({
 }: ProductFormProps) {
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
-    defaultValues: product ? {
-        ...product,
-        sizes: product.sizes.map(s => ({...s, price: s.price as any}))
-    } : {
+    defaultValues: product ? product : {
       name: '',
       category: 'Shower Gels',
       fragrance: '',
       description: '',
       imageId: '',
-      sizes: [{ size: '', price: '' as any }],
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: 'sizes',
-  });
-  
   useEffect(() => {
     if (product) {
-      form.reset({
-        ...product,
-        sizes: product.sizes.map(s => ({...s, price: s.price as any}))
-      });
+      form.reset(product);
     } else {
       form.reset({
         name: '',
@@ -87,13 +67,12 @@ export default function ProductForm({
         fragrance: '',
         description: '',
         imageId: '',
-        sizes: [{ size: '', price: '' as any }],
       })
     }
   }, [product, form]);
 
   const onSubmit: SubmitHandler<ProductFormValues> = (data) => {
-    onSave({ ...data, id: product?.id || '' });
+    onSave({ ...data, id: product?.id || '', sizes: product?.sizes || [] });
   };
 
   return (
@@ -192,64 +171,6 @@ export default function ProductForm({
             </FormItem>
           )}
         />
-        
-        <div>
-          <FormLabel>Sizes & Prices</FormLabel>
-          <div className="mt-2 space-y-4">
-            {fields.map((field, index) => (
-              <div key={field.id} className="flex items-end gap-4">
-                <FormField
-                  control={form.control}
-                  name={`sizes.${index}.size`}
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                       <FormLabel className='text-xs'>Size</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. 400ml" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name={`sizes.${index}.price`}
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel className='text-xs'>Price</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" placeholder="e.g. 2500" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  onClick={() => remove(index)}
-                  disabled={fields.length <= 1}
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => append({ size: '', price: '' as any })}
-            >
-              Add Size
-            </Button>
-          </div>
-           {form.formState.errors.sizes && (
-              <p className="text-sm font-medium text-destructive mt-2">
-                {form.formState.errors.sizes.message}
-              </p>
-           )}
-        </div>
-
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline" onClick={onCancel}>

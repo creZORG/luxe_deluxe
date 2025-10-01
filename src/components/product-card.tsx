@@ -26,11 +26,12 @@ type ProductCardProps = {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const image = PlaceHolderImages.find((img) => img.id === product.imageId);
-  const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
+  const [selectedSize, setSelectedSize] = useState(product.sizes.length > 0 ? product.sizes[0] : null);
   const { addItem } = useCart();
   const router = useRouter();
 
   const handleAddToCart = () => {
+    if (!selectedSize) return;
     addItem({
         product,
         size: selectedSize.size,
@@ -49,6 +50,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   const handleBuyNow = () => {
+    if (!selectedSize) return;
     addItem({
       product,
       size: selectedSize.size,
@@ -84,41 +86,53 @@ export default function ProductCard({ product }: ProductCardProps) {
           {product.description}
         </CardDescription>
 
-        <div className="mt-4">
-          <p className="mb-2 text-sm font-medium text-foreground">Select Size:</p>
-          <div className="flex flex-wrap gap-2">
-            {product.sizes.map((size) => (
-              <Button
-                key={size.size}
-                variant={selectedSize?.size === size.size ? 'default' : 'outline'}
-                onClick={() => setSelectedSize(size)}
-                className={cn(
-                  'rounded-full px-4 py-2 text-sm',
-                  selectedSize?.size === size.size
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-card text-card-foreground'
-                )}
-              >
-                {size.size}
-              </Button>
-            ))}
-          </div>
-        </div>
+        {product.sizes.length > 0 && selectedSize ? (
+            <div className="mt-4">
+            <p className="mb-2 text-sm font-medium text-foreground">Select Size:</p>
+            <div className="flex flex-wrap gap-2">
+                {product.sizes.map((size) => (
+                <Button
+                    key={size.size}
+                    variant={selectedSize?.size === size.size ? 'default' : 'outline'}
+                    onClick={() => setSelectedSize(size)}
+                    className={cn(
+                    'rounded-full px-4 py-2 text-sm',
+                    selectedSize?.size === size.size
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-card text-card-foreground'
+                    )}
+                >
+                    {size.size}
+                </Button>
+                ))}
+            </div>
+            </div>
+        ) : (
+            <div className='mt-4'>
+                <p className="text-sm font-medium text-foreground">Pricing coming soon.</p>
+            </div>
+        )}
       </CardContent>
       <CardFooter className="p-6 pt-0">
-        <div className="flex w-full items-center justify-between">
-          <p className="text-2xl font-bold text-foreground">
-            KES {selectedSize?.price.toFixed(2)}
-          </p>
-          <div className="flex items-center gap-2">
-            <Button onClick={handleAddToCart} className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={!selectedSize}>
-              Add to Bag
-            </Button>
-            <Button onClick={handleBuyNow} disabled={!selectedSize} variant="outline">
-              Buy Now
-            </Button>
-          </div>
-        </div>
+        {product.sizes.length > 0 && selectedSize ? (
+            <div className="flex w-full items-center justify-between">
+            <p className="text-2xl font-bold text-foreground">
+                KES {selectedSize?.price.toFixed(2)}
+            </p>
+            <div className="flex items-center gap-2">
+                <Button onClick={handleAddToCart} className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={!selectedSize}>
+                Add to Bag
+                </Button>
+                <Button onClick={handleBuyNow} disabled={!selectedSize} variant="outline">
+                Buy Now
+                </Button>
+            </div>
+            </div>
+        ): (
+            <Link href={`/product/${product.id}`} className='w-full'>
+                <Button variant="outline" className='w-full'>View Details</Button>
+            </Link>
+        )}
       </CardFooter>
     </Card>
   );

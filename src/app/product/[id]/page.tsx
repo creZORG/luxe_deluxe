@@ -25,7 +25,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
+  const [selectedSize, setSelectedSize] = useState(product.sizes.length > 0 ? product.sizes[0] : null);
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCart();
   const router = useRouter();
@@ -104,52 +104,66 @@ export default function ProductPage({ params }: ProductPageProps) {
                 </div>
                 <p className="ml-2 text-sm text-muted-foreground">(138 reviews)</p>
             </div>
-            <p className="mt-6 text-2xl font-semibold text-foreground">
-              KES {selectedSize?.price.toFixed(2)}
-            </p>
-            <p className="mt-6 text-lg text-muted-foreground">
-              {product.description}
-            </p>
 
-            {/* Size Selector */}
-            <div className="mt-8">
-              <h2 className="text-lg font-semibold text-foreground">
-                Select Size
-              </h2>
-              <div className="mt-4 flex flex-wrap gap-3">
-                {product.sizes.map((size) => (
+            {product.sizes.length > 0 && selectedSize ? (
+              <>
+                <p className="mt-6 text-2xl font-semibold text-foreground">
+                  KES {selectedSize.price.toFixed(2)}
+                </p>
+                <p className="mt-6 text-lg text-muted-foreground">
+                  {product.description}
+                </p>
+
+                {/* Size Selector */}
+                <div className="mt-8">
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Select Size
+                  </h2>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {product.sizes.map((size) => (
+                      <Button
+                        key={size.size}
+                        variant={selectedSize?.size === size.size ? 'default' : 'outline'}
+                        onClick={() => setSelectedSize(size)}
+                        className="min-w-[80px] rounded-full"
+                      >
+                        {size.size}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Add to Cart */}
+                <div className="mt-8 flex gap-4">
                   <Button
-                    key={size.size}
-                    variant={selectedSize?.size === size.size ? 'default' : 'outline'}
-                    onClick={() => setSelectedSize(size)}
-                    className="min-w-[80px] rounded-full"
+                    size="lg"
+                    onClick={handleAddToCart}
+                    disabled={!selectedSize}
+                    className="flex-1"
+                    variant="outline"
                   >
-                    {size.size}
+                    Add to Bag
                   </Button>
-                ))}
+                  <Button
+                    size="lg"
+                    onClick={handleBuyNow}
+                    disabled={!selectedSize}
+                    className="flex-1"
+                  >
+                    Buy Now
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="mt-8">
+                 <p className="mt-6 text-lg text-muted-foreground">
+                  {product.description}
+                </p>
+                <p className="mt-6 text-xl font-semibold text-foreground">
+                  Pricing coming soon. Please contact us for details.
+                </p>
               </div>
-            </div>
-
-            {/* Add to Cart */}
-            <div className="mt-8 flex gap-4">
-              <Button
-                size="lg"
-                onClick={handleAddToCart}
-                disabled={!selectedSize}
-                className="flex-1"
-                variant="outline"
-              >
-                Add to Bag
-              </Button>
-              <Button
-                size="lg"
-                onClick={handleBuyNow}
-                disabled={!selectedSize}
-                className="flex-1"
-              >
-                Buy Now
-              </Button>
-            </div>
+            )}
           </div>
         </div>
       </div>
