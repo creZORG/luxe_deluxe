@@ -11,6 +11,10 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { useCart } from '@/hooks/use-cart';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Minus, Plus, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 
 type CartSheetProps = {
   open: boolean;
@@ -18,27 +22,7 @@ type CartSheetProps = {
 };
 
 export default function CartSheet({ open, onOpenChange }: CartSheetProps) {
-  // Mock data for cart items
-  const cartItems = [
-    {
-      id: 1,
-      name: 'Calming Lavender Shower Gel',
-      size: '500ml',
-      price: 24.99,
-      quantity: 1,
-      image: 'https://picsum.photos/seed/101/100/100',
-    },
-    {
-      id: 2,
-      name: 'Soft Cotton Fabric Softener',
-      size: '800ml',
-      price: 32.99,
-      quantity: 1,
-      image: 'https://picsum.photos/seed/201/100/100',
-    },
-  ];
-
-  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const { items, removeItem, updateItemQuantity, subtotal } = useCart();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -50,29 +34,69 @@ export default function CartSheet({ open, onOpenChange }: CartSheetProps) {
           </SheetDescription>
         </SheetHeader>
         <Separator className="my-4 bg-primary-foreground/20" />
-        {cartItems.length > 0 ? (
+        {items.length > 0 ? (
           <div className="flex-1 overflow-y-auto">
             <div className="flex flex-col gap-6">
-              {cartItems.map((item) => (
-                <div key={item.id} className="flex items-center gap-4">
-                  <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md">
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium">{item.name}</h3>
-                    <p className="text-sm text-primary-foreground/70">{item.size}</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <p className="text-sm">Qty: {item.quantity}</p>
-                      <p className="font-medium">${item.price.toFixed(2)}</p>
+              {items.map((item) => {
+                const image = PlaceHolderImages.find(
+                  (img) => img.id === item.product.imageId
+                );
+                return (
+                  <div key={item.id} className="flex items-start gap-4">
+                    <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md">
+                      {image && (
+                        <Image
+                          src={image.imageUrl}
+                          alt={item.product.name}
+                          fill
+                          className="object-cover"
+                        />
+                      )}
                     </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium">{item.product.name}</h3>
+                      <p className="text-sm text-primary-foreground/70">
+                        {item.size}
+                      </p>
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                            onClick={() =>
+                              updateItemQuantity(item.id, item.quantity - 1)
+                            }
+                            disabled={item.quantity <= 1}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <span className="w-6 text-center">{item.quantity}</span>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                            onClick={() =>
+                              updateItemQuantity(item.id, item.quantity + 1)
+                            }
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <p className="font-medium">${item.price.toFixed(2)}</p>
+                      </div>
+                    </div>
+                     <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                        onClick={() => removeItem(item.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ) : (
@@ -80,18 +104,29 @@ export default function CartSheet({ open, onOpenChange }: CartSheetProps) {
             <p className="text-primary-foreground/70">Your bag is empty.</p>
           </div>
         )}
-        <Separator className="my-4 bg-primary-foreground/20" />
-        <SheetFooter className="mt-auto">
-            <div className="w-full space-y-4">
-                <div className="flex justify-between font-medium">
-                    <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
-                </div>
-                <Button size="lg" className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90">
-                    Checkout
-                </Button>
-            </div>
-        </SheetFooter>
+        {items.length > 0 && (
+            <>
+                <Separator className="my-4 bg-primary-foreground/20" />
+                <SheetFooter className="mt-auto">
+                    <div className="w-full space-y-4">
+                        <div className="flex justify-between font-medium">
+                            <span>Subtotal</span>
+                            <span>${subtotal.toFixed(2)}</span>
+                        </div>
+                        <Button
+                          size="lg"
+                          asChild
+                          className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+                          onClick={() => onOpenChange(false)}
+                        >
+                          <Link href="/checkout">
+                            Checkout
+                          </Link>
+                        </Button>
+                    </div>
+                </SheetFooter>
+            </>
+        )}
       </SheetContent>
     </Sheet>
   );

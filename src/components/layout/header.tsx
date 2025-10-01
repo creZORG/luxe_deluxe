@@ -14,17 +14,18 @@ import {
 import { LunaLogo } from '@/components/icons';
 import CartSheet from '@/components/cart-sheet';
 import { useState } from 'react';
+import { useCart } from '@/hooks/use-cart';
 
 const navLinks = [
-  { href: '#products', label: 'Shop' },
-  { href: '#about', label: 'About' },
-  { href: '#contact', label: 'Contact' },
-  { href: '#sustainability', label: 'Sustainability' },
+  { href: '/#products', label: 'Shop' },
+  { href: '/#about', label: 'About' },
+  { href: '/#sustainability', label: 'Sustainability' },
 ];
 
 export default function Header() {
   const [isCartOpen, setCartOpen] = useState(false);
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { totalItems } = useCart();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -79,19 +80,25 @@ export default function Header() {
           </SheetContent>
         </Sheet>
         
-        <div className="flex flex-1 items-center justify-end space-x-4">
+        <div className="flex flex-1 items-center justify-end space-x-2">
             <div className="md:hidden">
               <Link href="/">
                 <LunaLogo className="text-xl"/>
                 <span className="sr-only">Luna Home</span>
               </Link>
             </div>
-            <CartSheet open={isCartOpen} onOpenChange={setCartOpen}>
-                <Button variant="ghost" size="icon" onClick={() => setCartOpen(true)}>
-                    <ShoppingCart className="h-5 w-5" />
-                    <span className="sr-only">Open cart</span>
-                </Button>
-            </CartSheet>
+            <div className="relative">
+              <Button variant="ghost" size="icon" onClick={() => setCartOpen(true)}>
+                  <ShoppingCart className="h-5 w-5" />
+                  <span className="sr-only">Open cart</span>
+              </Button>
+              {totalItems > 0 && (
+                <div className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                  {totalItems}
+                </div>
+              )}
+            </div>
+            <CartSheet open={isCartOpen} onOpenChange={setCartOpen} />
         </div>
       </div>
     </header>

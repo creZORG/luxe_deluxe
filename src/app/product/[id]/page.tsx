@@ -1,0 +1,153 @@
+'use client';
+
+import { useState } from 'react';
+import { notFound } from 'next/navigation';
+import Image from 'next/image';
+import { products, type Product } from '@/lib/products';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { useCart } from '@/hooks/use-cart';
+import { toast } from '@/hooks/use-toast';
+import { Check, Star } from 'lucide-react';
+import ProductCard from '@/components/product-card';
+
+type ProductPageProps = {
+  params: {
+    id: string;
+  };
+};
+
+export default function ProductPage({ params }: ProductPageProps) {
+  const product = products.find((p) => p.id === params.id);
+
+  if (!product) {
+    notFound();
+  }
+
+  const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
+  const [quantity, setQuantity] = useState(1);
+  const { addItem } = useCart();
+
+  const image = PlaceHolderImages.find((img) => img.id === product.imageId);
+  const relatedProducts = products
+    .filter((p) => p.category === product.category && p.id !== product.id)
+    .slice(0, 3);
+  
+  const handleAddToCart = () => {
+    if (!selectedSize) return;
+    addItem({
+      product,
+      size: selectedSize.size,
+      price: selectedSize.price,
+      quantity,
+    });
+    toast({
+      title: 'Added to Bag',
+      description: `${quantity} x ${product.name} (${selectedSize.size}) added.`,
+      action: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white">
+          <Check className="h-4 w-4" />
+        </div>
+      ),
+    });
+  };
+
+  return (
+    <div>
+      <div className="container mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
+          {/* Product Image */}
+          <div className="aspect-square w-full lg:aspect-[3/4]">
+            <div className="relative h-full w-full overflow-hidden rounded-lg shadow-lg">
+              {image && (
+                <Image
+                  src={image.imageUrl}
+                  alt={product.name}
+                  fill
+                  className="object-cover"
+                  data-ai-hint={image.imageHint}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Product Details */}
+          <div className="flex flex-col justify-center">
+            <h1 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+              {product.name}
+            </h1>
+            <div className="mt-4 flex items-center">
+                <div className="flex items-center">
+                    {[0, 1, 2, 3, 4].map((rating) => (
+                    <Star
+                        key={rating}
+                        className={cn(
+                        'h-5 w-5 flex-shrink-0',
+                        4 > rating ? 'text-yellow-400' : 'text-gray-300'
+                        )}
+                        fill="currentColor"
+                    />
+                    ))}
+                </div>
+                <p className="ml-2 text-sm text-muted-foreground">(138 reviews)</p>
+            </div>
+            <p className="mt-6 text-2xl font-semibold text-foreground">
+              ${selectedSize?.price.toFixed(2)}
+            </p>
+            <p className="mt-6 text-lg text-muted-foreground">
+              {product.description}
+            </p>
+
+            {/* Size Selector */}
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold text-foreground">
+                Select Size
+              </h2>
+              <div className="mt-4 flex flex-wrap gap-3">
+                {product.sizes.map((size) => (
+                  <Button
+                    key={size.size}
+                    variant={selectedSize?.size === size.size ? 'default' : 'outline'}
+                    onClick={() => setSelectedSize(size)}
+                    className="min-w-[80px] rounded-full"
+                  >
+                    {size.size}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Add to Cart */}
+            <div className="mt-8 flex gap-4">
+              <Button
+                size="lg"
+                onClick={handleAddToCart}
+                disabled={!selectedSize}
+                className="flex-1"
+              >
+                Add to Bag
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+       {/* Related Products */}
+       {relatedProducts.length > 0 && (
+          <div className="bg-card py-16 sm:py-24">
+            <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <h2 className="font-headline text-3xl font-bold tracking-tight text-center text-foreground sm:text-4xl">
+                    You Might Also Like
+                </h2>
+                <div className="mt-12 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
+                    {relatedProducts.map((p) => (
+                        <ProductCard key={p.id} product={p} />
+                    ))}
+                </div>
+            </div>
+          </div>
+       )}
+    </div>
+  );
+}
