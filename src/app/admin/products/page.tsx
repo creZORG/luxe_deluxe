@@ -4,36 +4,21 @@
 import { useState, useEffect, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Product, getAllProducts } from '@/lib/products';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { MoreHorizontal, PlusCircle, Trash, BarChart2, Loader2, Edit } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { PlusCircle, BarChart2, Loader2, Edit } from 'lucide-react';
 import ProductForm from '@/components/admin/product-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { collection, doc, setDoc, addDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 import { toast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import { globalSettings } from '@/lib/global-settings';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { createProduct, updateProduct, updateProductStatus, updateProductPricing } from './actions';
+import { Badge } from '@/components/ui/badge';
 
 
 function ProductList({ products, onEdit, onAdd, onToggleStatus }: { products: Product[], onEdit: (product: Product) => void, onAdd: () => void, onToggleStatus: (product: Product) => void }) {
@@ -92,10 +77,10 @@ function ProductList({ products, onEdit, onAdd, onToggleStatus }: { products: Pr
     );
 }
 
-function PricingForm({ product, onSave }: { product: Product, onSave: (product: Product) => void }) {
+function PricingForm({ product, onSave }: { product: Product, onSave: (productId: string, sizes: any[]) => void }) {
     const { register, control, handleSubmit, watch, setValue } = useForm({
         defaultValues: {
-            sizes: product.sizes || [{ size: '', price: 0, quantity: 0 }]
+            sizes: product.sizes && product.sizes.length > 0 ? product.sizes : [{ size: '', price: 0, quantity: 0 }]
         }
     });
     const { fields, append, remove } = useFieldArray({
@@ -106,7 +91,7 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (product: 
 
     const onSubmit = (data: { sizes: { size: string, price: number, quantity: number }[] }) => {
         startTransition(() => {
-            onSave({ ...product, sizes: data.sizes.map(s => ({...s, price: Number(s.price), quantity: Number(s.quantity) })) });
+            onSave(product.id, data.sizes.map(s => ({...s, price: Number(s.price), quantity: Number(s.quantity) })));
         });
     };
     
@@ -121,12 +106,8 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (product: 
                             <div className="md:col-span-2">
                                 <label className="text-sm font-medium">Size</label>
                                 <Select 
-                                    onValueChange={(value) => {
-                                        const currentSizes = watch('sizes');
-                                        currentSizes[index].size = value;
-                                        setValue('sizes', currentSizes);
-                                    }} 
-                                    value={field.size}
+                                    onValueChange={(value) => setValue(`sizes.${index}.size`, value)} 
+                                    value={watch(`sizes.${index}.size`)}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a size" />
@@ -144,9 +125,6 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (product: 
                                 <label className="text-sm font-medium">Quantity</label>
                                 <Input {...register(`sizes.${index}.quantity` as const, { required: true, valueAsNumber: true })} type="number" placeholder="e.g. 100" />
                             </div>
-                            <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} disabled={fields.length <= 1}>
-                                <Trash className="h-4 w-4" />
-                            </Button>
                         </div>
                     ))}
                 </div>
@@ -162,7 +140,7 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (product: 
     );
 }
 
-function ProductPricing({ products, onSave }: { products: Product[], onSave: (product: Product) => void }) {
+function ProductPricing({ products, onSave }: { products: Product[], onSave: (productId: string, sizes: any[]) => void }) {
     return (
         <div>
              <div className="flex items-center justify-between mb-6">
@@ -206,17 +184,13 @@ export default function ProductsPage() {
         try {
             const { id, ...dataToSave } = productData;
             if (id) {
-                // Update existing product
-                const productRef = doc(db, 'products', id);
-                await setDoc(productRef, dataToSave, { merge: true });
+                await updateProduct(id, dataToSave);
                 toast({ title: "Success", description: "Product updated successfully." });
             } else {
-                // Create new product
-                const productsCollection = collection(db, 'products');
-                await addDoc(productsCollection, { ...dataToSave, status: 'active', sizes: [] });
+                await createProduct(dataToSave);
                 toast({ title: "Success", description: "Product created successfully." });
             }
-            await fetchProducts(); // Refetch products to update the list
+            await fetchProducts();
         } catch (error) {
             console.error("Error saving product: ", error);
             toast({ title: "Error", description: "Failed to save product.", variant: "destructive" });
@@ -227,12 +201,11 @@ export default function ProductsPage() {
     });
   };
 
-  const handlePricingSave = (product: Product) => {
+  const handlePricingSave = (productId: string, sizes: any[]) => {
     startSaving(async () => {
         try {
-          const productRef = doc(db, 'products', product.id);
-          await setDoc(productRef, { sizes: product.sizes }, { merge: true });
-          toast({ title: "Success", description: `Pricing for ${product.name} updated.` });
+          await updateProductPricing(productId, sizes);
+          toast({ title: "Success", description: `Pricing updated.` });
           await fetchProducts();
         } catch (error) {
           console.error("Error saving pricing: ", error);
@@ -246,13 +219,12 @@ export default function ProductsPage() {
     startSaving(async () => {
         try {
             const newStatus = product.status === 'active' ? 'inactive' : 'active';
-            const productRef = doc(db, 'products', product.id);
-            await setDoc(productRef, { status: newStatus }, { merge: true });
+            await updateProductStatus(product.id, newStatus);
             toast({
                 title: "Product Status Updated",
                 description: `"${product.name}" has been ${newStatus === 'active' ? 'activated' : 'deactivated'}.`,
             });
-            await fetchProducts(); // Refresh the list
+            await fetchProducts();
         } catch (error) {
             console.error("Error updating product status: ", error);
             toast({

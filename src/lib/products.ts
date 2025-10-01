@@ -21,7 +21,15 @@ export async function getAllProducts(): Promise<Product[]> {
     try {
       const productsCollection = collection(db, 'products');
       const productSnapshot = await getDocs(productsCollection);
-      const productList = productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), status: doc.data().status || 'active' } as Product));
+      const productList = productSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            sizes: data.sizes || [], // Ensure sizes is always an array
+            status: data.status || 'active', // Default status if not present
+        } as Product;
+      });
       return productList;
     } catch (error) {
       console.error("Error fetching all products: ", error);
@@ -35,7 +43,9 @@ export async function getProducts(): Promise<Product[]> {
     const productsCollection = collection(db, 'products');
     const q = query(productsCollection, where("status", "==", "active"));
     const productSnapshot = await getDocs(q);
-    const productList = productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    const productList = productSnapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() } as Product))
+      .filter(p => p.sizes && p.sizes.length > 0); // Only show products with pricing
     return productList;
   } catch (error) {
     console.error("Error fetching active products: ", error);
@@ -55,7 +65,7 @@ export async function getProductById(id: string): Promise<Product | null> {
       if (productData.status !== 'active') {
         return null;
       }
-      return { id: productSnap.id, ...productData } as Product;
+      return { id: productSnap.id, ...productData, sizes: productData.sizes || [] } as Product;
     } else {
       return null;
     }
