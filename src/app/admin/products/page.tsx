@@ -1,12 +1,11 @@
 
-
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Product, getAllProducts } from '@/lib/products';
 import Image from 'next/image';
-import { PlusCircle, BarChart2, Loader2, Edit } from 'lucide-react';
+import { PlusCircle, BarChart2, Loader2, Edit, ChevronRight } from 'lucide-react';
 import ProductForm from '@/components/admin/product-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,11 +15,18 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from '@/hooks/use-toast';
 import { globalSettings } from '@/lib/global-settings';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { createProduct, updateProduct, updateProductStatus, updateProductPricing } from './actions';
+import { createProduct, updateProduct, updateProductPricing } from './actions';
 import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
 
 
-function ProductList({ products, onEdit, onAdd, onToggleStatus }: { products: Product[], onEdit: (product: Product) => void, onAdd: () => void, onToggleStatus: (product: Product) => void }) {
+function ProductList({ products, onAdd }: { products: Product[], onAdd: () => void }) {
+    const router = useRouter();
+
+    const handleManageClick = (productId: string) => {
+        router.push(`/admin/products/${productId}/manage`);
+    };
+
     return (
         <div>
             <div className="flex items-center justify-between mb-6">
@@ -56,17 +62,10 @@ function ProductList({ products, onEdit, onAdd, onToggleStatus }: { products: Pr
                                 </Badge>
                             </div>
                         </CardContent>
-                        <CardFooter className="p-4 pt-0 flex justify-between">
-                             <Button variant="outline" size="sm" onClick={() => onEdit(product)}>
-                                <Edit className="mr-2 h-4 w-4"/>
-                                Edit
-                            </Button>
-                            <Button
-                                variant={product.status === 'active' ? 'destructive' : 'default'}
-                                size="sm"
-                                onClick={() => onToggleStatus(product)}
-                            >
-                                {product.status === 'active' ? 'Deactivate' : 'Activate'}
+                        <CardFooter className="p-4 pt-0 flex justify-end">
+                             <Button variant="outline" size="sm" onClick={() => handleManageClick(product.id)}>
+                                Manage
+                                <ChevronRight className="ml-2 h-4 w-4"/>
                             </Button>
                         </CardFooter>
                     </Card>
@@ -212,34 +211,6 @@ export default function ProductsPage() {
         }
     });
   };
-
-  const handleToggleStatus = (product: Product) => {
-    if (!product.id) return;
-    startSaving(async () => {
-        try {
-            const newStatus = product.status === 'active' ? 'inactive' : 'active';
-            await updateProductStatus(product.id, newStatus);
-            toast({
-                title: "Product Status Updated",
-                description: `"${product.name}" has been ${newStatus === 'active' ? 'activated' : 'deactivated'}.`,
-            });
-            await fetchProducts(); // Force a refetch
-        } catch (error) {
-            console.error("Error updating product status: ", error);
-            toast({
-                title: "Error",
-                description: "Failed to update product status.",
-                variant: "destructive",
-            });
-        }
-    });
-  };
-
-
-  const handleEdit = (product: Product) => {
-    setSelectedProduct(product);
-    setFormOpen(true);
-  };
   
   const handleCreateNew = () => {
     setSelectedProduct(null);
@@ -271,7 +242,7 @@ export default function ProductsPage() {
           <TabsTrigger value="pricing">Pricing</TabsTrigger>
         </TabsList>
         <TabsContent value="products">
-            <ProductList products={products} onEdit={handleEdit} onAdd={handleCreateNew} onToggleStatus={handleToggleStatus} />
+            <ProductList products={products} onAdd={handleCreateNew} />
         </TabsContent>
         <TabsContent value="pricing">
             <ProductPricing products={products} onSave={handlePricingSave} />
@@ -280,4 +251,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-
