@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Inter } from 'next/font/google';
@@ -19,6 +20,7 @@ import {
 import { LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon, Settings, Users, Percent, UserCog } from 'lucide-react';
 import { useAuth, AuthProvider } from '@/hooks/use-auth';
 import { LunaLogo } from '@/components/icons';
+import { LoadingModal } from '@/components/ui/loading-modal';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -43,11 +45,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   }, [user, loading, router, pathname, isClient]);
 
   if (loading && isClient) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p>Loading...</p>
-      </div>
-    );
+    return <LoadingModal />;
   }
 
   if (!user || (user.role !== 'admin' && user.role !== 'fulfillment')) {

@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -19,6 +20,7 @@ import {
 import { app } from '@/lib/firebase/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
+import { LoadingModal } from '@/components/ui/loading-modal';
 
 // Main user type
 export type UserRole = 'admin' | 'customer' | 'influencer' | 'sales' | 'fulfillment';
@@ -164,5 +166,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error,
   };
 
-  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+        {loading ? <LoadingModal /> : children}
+    </AuthContext.Provider>
+  );
 }
