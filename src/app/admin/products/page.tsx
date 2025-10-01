@@ -190,7 +190,7 @@ export default function ProductsPage() {
                 await createProduct(dataToSave);
                 toast({ title: "Success", description: "Product created successfully." });
             }
-            await fetchProducts();
+            fetchProducts();
         } catch (error) {
             console.error("Error saving product: ", error);
             toast({ title: "Error", description: "Failed to save product.", variant: "destructive" });
@@ -206,7 +206,7 @@ export default function ProductsPage() {
         try {
           await updateProductPricing(productId, sizes);
           toast({ title: "Success", description: `Pricing updated.` });
-          await fetchProducts();
+          fetchProducts();
         } catch (error) {
           console.error("Error saving pricing: ", error);
           toast({ title: "Error", description: "Failed to save pricing.", variant: "destructive" });
@@ -224,7 +224,7 @@ export default function ProductsPage() {
                 title: "Product Status Updated",
                 description: `"${product.name}" has been ${newStatus === 'active' ? 'activated' : 'deactivated'}.`,
             });
-            await fetchProducts();
+            fetchProducts();
         } catch (error) {
             console.error("Error updating product status: ", error);
             toast({
