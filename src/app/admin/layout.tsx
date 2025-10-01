@@ -7,15 +7,18 @@ import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
+  SidebarInset,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarProvider,
+  SidebarRail,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon } from 'lucide-react';
 import { useAuth, AuthProvider } from '@/hooks/use-auth';
 import { LunaLogo } from '@/components/icons';
+import { Button } from '@/components/ui/button';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -51,11 +54,10 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <Sidebar>
+      <Sidebar variant="floating" collapsible="offcanvas">
         <SidebarHeader>
           <div className="flex items-center gap-2">
             <LunaLogo />
-            <SidebarTrigger className="ml-auto" />
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -105,8 +107,19 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
             </SidebarMenuItem>
           </SidebarMenu>
         </div>
+        <SidebarRail />
       </Sidebar>
-      <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+      <SidebarInset>
+        <div className="flex items-center gap-2 p-2 lg:p-4">
+            <SidebarTrigger asChild>
+                <Button variant="ghost" size="icon">
+                    <LayoutDashboard />
+                </Button>
+            </SidebarTrigger>
+            <h2 className="text-xl font-semibold">Admin Panel</h2>
+        </div>
+        <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+      </SidebarInset>
     </SidebarProvider>
   );
 }
