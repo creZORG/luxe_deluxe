@@ -1,3 +1,88 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-misty-bathroom",
+      "description": "A model in a misty, spa-like bathroom",
+      "imageUrl": "https://images.unsplash.com/photo-1596971040979-4ca69b8bd83f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzcGElMjBiYXRocm9vbXxlbnwwfHx8fDE3NTkyMDA1MTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "spa bathroom"
+    },
+    {
+      "id": "parallax-laundry",
+      "description": "A folded stack of fresh laundry with fabric softener",
+      "imageUrl": "https://images.unsplash.com/photo-1596433904747-e8b061219a71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmb2xkZWQlMjBsYXVuZHJ5fGVufDB8fHx8MTc1OTMwODM4Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "folded laundry"
+    },
+    {
+      "id": "parallax-kitchen",
+      "description": "A glossy kitchen scene with sparkling dishes",
+      "imageUrl": "https://images.unsplash.com/photo-1567767326925-e2047bf469d0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjbGVhbiUyMGtpdGNoZW58ZW58MHx8fHwxNzU5MjA5NDgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "clean kitchen"
+    },
+    {
+      "id": "parallax-spa-bathroom",
+      "description": "A spa-like bathroom scene with a glowing shower gel",
+      "imageUrl": "https://images.unsplash.com/photo-1707910393318-8f97ea71736a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxzaG93ZXIlMjBnZWwlMjBiYXRocm9vbXxlbnwwfHx8fDE3NTkzMDgzODZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "shower gel bathroom"
+    },
+    {
+      "id": "shower-gel-lavender",
+      "description": "Shower Gel with a lavender scent",
+      "imageUrl": "https://images.unsplash.com/photo-1571771952021-0244a32c245a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxwcm9kdWN0JTIwYm90dGxlfGVufDB8fHx8MTc1OTI1MTM0Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "product bottle"
+    },
+    {
+      "id": "shower-gel-citrus",
+      "description": "Shower Gel with a citrus scent",
+      "imageUrl": "https://images.unsplash.com/photo-1702321807236-2cb14f2b862f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwcm9kdWN0JTIwYm90dGxlfGVufDB8fHx8MTc1OTI1MTM0Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "product bottle"
+    },
+    {
+      "id": "fabric-softener-cotton",
+      "description": "Fabric Softener with a fresh cotton scent",
+      "imageUrl": "https://images.unsplash.com/photo-1603906835814-485c98f7b4f9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwcm9kdWN0JTIwYm90dGxlfGVufDB8fHx8MTc1OTI1MTM0Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "product bottle"
+    },
+    {
+      "id": "fabric-softener-rose",
+      "description": "Fabric Softener with a rose scent",
+      "imageUrl": "https://images.unsplash.com/photo-1571771952021-0244a32c245a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxwcm9kdWN0JTIwYm90dGxlfGVufDB8fHx8MTc1OTI1MTM0Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "product bottle"
+    },
+    {
+      "id": "dishwash-citrus",
+      "description": "Dishwash with a citrus scent",
+      "imageUrl": "https://images.unsplash.com/photo-1603906835814-485c98f7b4f9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwcm9kdWN0JTIwYm90dGxlfGVufDB8fHx8MTc1OTI1MTM0Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "product bottle"
+    },
+    {
+      "id": "dishwash-mint",
+      "description": "Dishwash with a mint scent",
+      "imageUrl": "https://images.unsplash.com/photo-1529612284379-7dfa9d08f763?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwcm9kdWN0JTIwYm90dGxlfGVufDB8fHx8MTc1OTI1MTM0Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "product bottle"
+    },
+    {
+      "id": "sustainability-banner",
+      "description": "Nature-inspired photography of water ripples",
+      "imageUrl": "https://images.unsplash.com/photo-1527904188605-3424bcc2d107?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3YXRlciUyMHJpcHBsZXN8ZW58MHx8fHwxNzU5MzA4Mzg3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "water ripples"
+    },
+    {
+      "id": "blog-spa-home",
+      "description": "A woman relaxing in a home spa setting",
+      "imageUrl": "https://images.unsplash.com/photo-1526944139247-8657f4a94da4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxsaWZlc3R5bGUlMjBob21lfGVufDB8fHx8MTc1OTMwODM4Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lifestyle home"
+    },
+    {
+      "id": "blog-laundry-tips",
+      "description": "Aesthetically pleasing laundry room",
+      "imageUrl": "https://images.unsplash.com/photo-1701421048900-e0adbde9b90c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxsYXVuZHJ5JTIwcm9vbXxlbnwwfHx8fDE3NTkzMDgzODd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "laundry room"
+    },
+    {
+      "id": "blog-kitchen-organizing",
+      "description": "A beautifully organized modern kitchen",
+      "imageUrl": "https://images.unsplash.com/photo-1676907225475-f9aea84435ac?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxvcmdhbml6ZWQlMjBraXRjaGVufGVufDB8fHx8MTc1OTMwODM4Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "organized kitchen"
+    }
+  ]
 }
