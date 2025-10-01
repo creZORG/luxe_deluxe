@@ -16,27 +16,37 @@ export type Product = {
   status: 'active' | 'inactive';
 };
 
+// This function is for the ADMIN panel. It shows ALL products without any filtering.
 export async function getAllProducts(): Promise<Product[]> {
     noStore();
     try {
       const productsCollection = collection(db, 'products');
       const productSnapshot = await getDocs(productsCollection);
+      console.log(`[Admin] Found ${productSnapshot.docs.length} total products in the collection.`);
+
       const productList = productSnapshot.docs.map(doc => {
         const data = doc.data();
-        return {
+        const product = {
             id: doc.id,
-            ...data,
-            sizes: data.sizes || [], // Ensure sizes is always an array
-            status: data.status || 'inactive', // Default status if not present
+            name: data.name || 'No Name',
+            category: data.category || 'Uncategorized',
+            fragrance: data.fragrance || 'N/A',
+            description: data.description || '',
+            imageId: data.imageId || '',
+            sizes: data.sizes || [],
+            status: data.status || 'inactive',
         } as Product;
+        console.log(`[Admin] Fetched product:`, JSON.stringify(product, null, 2));
+        return product;
       });
       return productList;
     } catch (error) {
-      console.error("Error fetching all products: ", error);
+      console.error("Error fetching all products for admin: ", error);
       return [];
     }
 }
 
+// This function is for the PUBLIC storefront. It ONLY shows active products with prices.
 export async function getProducts(): Promise<Product[]> {
   noStore();
   try {
@@ -48,7 +58,7 @@ export async function getProducts(): Promise<Product[]> {
       .filter(p => p.sizes && p.sizes.length > 0); // Only show products with pricing
     return productList;
   } catch (error) {
-    console.error("Error fetching active products: ", error);
+    console.error("Error fetching active products for storefront: ", error);
     return [];
   }
 }
@@ -61,7 +71,12 @@ export async function getProductById(id: string): Promise<Product | null> {
 
     if (productSnap.exists()) {
       const productData = productSnap.data();
-      return { id: productSnap.id, ...productData, sizes: productData.sizes || [] } as Product;
+      // No filtering here for admin/direct access
+      return { 
+          id: productSnap.id, 
+          ...productData, 
+          sizes: productData.sizes || [] 
+      } as Product;
     } else {
       return null;
     }
@@ -70,3 +85,4 @@ export async function getProductById(id: string): Promise<Product | null> {
     return null;
   }
 }
+
