@@ -95,11 +95,11 @@ function PricingForm({ product, onSave, isSaving }: { product: Product, onSave: 
         name: "sizes"
     });
 
-    const onSubmit = (data: { sizes: { size: string, price: number, quantityAvailable: number }[] }) => {
+    const onSubmit = (data: { sizes: { size: string, price: number | string, quantityAvailable: number | string }[] }) => {
         const validSizes = data.sizes
             .filter(s => s.size && s.price > 0)
             .map(s => ({
-                ...s,
+                size: s.size,
                 price: Number(s.price),
                 quantityAvailable: Number(s.quantityAvailable)
             }));
