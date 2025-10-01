@@ -19,7 +19,6 @@ import {
 import { app } from '@/lib/firebase/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
-import { userSignupFlow } from '@/ai/flows/user-signup-flow';
 
 // Main user type
 type User = {
@@ -115,12 +114,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
       const firebaseUser = userCredential.user;
 
-      // Call the secure backend flow to create the user document in Firestore
-      await userSignupFlow({
-        uid: firebaseUser.uid,
-        name: name,
-        email: email,
+      // Call the secure API route to create the user document in Firestore
+      const response = await fetch('/api/create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          uid: firebaseUser.uid,
+          name: name,
+          email: email,
+        }),
       });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to create user document in database.');
+      }
 
       // Optimistically set the user state while Firestore syncs
       setUser({
