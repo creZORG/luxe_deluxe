@@ -10,7 +10,7 @@ export type Product = {
   name: string;
   category: 'Shower Gels' | 'Fabric Softeners' | 'Dishwash';
   fragrance: string;
-  sizes: { size: string; price: number }[];
+  sizes: { size: string; price: number; quantity: number }[];
   imageId: string; // This is now a URL from Cloudinary
   description: string;
   status: 'active' | 'inactive';

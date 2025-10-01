@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Product, getAllProducts } from '@/lib/products';
 import {
@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { MoreHorizontal, PlusCircle, Trash, BarChart2 } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Trash, BarChart2, Loader2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -120,18 +120,21 @@ function ProductList({ products, onEdit, onAdd, onToggleStatus }: { products: Pr
 }
 
 function PricingForm({ product, onSave }: { product: Product, onSave: (product: Product) => void }) {
-    const { register, control, handleSubmit, watch } = useForm({
+    const { register, control, handleSubmit, watch, setValue } = useForm({
         defaultValues: {
-            sizes: product.sizes || [{ size: '', price: 0 }]
+            sizes: product.sizes || [{ size: '', price: 0, quantity: 0 }]
         }
     });
     const { fields, append, remove } = useFieldArray({
         control,
         name: "sizes"
     });
+    const [isPending, startTransition] = useTransition();
 
-    const onSubmit = (data: { sizes: { size: string, price: number }[] }) => {
-        onSave({ ...product, sizes: data.sizes.map(s => ({...s, price: Number(s.price)})) });
+    const onSubmit = (data: { sizes: { size: string, price: number, quantity: number }[] }) => {
+        startTransition(() => {
+            onSave({ ...product, sizes: data.sizes.map(s => ({...s, price: Number(s.price), quantity: Number(s.quantity) })) });
+        });
     };
     
     const availableSizes = globalSettings.productSizes;
@@ -141,14 +144,14 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (product: 
             <CardContent>
                 <div className="space-y-4">
                     {fields.map((field, index) => (
-                        <div key={field.id} className="flex items-end gap-4">
-                            <div className="flex-1">
+                        <div key={field.id} className="grid grid-cols-1 md:grid-cols-4 items-end gap-4">
+                            <div className="md:col-span-2">
                                 <label className="text-sm font-medium">Size</label>
                                 <Select 
                                     onValueChange={(value) => {
-                                        const newSizes = watch('sizes');
-                                        newSizes[index].size = value;
-                                        form.setValue('sizes', newSizes);
+                                        const currentSizes = watch('sizes');
+                                        currentSizes[index].size = value;
+                                        setValue('sizes', currentSizes);
                                     }} 
                                     value={field.size}
                                 >
@@ -160,9 +163,13 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (product: 
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="flex-1">
+                            <div>
                                 <label className="text-sm font-medium">Price (KES)</label>
                                 <Input {...register(`sizes.${index}.price` as const, { required: true, valueAsNumber: true })} type="number" step="0.01" placeholder="e.g. 2500" />
+                            </div>
+                             <div>
+                                <label className="text-sm font-medium">Quantity</label>
+                                <Input {...register(`sizes.${index}.quantity` as const, { required: true, valueAsNumber: true })} type="number" placeholder="e.g. 100" />
                             </div>
                             <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} disabled={fields.length <= 1}>
                                 <Trash className="h-4 w-4" />
@@ -170,10 +177,13 @@ function PricingForm({ product, onSave }: { product: Product, onSave: (product: 
                         </div>
                     ))}
                 </div>
-                <Button type="button" variant="outline" className="mt-4" onClick={() => append({ size: availableSizes[0]?.name || '', price: 0 })}>Add Size</Button>
+                <Button type="button" variant="outline" className="mt-4" onClick={() => append({ size: availableSizes[0]?.name || '', price: 0, quantity: 0 })}>Add Size</Button>
             </CardContent>
             <div className="flex justify-end p-6 pt-0">
-                <Button type="submit">Save Pricing</Button>
+                <Button type="submit" disabled={isPending}>
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Save Pricing
+                </Button>
             </div>
         </form>
     );
@@ -205,6 +215,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setFormOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isSaving, startSaving] = useTransition();
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -217,61 +228,67 @@ export default function ProductsPage() {
     fetchProducts();
   }, []);
 
-  const handleProductSave = async (productData: Omit<Product, 'id' | 'sizes' | 'status'> & { id?: string }) => {
-    try {
-        const { id, ...dataToSave } = productData;
-        if (id) {
-            // Update existing product
-            const productRef = doc(db, 'products', id);
-            await setDoc(productRef, dataToSave, { merge: true });
-            toast({ title: "Success", description: "Product updated successfully." });
-        } else {
-            // Create new product
-            const productsCollection = collection(db, 'products');
-            await addDoc(productsCollection, { ...dataToSave, status: 'active', sizes: [] });
-            toast({ title: "Success", description: "Product created successfully." });
+  const handleProductSave = (productData: Omit<Product, 'id' | 'sizes' | 'status'> & { id?: string }) => {
+    startSaving(async () => {
+        try {
+            const { id, ...dataToSave } = productData;
+            if (id) {
+                // Update existing product
+                const productRef = doc(db, 'products', id);
+                await setDoc(productRef, dataToSave, { merge: true });
+                toast({ title: "Success", description: "Product updated successfully." });
+            } else {
+                // Create new product
+                const productsCollection = collection(db, 'products');
+                await addDoc(productsCollection, { ...dataToSave, status: 'active', sizes: [] });
+                toast({ title: "Success", description: "Product created successfully." });
+            }
+            await fetchProducts(); // Refetch products to update the list
+        } catch (error) {
+            console.error("Error saving product: ", error);
+            toast({ title: "Error", description: "Failed to save product.", variant: "destructive" });
+        } finally {
+            setSelectedProduct(null);
+            setFormOpen(false);
         }
-        await fetchProducts(); // Refetch products to update the list
-    } catch (error) {
-        console.error("Error saving product: ", error);
-        toast({ title: "Error", description: "Failed to save product.", variant: "destructive" });
-    } finally {
-        setSelectedProduct(null);
-        setFormOpen(false);
-    }
+    });
   };
 
-  const handlePricingSave = async (product: Product) => {
-    try {
-      const productRef = doc(db, 'products', product.id);
-      await setDoc(productRef, { sizes: product.sizes }, { merge: true });
-      toast({ title: "Success", description: `Pricing for ${product.name} updated.` });
-      await fetchProducts();
-    } catch (error) {
-      console.error("Error saving pricing: ", error);
-      toast({ title: "Error", description: "Failed to save pricing.", variant: "destructive" });
-    }
+  const handlePricingSave = (product: Product) => {
+    startSaving(async () => {
+        try {
+          const productRef = doc(db, 'products', product.id);
+          await setDoc(productRef, { sizes: product.sizes }, { merge: true });
+          toast({ title: "Success", description: `Pricing for ${product.name} updated.` });
+          await fetchProducts();
+        } catch (error) {
+          console.error("Error saving pricing: ", error);
+          toast({ title: "Error", description: "Failed to save pricing.", variant: "destructive" });
+        }
+    });
   };
 
-  const handleToggleStatus = async (product: Product) => {
+  const handleToggleStatus = (product: Product) => {
     if (!product.id) return;
-    try {
-        const newStatus = product.status === 'active' ? 'inactive' : 'active';
-        const productRef = doc(db, 'products', product.id);
-        await setDoc(productRef, { status: newStatus }, { merge: true });
-        toast({
-            title: "Product Status Updated",
-            description: `"${product.name}" has been ${newStatus === 'active' ? 'activated' : 'deactivated'}.`,
-        });
-        fetchProducts(); // Refresh the list
-    } catch (error) {
-        console.error("Error updating product status: ", error);
-        toast({
-            title: "Error",
-            description: "Failed to update product status.",
-            variant: "destructive",
-        });
-    }
+    startSaving(async () => {
+        try {
+            const newStatus = product.status === 'active' ? 'inactive' : 'active';
+            const productRef = doc(db, 'products', product.id);
+            await setDoc(productRef, { status: newStatus }, { merge: true });
+            toast({
+                title: "Product Status Updated",
+                description: `"${product.name}" has been ${newStatus === 'active' ? 'activated' : 'deactivated'}.`,
+            });
+            await fetchProducts(); // Refresh the list
+        } catch (error) {
+            console.error("Error updating product status: ", error);
+            toast({
+                title: "Error",
+                description: "Failed to update product status.",
+                variant: "destructive",
+            });
+        }
+    });
   };
 
 
