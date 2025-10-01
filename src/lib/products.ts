@@ -27,7 +27,7 @@ export async function getAllProducts(): Promise<Product[]> {
             id: doc.id,
             ...data,
             sizes: data.sizes || [], // Ensure sizes is always an array
-            status: data.status || 'active', // Default status if not present
+            status: data.status || 'inactive', // Default status if not present
         } as Product;
       });
       return productList;
@@ -61,16 +61,12 @@ export async function getProductById(id: string): Promise<Product | null> {
 
     if (productSnap.exists()) {
       const productData = productSnap.data();
-      // Ensure only active products can be viewed directly
-      if (productData.status !== 'active') {
-        return null;
-      }
       return { id: productSnap.id, ...productData, sizes: productData.sizes || [] } as Product;
     } else {
       return null;
     }
   } catch (error) {
-    console.error(`Error fetching product with ID ${id}:`, error);
+    console.error(`Error fetching product ${id}:`, error);
     return null;
   }
 }
