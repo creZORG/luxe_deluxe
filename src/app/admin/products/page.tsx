@@ -76,18 +76,12 @@ function ProductList({ products, onAdd }: { products: Product[], onAdd: () => vo
 function PricingForm({ product, onSave, isSaving }: { product: Product, onSave: (productId: string, sizes: any[]) => void, isSaving: boolean }) {
     const { register, control, handleSubmit, reset } = useForm({
         defaultValues: {
-            sizes: product.sizes && product.sizes.length > 0 
-                ? product.sizes.map(s => ({ size: s.size, price: s.price, quantityAvailable: s.quantityAvailable || 0 })) 
-                : [{ size: '', price: 0, quantityAvailable: 0 }]
+            sizes: product.sizes || []
         }
     });
 
     useEffect(() => {
-        reset({
-            sizes: product.sizes && product.sizes.length > 0 
-                ? product.sizes.map(s => ({ size: s.size, price: s.price, quantityAvailable: s.quantityAvailable || 0 })) 
-                : [{ size: '', price: 0, quantityAvailable: 0 }]
-        });
+        reset({ sizes: product.sizes || [] });
     }, [product, reset]);
 
     const { fields, append, remove } = useFieldArray({
@@ -95,15 +89,8 @@ function PricingForm({ product, onSave, isSaving }: { product: Product, onSave: 
         name: "sizes"
     });
 
-    const onSubmit = (data: { sizes: { size: string, price: number | string, quantityAvailable: number | string }[] }) => {
-        const validSizes = data.sizes
-            .filter(s => s.size && s.price > 0)
-            .map(s => ({
-                size: s.size,
-                price: Number(s.price),
-                quantityAvailable: Number(s.quantityAvailable)
-            }));
-        onSave(product.id, validSizes);
+    const onSubmit = (data: { sizes: { size: string, price: number, quantityAvailable: number }[] }) => {
+        onSave(product.id, data.sizes);
     };
     
     return (
@@ -124,7 +111,7 @@ function PricingForm({ product, onSave, isSaving }: { product: Product, onSave: 
                                 {index === 0 && <label className="text-sm font-medium">Quantity Available</label>}
                                 <Input {...register(`sizes.${index}.quantityAvailable` as const, { required: true, valueAsNumber: true })} type="number" placeholder="e.g. 100" />
                             </div>
-                            <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} disabled={fields.length <= 1}>
+                            <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                         </div>
