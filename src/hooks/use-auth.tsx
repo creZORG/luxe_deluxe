@@ -7,6 +7,7 @@ import {
   useState,
   useEffect,
   type ReactNode,
+  useCallback,
 } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import {
@@ -21,6 +22,7 @@ import { app } from '@/lib/firebase/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 import { LoadingModal } from '@/components/ui/loading-modal';
+import type { CartItem } from './use-cart';
 
 // Main user type
 export type UserRole = 'admin' | 'customer' | 'influencer' | 'sales' | 'fulfillment';
@@ -39,6 +41,8 @@ type AuthContextType = {
   signup: (name: string, email: string, pass: string) => Promise<boolean>;
   logout: () => void;
   error: string | null;
+  getCart: () => Promise<CartItem[]>;
+  saveCart: (items: CartItem[]) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -157,6 +161,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
+  const getCart = useCallback(async (): Promise<CartItem[]> => {
+    if (!user) return [];
+    try {
+      const cartDocRef = doc(db, 'users', user.uid, 'cart', 'current');
+      const cartDoc = await getDoc(cartDocRef);
+      if (cartDoc.exists()) {
+        return cartDoc.data().items as CartItem[];
+      }
+      return [];
+    } catch (error) {
+      console.error("Error fetching cart from Firestore:", error);
+      return [];
+    }
+  }, [user]);
+
+  const saveCart = useCallback(async (items: CartItem[]) => {
+    if (!user) return;
+    try {
+      const cartDocRef = doc(db, 'users', user.uid, 'cart', 'current');
+      await setDoc(cartDocRef, { items });
+    } catch (error) {
+      console.error("Error saving cart to Firestore:", error);
+    }
+  }, [user]);
+
+
   const value = {
     user,
     loading,
@@ -164,6 +194,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signup,
     logout,
     error,
+    getCart,
+    saveCart,
   };
 
   return (
