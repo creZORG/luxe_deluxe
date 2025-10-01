@@ -19,51 +19,63 @@ import { Terminal } from 'lucide-react';
 import { LunaLogo } from '@/components/icons';
 import Link from 'next/link';
 
-export default function LoginPage() {
+export default function SignupPage() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, error, user, loading } = useAuth();
+  const { signup, error, user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (user) {
-      if (user.role === 'admin') {
-        router.push('/admin/dashboard');
-      } else {
-        router.push('/');
-      }
+      router.push('/');
     }
   }, [user, router]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password);
+    const success = await signup(name, email, password);
+    if (success) {
+        router.push('/');
+    }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-6">
-          <Link href="/">
-            <LunaLogo />
-          </Link>
+            <Link href="/">
+                <LunaLogo />
+            </Link>
         </div>
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Login</CardTitle>
+            <CardTitle className="text-2xl">Create an Account</CardTitle>
             <CardDescription>
-              Enter your credentials to access your account.
+              Enter your details to get started.
             </CardDescription>
           </CardHeader>
           <CardContent>
             {error && (
               <Alert variant="destructive" className="mb-4">
                 <Terminal className="h-4 w-4" />
-                <AlertTitle>Login Failed</AlertTitle>
+                <AlertTitle>Signup Failed</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleSignup} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Your Name"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -84,23 +96,23 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="password"
+                  placeholder="••••••••"
                   disabled={loading}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Signing In...' : 'Sign In'}
+                {loading ? 'Creating Account...' : 'Create Account'}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="flex justify-center text-sm">
             <p className="text-muted-foreground">
-              Don&apos;t have an account?{' '}
+              Already have an account?{' '}
               <Link
-                href="/signup"
+                href="/login"
                 className="font-medium text-primary hover:underline"
               >
-                Sign Up
+                Log In
               </Link>
             </p>
           </CardFooter>

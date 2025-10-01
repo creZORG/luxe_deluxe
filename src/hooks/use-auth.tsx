@@ -7,16 +7,17 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
-import { useRouter }from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
-    getAuth,
-    onAuthStateChanged,
-    signInWithEmailAndPassword,
-    signOut,
-    type User as FirebaseAuthUser,
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  type User as FirebaseAuthUser,
 } from 'firebase/auth';
 import { app, db } from '@/lib/firebase/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 // Main user type
 type User = {
@@ -30,6 +31,7 @@ type AuthContextType = {
   user: User | null;
   loading: boolean;
   login: (email: string, pass: string) => Promise<boolean>;
+  signup: (name: string, email: string, pass: string) => Promise<boolean>;
   logout: () => void;
   error: string | null;
 };
@@ -60,22 +62,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userDoc = await getDoc(userDocRef);
 
         if (userDoc.exists()) {
-            const userData = userDoc.data();
-            setUser({
-                uid: firebaseUser.uid,
-                email: firebaseUser.email,
-                name: userData.name || 'User',
-                role: userData.role || 'customer',
-            });
+          const userData = userDoc.data();
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            name: userData.name || 'User',
+            role: userData.role || 'customer',
+          });
         } else {
-            // This case might happen if user doc is not created on signup yet.
-            // For now, we'll assume a 'customer' role.
-            setUser({
-                uid: firebaseUser.uid,
-                email: firebaseUser.email,
-                name: 'New User',
-                role: 'customer',
-            });
+          // This case might happen if user doc is not created on signup yet.
+          // For now, we'll assume a 'customer' role.
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            name: 'New User',
+            role: 'customer',
+          });
         }
       } else {
         // User is signed out
@@ -101,15 +103,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const signup = async (name: string, email: string, pass: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        pass
+      );
+      const firebaseUser = userCredential.user;
+
+      // Create a user document in Firestore
+      await setDoc(doc(db, 'users', firebaseUser.uid), {
+        name: name,
+        email: email,
+        role: 'customer', // Default role for new users
+      });
+      
+      setLoading(false);
+      return true;
+    } catch (err: any) {
+      setError(err.message || 'An unknown error occurred.');
+      setLoading(false);
+      return false;
+    }
+  };
+
   const logout = async () => {
     setLoading(true);
     try {
-        await signOut(auth);
-        router.push('/login');
+      await signOut(auth);
+      router.push('/login');
     } catch (e) {
-        console.error('Logout failed', e)
+      console.error('Logout failed', e);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -117,6 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     loading,
     login,
+    signup,
     logout,
     error,
   };
