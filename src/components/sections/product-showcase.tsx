@@ -5,24 +5,30 @@ import { products, Product } from '@/lib/products';
 import ProductCard from '@/components/product-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Citrus, Flower2, Wind, Filter } from 'lucide-react';
+import { Citrus, Flower2, Wind, Filter, Leaf, Mountain, Droplets, Shell, Apple } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Category = 'Shower Gels' | 'Fabric Softeners' | 'Dishwash';
-type Fragrance = 'Lavender' | 'Citrus' | 'Fresh Cotton' | 'Rose' | 'Mint' | 'All';
+type Fragrance = Product['fragrance'] | 'All';
 
-const fragrances: { name: Fragrance, icon: React.ElementType }[] = [
+const fragrances: { name: Product['fragrance'], icon: React.ElementType }[] = [
   { name: 'Lavender', icon: Flower2 },
   { name: 'Citrus', icon: Citrus },
-  { name: 'Fresh Cotton', icon: Wind },
-  { name: 'Rose', icon: Flower2 },
-  { name: 'Mint', icon: Citrus },
+  { name: 'Lime', icon: Citrus },
+  { name: 'Lemon', icon: Citrus },
+  { name: 'Mint', icon: Leaf },
+  { name: 'Ocean Breeze', icon: Wind },
+  { name: 'Vanilla', icon: Droplets },
+  { name: 'Cocoa Butter', icon: Droplets },
+  { name: 'Raspberry', icon: Apple },
+  { name: 'Mango', icon: Apple },
+  { name: 'Apricot & Peach', icon: Apple },
 ];
 
-const availableFragrancesForCategory = (category: Category): Fragrance[] => {
+const availableFragrancesForCategory = (category: Category): Product['fragrance'][] => {
     const categoryProducts = products.filter(p => p.category === category);
     const uniqueFragrances = [...new Set(categoryProducts.map(p => p.fragrance))];
-    return uniqueFragrances as Fragrance[];
+    return uniqueFragrances;
 }
 
 
@@ -84,11 +90,17 @@ export default function ProductShowcase() {
           </div>
 
           <TabsContent value={activeCategory} className="mt-10">
-            <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            {filteredProducts.length > 0 ? (
+              <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
+                {filteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No products found for this filter.</p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
