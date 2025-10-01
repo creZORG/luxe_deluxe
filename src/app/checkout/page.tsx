@@ -19,9 +19,10 @@ import {
 } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { usePaystackPayment } from 'react-paystack';
 import { useAuth } from '@/hooks/use-auth';
+import { processSuccessfulOrder } from '../actions';
 
 const checkoutSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -39,6 +40,7 @@ export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
   const { user } = useAuth();
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -56,6 +58,9 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (user && !form.getValues('email')) {
       form.setValue('email', user.email || '');
+      const nameParts = user.name.split(' ');
+      form.setValue('firstName', nameParts[0] || '');
+      form.setValue('lastName', nameParts.slice(1).join(' ') || '');
     }
   }, [user, form]);
   
@@ -74,13 +79,32 @@ export default function CheckoutPage() {
 
   const initializePayment = usePaystackPayment(paystackConfig);
 
-  const onPaymentSuccess = () => {
-    toast({
-      title: 'Order Placed!',
-      description: 'Thank you for your purchase. Your order is on its way.',
+  const onPaymentSuccess = (reference: { reference: string }) => {
+    if (!user) {
+        // This should ideally not happen if checkout is protected
+        toast({
+            title: 'Authentication Error',
+            description: 'You must be logged in to complete a purchase.',
+            variant: 'destructive',
+        });
+        return;
+    }
+
+    startTransition(async () => {
+        await processSuccessfulOrder({
+            user: { name: user.name, email: user.email! },
+            items,
+            subtotal,
+            reference: reference.reference
+        });
+
+        toast({
+            title: 'Order Placed!',
+            description: 'Thank you for your purchase. A confirmation email has been sent.',
+        });
+        clearCart();
+        router.push('/');
     });
-    clearCart();
-    router.push('/');
   };
 
   const onPaymentClose = () => {
@@ -212,9 +236,9 @@ export default function CheckoutPage() {
                 type="submit"
                 size="lg"
                 className="w-full"
-                disabled={form.formState.isSubmitting}
+                disabled={form.formState.isSubmitting || isPending}
               >
-                {form.formState.isSubmitting
+                {form.formState.isSubmitting || isPending
                   ? 'Processing...'
                   : `Pay $${subtotal.toFixed(2)}`}
               </Button>

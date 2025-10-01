@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/firebase-admin';
+import { sendWelcomeEmail } from '@/lib/email';
 
 // This is a basic schema for validation. In a real app, you'd use a library like Zod.
 interface CreateUserRequest {
@@ -24,6 +25,14 @@ export async function POST(request: Request) {
             email,
             role: 'customer', // Default role for new users
         });
+        
+        // After creating user, send welcome email
+        try {
+            await sendWelcomeEmail({ to: email, name });
+        } catch (emailError) {
+            console.error(`Failed to send welcome email to ${email}`, emailError);
+            // Do not block the response for email failure, just log it.
+        }
 
         return NextResponse.json({ success: true }, { status: 201 });
 
