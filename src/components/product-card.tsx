@@ -23,7 +23,7 @@ type ProductCardProps = {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const image = PlaceHolderImages.find((img) => img.id === product.imageId);
-  const [selectedSize, setSelectedSize] = useState(product.sizes[1]);
+  const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
 
   const handleAddToCart = () => {
     toast({
