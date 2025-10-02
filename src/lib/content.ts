@@ -26,6 +26,7 @@ export type BlogPostContent = {
 }
 
 export type SiteContent = {
+  heroImageId: string;
   contact: {
     email: string;
     phone: string;
@@ -50,10 +51,11 @@ export async function getSiteContent(): Promise<SiteContent> {
       console.log('No site content document found. Returning default structure. Please populate content in /admin/site-content.');
       // Return a default, empty structure if the document doesn't exist.
       const defaultContent: SiteContent = {
+          heroImageId: 'hero-misty-bathroom',
           contact: { email: 'your-email@example.com', phone: 'Your Phone', address: 'Your Address' },
           socialMedia: [{ platform: 'Instagram', url: '#' }],
           images: [
-              { id: 'hero-misty-bathroom', description: 'Hero image for homepage', imageUrl: 'https://placehold.co/1920x1080', imageHint: 'bathroom scene' },
+              { id: 'hero-misty-bathroom', description: 'Hero image for homepage', imageUrl: 'https://res.cloudinary.com/dvciksxcn/image/upload/v1716301331/luna-app/j3lquufc57d9jbsayrre.jpg', imageHint: 'bathroom scene' },
               { id: 'parallax-laundry', description: 'Parallax image for laundry section', imageUrl: 'https://placehold.co/1920x1080', imageHint: 'laundry' },
               { id: 'sustainability-banner', description: 'Banner for sustainability section', imageUrl: 'https://placehold.co/1920x500', imageHint: 'nature' },
               { id: 'blog-spa-home', description: 'Blog post image for spa at home', imageUrl: 'https://placehold.co/600x400', imageHint: 'spa home' },
@@ -76,6 +78,9 @@ export async function getSiteContent(): Promise<SiteContent> {
     if (!data.blogPosts) {
       data.blogPosts = [];
     }
+    if (!data.heroImageId) {
+        data.heroImageId = 'hero-misty-bathroom';
+    }
 
     return data;
 
@@ -83,6 +88,7 @@ export async function getSiteContent(): Promise<SiteContent> {
     console.error("Error fetching site content from Firestore: ", error);
     // As a fallback, return an empty structure to prevent crashes.
     return {
+        heroImageId: '',
         contact: { email: '', phone: '', address: ''},
         socialMedia: [],
         images: [],

@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export default async function HeroSection() {
   const content = await getSiteContent();
-  const heroImage = content.images.find((img) => img.id === 'hero-misty-bathroom');
+  const heroImage = content.images.find((img) => img.id === content.heroImageId);
 
   return (
     <section className="relative h-[calc(100vh-4rem)] w-full">

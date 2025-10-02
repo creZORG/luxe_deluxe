@@ -100,6 +100,10 @@ export default function SiteContentPage() {
     });
   }
 
+  const handleHeroImageChange = (imageId: string) => {
+    setContent(prev => prev ? ({ ...prev, heroImageId: imageId }) : null);
+  }
+
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, imageId: string) => {
     const file = e.target.files?.[0];
@@ -183,6 +187,34 @@ export default function SiteContentPage() {
       </div>
       
       <div className="space-y-8">
+        
+        {/* General Settings */}
+        <Card>
+            <CardHeader>
+                <CardTitle>General Settings</CardTitle>
+                <CardDescription>High-level settings for your homepage.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="space-y-2">
+                    <Label>Homepage Hero Image</Label>
+                    <Select value={content.heroImageId} onValueChange={handleHeroImageChange}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a hero image" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {content.images.map(image => (
+                                <SelectItem key={image.id} value={image.id}>
+                                    <div className="flex items-center gap-2">
+                                        <Image src={image.imageUrl} alt={image.description} width={24} height={24} className="rounded-sm" />
+                                        <span>{image.id}</span>
+                                    </div>
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            </CardContent>
+        </Card>
 
         {/* Contact Information */}
         <Card>
