@@ -13,11 +13,19 @@ import {
 } from '@/components/ui/table';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import { Upload, Save, Loader2, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { getSiteContent, updateSiteContent, SiteContent, SocialLink } from '@/lib/content';
+import { getSiteContent, updateSiteContent, SiteContent, SocialLink, BlogPostContent } from '@/lib/content';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function SiteContentPage() {
   const [content, setContent] = useState<SiteContent | null>(null);
@@ -25,13 +33,14 @@ export default function SiteContentPage() {
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchContent = async () => {
+    setLoading(true);
+    const siteContent = await getSiteContent();
+    setContent(siteContent);
+    setLoading(false);
+  };
+  
   useEffect(() => {
-    const fetchContent = async () => {
-        setLoading(true);
-        const siteContent = await getSiteContent();
-        setContent(siteContent);
-        setLoading(false);
-    };
     fetchContent();
   }, []);
 
@@ -81,6 +90,15 @@ export default function SiteContentPage() {
         socialMedia: prev.socialMedia.filter((_, i) => i !== index)
     }) : null);
   };
+  
+  const handleBlogPostChange = (index: number, field: keyof BlogPostContent, value: string | number) => {
+     setContent(prev => {
+        if (!prev) return null;
+        const newBlogPosts = [...prev.blogPosts];
+        (newBlogPosts[index] as any)[field] = value;
+        return { ...prev, blogPosts: newBlogPosts };
+    });
+  }
 
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, imageId: string) => {
@@ -138,6 +156,7 @@ export default function SiteContentPage() {
                 title: "Changes Saved",
                 description: "Your site content has been updated.",
             });
+            fetchContent();
         } else {
             console.error(result.error);
             toast({
@@ -273,6 +292,48 @@ export default function SiteContentPage() {
                     </TableBody>
                     </Table>
                 </div>
+            </CardContent>
+        </Card>
+
+        {/* Blog Posts */}
+        <Card>
+            <CardHeader>
+                <CardTitle>Blog Posts</CardTitle>
+                <CardDescription>Manage the blog posts displayed on the homepage.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                {content.blogPosts.map((post, index) => (
+                    <div key={post.id} className="p-4 border rounded-lg space-y-4">
+                        <h4 className="font-semibold text-lg">Post {index + 1}</h4>
+                        <div className="space-y-2">
+                           <Label>Title</Label>
+                           <Input value={post.title} onChange={(e) => handleBlogPostChange(index, 'title', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                           <Label>Excerpt</Label>
+                           <Textarea value={post.excerpt} onChange={(e) => handleBlogPostChange(index, 'excerpt', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Image</Label>
+                             <Select value={post.imageId} onValueChange={(value) => handleBlogPostChange(index, 'imageId', value)}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select an image" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {content.images.map(image => (
+                                        <SelectItem key={image.id} value={image.id}>
+                                            <div className="flex items-center gap-2">
+                                                <Image src={image.imageUrl} alt={image.description} width={24} height={24} className="rounded-sm" />
+                                                <span>{image.id}</span>
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                ))}
+                <p className="text-center text-sm text-muted-foreground">Blog posts can be added or removed by a developer directly in the code.</p>
             </CardContent>
         </Card>
       </div>

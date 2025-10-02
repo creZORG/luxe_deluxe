@@ -10,30 +10,9 @@ import {
 import { getSiteContent } from '@/lib/content';
 import { ArrowRight } from 'lucide-react';
 
-const blogPosts = [
-  {
-    id: 1,
-    title: 'How to Create a Spa Experience at Home',
-    imageId: 'blog-spa-home',
-    excerpt: 'Transform your bathroom into a sanctuary of relaxation with our expert tips and luxurious essentials.',
-  },
-  {
-    id: 2,
-    title: 'The Secret to Everlasting Softness',
-    imageId: 'blog-laundry-tips',
-    excerpt: 'Learn the art of laundry care to keep your fabrics feeling brand new, wash after wash.',
-  },
-  {
-    id: 3,
-    title: 'Effortless Elegance in the Kitchen',
-    imageId: 'blog-kitchen-organizing',
-    excerpt: 'Discover how our dishwash solutions can bring a sparkle to your kitchen and simplify your daily routine.',
-  },
-];
-
 export default async function BlogSection() {
   const content = await getSiteContent();
-  const allImages = content.images;
+  const { images: allImages, blogPosts } = content;
 
   return (
     <section id="about" className="py-16 sm:py-24 bg-card">

@@ -18,6 +18,13 @@ export type ImagePlaceholder = {
   imageHint: string;
 };
 
+export type BlogPostContent = {
+    id: number;
+    title: string;
+    imageId: string;
+    excerpt: string;
+}
+
 export type SiteContent = {
   contact: {
     email: string;
@@ -26,6 +33,7 @@ export type SiteContent = {
   };
   socialMedia: SocialLink[];
   images: ImagePlaceholder[];
+  blogPosts: BlogPostContent[];
 };
 
 const CONTENT_DOC_ID = 'main';
@@ -51,6 +59,11 @@ export async function getSiteContent(): Promise<SiteContent> {
               { id: 'blog-spa-home', description: 'Blog post image for spa at home', imageUrl: 'https://placehold.co/600x400', imageHint: 'spa home' },
               { id: 'blog-laundry-tips', description: 'Blog post image for laundry tips', imageUrl: 'https://placehold.co/600x400', imageHint: 'laundry room' },
               { id: 'blog-kitchen-organizing', description: 'Blog post image for kitchen organizing', imageUrl: 'https://placehold.co/600x400', imageHint: 'clean kitchen' },
+          ],
+          blogPosts: [
+              { id: 1, title: 'How to Create a Spa Experience at Home', imageId: 'blog-spa-home', excerpt: 'Transform your bathroom into a sanctuary of relaxation with our expert tips and luxurious essentials.' },
+              { id: 2, title: 'The Secret to Everlasting Softness', imageId: 'blog-laundry-tips', excerpt: 'Learn the art of laundry care to keep your fabrics feeling brand new, wash after wash.' },
+              { id: 3, title: 'Effortless Elegance in the Kitchen', imageId: 'blog-kitchen-organizing', excerpt: 'Discover how our dishwash solutions can bring a sparkle to your kitchen and simplify your daily routine.' },
           ]
       };
       // Optionally create the document with default content for the admin to edit
@@ -58,7 +71,13 @@ export async function getSiteContent(): Promise<SiteContent> {
       return defaultContent;
     }
 
-    return contentSnap.data() as SiteContent;
+    // Ensure blogPosts array exists
+    const data = contentSnap.data() as SiteContent;
+    if (!data.blogPosts) {
+      data.blogPosts = [];
+    }
+
+    return data;
 
   } catch (error) {
     console.error("Error fetching site content from Firestore: ", error);
@@ -66,7 +85,8 @@ export async function getSiteContent(): Promise<SiteContent> {
     return {
         contact: { email: '', phone: '', address: ''},
         socialMedia: [],
-        images: []
+        images: [],
+        blogPosts: []
     }
   }
 }
@@ -75,7 +95,7 @@ export async function getSiteContent(): Promise<SiteContent> {
 export async function updateSiteContent(content: SiteContent): Promise<{success: boolean, error?: string}> {
     try {
         const contentRef = doc(db, 'content', CONTENT_DOC_ID);
-        await setDoc(contentRef, content);
+        await setDoc(contentRef, content, { merge: true });
 
         // Revalidate paths that use site content
         revalidatePath('/', 'layout');
