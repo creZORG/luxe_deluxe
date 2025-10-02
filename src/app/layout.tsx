@@ -20,6 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="!scroll-smooth">
       <head>
+        <link rel="icon" href="https://i.postimg.cc/2S5Kkf2m/logo-original.png" type="image/png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
