@@ -67,3 +67,26 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+    .nav-label {
+        opacity: 0;
+        width: 0;
+        transition: opacity 0.2s ease-in-out, width 0.3s ease-in-out;
+        display: none;
+    }
+    
+    @media (min-width: 768px) {
+        .group:hover .nav-label {
+            opacity: 1;
+            width: auto;
+            display: inline;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .nav-label {
+            display: none;
+        }
+    }
+}

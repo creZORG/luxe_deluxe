@@ -6,16 +6,16 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
-  LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon, Settings, Users, Percent, UserCog, Megaphone, Sun, Moon
+  LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon, Settings, Users, Percent, UserCog, Megaphone
 } from 'lucide-react';
 import { useAuth, AuthProvider } from '@/hooks/use-auth';
-import { LunaLogo } from '@/components/icons';
 import { LoadingModal } from '@/components/ui/loading-modal';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ModeToggle } from '@/components/mode-toggle';
 import { ThemeProvider } from '@/components/theme-provider';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -24,9 +24,6 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
-  const isAdmin = user?.role === 'admin';
-  const isFulfillment = user?.role === 'fulfillment';
-  const isDigitalMarketer = user?.role === 'digital_marketer';
 
   useEffect(() => {
     setIsClient(true);
@@ -65,43 +62,58 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <TooltipProvider>
       <div className="flex min-h-screen w-full flex-col bg-muted/40">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-           <Link href="/">
-              <LunaLogo />
-            </Link>
-          <div className="ml-auto flex items-center gap-2">
-            <ModeToggle />
-            <Button variant="outline" size="sm" onClick={logout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
-          </div>
-        </header>
-        <main className="flex-1 p-4 md:p-6 lg:p-8 mb-20">{children}</main>
-        <nav className="fixed inset-x-0 bottom-4 z-50 mx-auto w-fit">
-          <div className="flex items-center gap-2 rounded-full border bg-background p-2 shadow-lg">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 mb-24">{children}</main>
+        
+        <nav className="group fixed inset-x-0 bottom-4 z-50 mx-auto w-fit">
+          <div className="flex items-center gap-2 rounded-full border bg-background p-2 shadow-lg transition-all duration-300 ease-in-out md:group-hover:gap-4 md:group-hover:px-4">
             {accessibleNavItems.map((item) => (
               <Tooltip key={item.href}>
                 <TooltipTrigger asChild>
-                  <Link href={item.href}>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={cn(
-                        "rounded-full",
-                        pathname.startsWith(item.href) ? "bg-muted text-foreground" : "text-muted-foreground"
-                      )}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      <span className="sr-only">{item.label}</span>
-                    </Button>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-2 rounded-full px-3 py-2 transition-colors",
+                      pathname.startsWith(item.href) ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                    )}
+                  >
+                    <item.icon className="h-5 w-5 shrink-0" />
+                    <span className="nav-label text-sm font-medium">{item.label}</span>
                   </Link>
                 </TooltipTrigger>
-                <TooltipContent side="top">
+                <TooltipContent side="top" className="md:hidden">
                   {item.label}
                 </TooltipContent>
               </Tooltip>
             ))}
+            
+            <Separator orientation="vertical" className="mx-1 h-6 hidden md:group-hover:block" />
+
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <div>
+                        <ModeToggle />
+                    </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="md:hidden">
+                    Toggle Theme
+                </TooltipContent>
+            </Tooltip>
+             <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="rounded-full text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                      onClick={logout}
+                    >
+                      <LogOut className="h-5 w-5" />
+                      <span className="nav-label text-sm font-medium">Logout</span>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="md:hidden">
+                    Logout
+                </TooltipContent>
+            </Tooltip>
           </div>
         </nav>
       </div>
