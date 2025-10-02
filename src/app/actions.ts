@@ -113,16 +113,3 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
         return { success: false, error: 'Failed to update order status.' };
     }
 }
-
-export async function updateUserShippingAddress(userId: string, shippingAddress: ShippingAddress) {
-    try {
-        const userRef = doc(db, 'users', userId);
-        await updateDoc(userRef, { shippingAddress });
-        revalidatePath('/profile');
-        revalidatePath('/checkout');
-        return { success: true };
-    } catch (error) {
-        console.error('Error updating shipping address:', error);
-        return { success: false, error: 'Failed to update shipping address.' };
-    }
-}

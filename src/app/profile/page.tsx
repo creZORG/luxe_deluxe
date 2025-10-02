@@ -14,7 +14,7 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from '@/hooks/use-toast';
-import { updateUserShippingAddress } from '../actions';
+import { updateUserShippingAddress } from '@/app/admin/users/actions';
 import { Loader2, Star } from 'lucide-react';
 import type { Order, OrderStatus } from '@/lib/admin';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';

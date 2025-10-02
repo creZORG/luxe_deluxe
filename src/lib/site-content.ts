@@ -18,7 +18,7 @@ export type SiteContent = {
 
 export const siteContent: SiteContent = {
   "contact": {
-    "email": "hello@luna-essentials.com",
+    "email": "info@luna.co.ke",
     "phone": "+254 712 345 678",
     "address": "123 Luna Lane, Nairobi, Kenya"
   },
