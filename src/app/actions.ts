@@ -11,6 +11,7 @@ import { revalidatePath } from "next/cache";
 
 type OrderDetails = {
     user: User | null; // User can be null for guest checkouts
+    shippingAddress: ShippingAddress;
     customerName: string;
     customerEmail: string;
     items: CartItem[];
@@ -20,7 +21,7 @@ type OrderDetails = {
 
 export async function processSuccessfulOrder(orderDetails: OrderDetails) {
     try {
-        const { user, customerName, customerEmail, items, subtotal, reference } = orderDetails;
+        const { user, shippingAddress, customerName, customerEmail, items, subtotal, reference } = orderDetails;
 
         // 1. Save order to Firestore
         const ordersCollection = collection(db, 'orders');
@@ -28,6 +29,7 @@ export async function processSuccessfulOrder(orderDetails: OrderDetails) {
             userId: user ? user.uid : 'guest',
             userName: customerName,
             userEmail: customerEmail,
+            shippingAddress: shippingAddress, // Save the full shipping address on the order
             items: items.map(item => ({
                 productId: item.product.id,
                 productName: item.product.name,

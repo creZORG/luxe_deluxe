@@ -13,8 +13,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { type Order, type OrderStatus, getUserById } from '@/lib/admin';
-import type { User } from '@/hooks/use-auth';
+import { type Order, type OrderStatus } from '@/lib/admin';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -35,24 +34,10 @@ const toJavaScriptDate = (date: any): Date | null => {
 };
 
 function OrderDetailsModal({ order, open, onOpenChange }: { order: Order | null; open: boolean; onOpenChange: (open: boolean) => void; }) {
-    const [customer, setCustomer] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchCustomer = async () => {
-            if (order) {
-                setLoading(true);
-                const user = await getUserById(order.userId);
-                setCustomer(user);
-                setLoading(false);
-            }
-        };
-        fetchCustomer();
-    }, [order]);
-
     if (!order) return null;
 
     const orderDate = toJavaScriptDate(order.orderDate);
+    const address = order.shippingAddress;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -63,69 +48,63 @@ function OrderDetailsModal({ order, open, onOpenChange }: { order: Order | null;
                         Full details for order #{order.reference}.
                     </DialogDescription>
                 </DialogHeader>
-                {loading ? (
-                    <div className="flex items-center justify-center p-8">
-                        <Loader2 className="h-8 w-8 animate-spin" />
-                    </div>
-                ) : (
-                    <div className="grid gap-6 py-4">
-                        {/* Customer & Shipping Details */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Customer & Shipping</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {customer?.shippingAddress ? (
-                                    <>
-                                        <p><strong>Name:</strong> {customer.name}</p>
-                                        <p><strong>Email:</strong> {customer.email}</p>
-                                        <p><strong>Phone:</strong> {customer.shippingAddress.phone}</p>
-                                        <div className="text-sm border-t pt-4 mt-4">
-                                            <h4 className="font-semibold mb-2">Shipping Address</h4>
-                                            <p>{customer.shippingAddress.firstName} {customer.shippingAddress.lastName}</p>
-                                            <p>{customer.shippingAddress.address}</p>
-                                            <p>{customer.shippingAddress.city}, {customer.shippingAddress.county}</p>
-                                            {customer.shippingAddress.deliveryDescription && <p className="text-muted-foreground mt-2"><strong>Instructions:</strong> {customer.shippingAddress.deliveryDescription}</p>}
-                                        </div>
-                                    </>
-                                ) : (
-                                    <p>Shipping address not available.</p>
-                                )}
-                            </CardContent>
-                        </Card>
-                        {/* Order Items */}
-                         <Card>
-                            <CardHeader>
-                                <CardTitle>Order Items</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Product</TableHead>
-                                            <TableHead>Size</TableHead>
-                                            <TableHead>Qty</TableHead>
-                                            <TableHead className="text-right">Total</TableHead>
+                <div className="grid gap-6 py-4">
+                    {/* Customer & Shipping Details */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Customer & Shipping</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {address ? (
+                                <>
+                                    <p><strong>Name:</strong> {order.userName}</p>
+                                    <p><strong>Email:</strong> {order.userEmail}</p>
+                                    <p><strong>Phone:</strong> {address.phone}</p>
+                                    <div className="text-sm border-t pt-4 mt-4">
+                                        <h4 className="font-semibold mb-2">Shipping Address</h4>
+                                        <p>{address.firstName} {address.lastName}</p>
+                                        <p>{address.address}</p>
+                                        <p>{address.city}, {address.county}</p>
+                                        {address.deliveryDescription && <p className="text-muted-foreground mt-2"><strong>Instructions:</strong> {address.deliveryDescription}</p>}
+                                    </div>
+                                </>
+                            ) : (
+                                <p>Shipping address not available.</p>
+                            )}
+                        </CardContent>
+                    </Card>
+                    {/* Order Items */}
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Order Items</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Product</TableHead>
+                                        <TableHead>Size</TableHead>
+                                        <TableHead>Qty</TableHead>
+                                        <TableHead className="text-right">Total</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {order.items.map((item, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell className="flex items-center gap-2">
+                                                <Image src={item.imageId} alt={item.productName} width={40} height={40} className="rounded-md object-cover" />
+                                                {item.productName}
+                                            </TableCell>
+                                            <TableCell>{item.size}</TableCell>
+                                            <TableCell>{item.quantity}</TableCell>
+                                            <TableCell className="text-right">KES {(item.price * item.quantity).toFixed(2)}</TableCell>
                                         </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {order.items.map((item, index) => (
-                                            <TableRow key={index}>
-                                                <TableCell className="flex items-center gap-2">
-                                                    <Image src={item.imageId} alt={item.productName} width={40} height={40} className="rounded-md object-cover" />
-                                                    {item.productName}
-                                                </TableCell>
-                                                <TableCell>{item.size}</TableCell>
-                                                <TableCell>{item.quantity}</TableCell>
-                                                <TableCell className="text-right">KES {(item.price * item.quantity).toFixed(2)}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                         </Card>
-                    </div>
-                )}
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                     </Card>
+                </div>
                 <DialogFooter>
                     <DialogClose asChild>
                         <Button type="button" variant="outline">Close</Button>

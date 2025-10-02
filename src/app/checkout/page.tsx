@@ -104,20 +104,13 @@ export default function CheckoutPage() {
         
         // If user is logged in, save their shipping info for next time
         if (user) {
-            await updateUserShippingAddress(user.uid, {
-                phone: shippingData.phone,
-                firstName: shippingData.firstName,
-                lastName: shippingData.lastName,
-                address: shippingData.address,
-                city: shippingData.city,
-                county: shippingData.county,
-                deliveryDescription: shippingData.deliveryDescription
-            });
+            await updateUserShippingAddress(user.uid, shippingData);
         }
 
         // Process the order for guest or logged-in user
         const result = await processSuccessfulOrder({
             user: user, // Can be null for guests
+            shippingAddress: shippingData,
             customerName: `${shippingData.firstName} ${shippingData.lastName}`,
             customerEmail: shippingData.email,
             items,
