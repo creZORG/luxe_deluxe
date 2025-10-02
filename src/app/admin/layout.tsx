@@ -6,21 +6,16 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarProvider,
-  SidebarRail,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
-import { LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon, Settings, Users, Percent, UserCog, Megaphone } from 'lucide-react';
+  LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon, Settings, Users, Percent, UserCog, Megaphone, Sun, Moon
+} from 'lucide-react';
 import { useAuth, AuthProvider } from '@/hooks/use-auth';
 import { LunaLogo } from '@/components/icons';
 import { LoadingModal } from '@/components/ui/loading-modal';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ModeToggle } from '@/components/mode-toggle';
+import { ThemeProvider } from '@/components/theme-provider';
+import { cn } from '@/lib/utils';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -33,18 +28,31 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const isFulfillment = user?.role === 'fulfillment';
   const isDigitalMarketer = user?.role === 'digital_marketer';
 
-
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   useEffect(() => {
     if (isClient && !loading) {
-        if (!user || (user.role !== 'admin' && user.role !== 'fulfillment' && user.role !== 'digital_marketer')) {
-            router.push('/login');
-        }
+      if (!user || (user.role !== 'admin' && user.role !== 'fulfillment' && user.role !== 'digital_marketer')) {
+        router.push('/login');
+      }
     }
   }, [user, loading, router, pathname, isClient]);
+
+  const navItems = [
+    { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'fulfillment', 'digital_marketer'] },
+    { href: '/admin/orders', icon: ShoppingCart, label: 'Orders', roles: ['admin', 'fulfillment'] },
+    { href: '/admin/marketing', icon: Megaphone, label: 'Marketing', roles: ['admin', 'digital_marketer'] },
+    { href: '/admin/users', icon: UserCog, label: 'Users', roles: ['admin'] },
+    { href: '/admin/products', icon: Package, label: 'Products', roles: ['admin'] },
+    { href: '/admin/influencers', icon: Percent, label: 'Influencers', roles: ['admin'] },
+    { href: '/admin/sales-team', icon: Users, label: 'Sales Team', roles: ['admin'] },
+    { href: '/admin/site-content', icon: ImageIcon, label: 'Site Content', roles: ['admin'] },
+    { href: '/admin/global-settings', icon: Settings, label: 'Global Settings', roles: ['admin'] },
+  ];
+
+  const accessibleNavItems = navItems.filter(item => user?.role && item.roles.includes(user.role));
 
   if (loading && isClient) {
     return <LoadingModal />;
@@ -55,149 +63,51 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <SidebarProvider>
-      <Sidebar variant="floating" collapsible="offcanvas">
-        <SidebarHeader>
-          <div className="flex items-center gap-2">
-            <LunaLogo />
+    <TooltipProvider>
+      <div className="flex min-h-screen w-full flex-col bg-muted/40">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+           <Link href="/">
+              <LunaLogo />
+            </Link>
+          <div className="ml-auto flex items-center gap-2">
+            <ModeToggle />
+            <Button variant="outline" size="sm" onClick={logout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
           </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === '/admin/dashboard'}
-              >
-                <Link href="/admin/dashboard">
-                  <LayoutDashboard />
-                  Dashboard
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            {(isAdmin || isFulfillment) && (
-                 <SidebarMenuItem>
-                    <SidebarMenuButton 
-                        asChild
-                        isActive={pathname.startsWith('/admin/orders')}
+        </header>
+        <main className="flex-1 p-4 md:p-6 lg:p-8 mb-20">{children}</main>
+        <nav className="fixed inset-x-0 bottom-4 z-50 mx-auto w-fit">
+          <div className="flex items-center gap-2 rounded-full border bg-background p-2 shadow-lg">
+            {accessibleNavItems.map((item) => (
+              <Tooltip key={item.href}>
+                <TooltipTrigger asChild>
+                  <Link href={item.href}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn(
+                        "rounded-full",
+                        pathname.startsWith(item.href) ? "bg-muted text-foreground" : "text-muted-foreground"
+                      )}
                     >
-                        <Link href="/admin/orders">
-                            <ShoppingCart />
-                            Orders
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            )}
-            {(isAdmin || isDigitalMarketer) && (
-                 <SidebarMenuItem>
-                    <SidebarMenuButton 
-                        asChild
-                        isActive={pathname.startsWith('/admin/marketing')}
-                    >
-                        <Link href="/admin/marketing">
-                            <Megaphone />
-                            Marketing
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            )}
-            {isAdmin && (
-                <>
-                    <SidebarMenuItem>
-                    <SidebarMenuButton
-                        asChild
-                        isActive={pathname.startsWith('/admin/users')}
-                    >
-                        <Link href="/admin/users">
-                        <UserCog />
-                        Users
-                        </Link>
-                    </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                    <SidebarMenuButton
-                        asChild
-                        isActive={pathname.startsWith('/admin/products')}
-                    >
-                        <Link href="/admin/products">
-                        <Package />
-                        Products
-                        </Link>
-                    </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                    <SidebarMenuButton
-                        asChild
-                        isActive={pathname.startsWith('/admin/influencers')}
-                    >
-                        <Link href="/admin/influencers">
-                        <Percent />
-                        Influencers
-                        </Link>
-                    </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                    <SidebarMenuButton
-                        asChild
-                        isActive={pathname.startsWith('/admin/sales-team')}
-                    >
-                        <Link href="/admin/sales-team">
-                        <Users />
-                        Sales Team
-                        </Link>
-                    </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                    <SidebarMenuButton
-                        asChild
-                        isActive={pathname.startsWith('/admin/site-content')}
-                    >
-                        <Link href="/admin/site-content">
-                        <ImageIcon />
-                        Site Content
-                        </Link>
-                    </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                    <SidebarMenuButton
-                        asChild
-                        isActive={pathname.startsWith('/admin/global-settings')}
-                    >
-                        <Link href="/admin/global-settings">
-                        <Settings />
-                        Global Settings
-                        </Link>
-                    </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </>
-            )}
-          </SidebarMenu>
-        </SidebarContent>
-        <div className="mt-auto p-2">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton onClick={logout}>
-                <LogOut />
-                Logout
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </div>
-        <SidebarRail />
-      </Sidebar>
-      <SidebarInset>
-        <div className="flex items-center gap-2 p-2 lg:p-4 border-b">
-            <SidebarTrigger>
-                <LayoutDashboard />
-            </SidebarTrigger>
-            <h2 className="text-xl font-semibold">Admin Panel</h2>
-        </div>
-        <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
+                      <item.icon className="h-5 w-5" />
+                      <span className="sr-only">{item.label}</span>
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  {item.label}
+                </TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
+        </nav>
+      </div>
+    </TooltipProvider>
   );
 }
-
 
 export default function AdminLayout({
   children,
@@ -205,10 +115,17 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <AuthProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
             <AdminLayoutContent>{children}</AdminLayoutContent>
+          </ThemeProvider>
         </AuthProvider>
       </body>
     </html>
