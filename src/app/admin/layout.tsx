@@ -186,7 +186,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         <SidebarRail />
       </Sidebar>
       <SidebarInset>
-        <div className="flex items-center gap-2 p-2 lg:p-4">
+        <div className="flex items-center gap-2 p-2 lg:p-4 border-b">
             <SidebarTrigger>
                 <LayoutDashboard />
             </SidebarTrigger>
