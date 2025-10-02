@@ -31,9 +31,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Skeleton } from '../ui/skeleton';
+import { cn } from '@/lib/utils';
 
 const navLinks = [
-  { href: '/shop', label: 'Shop' },
+  { href: '/shop', label: 'Shop', primary: true },
   { href: '/#about', label: 'About' },
   { href: '/#sustainability', label: 'Sustainability' },
 ];
@@ -51,7 +52,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-7xl items-center">
-        <nav className="hidden md:flex items-center gap-6 text-sm">
+        <nav className="hidden md:flex items-center gap-4 text-sm">
           <Link
             href="/"
             className="mr-6 flex items-center space-x-2"
@@ -59,13 +60,19 @@ export default function Header() {
             <LunaLogo className="text-xl" />
           </Link>
           {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="font-medium text-foreground/60 transition-colors hover:text-foreground/80"
-            >
-              {link.label}
-            </Link>
+             link.primary ? (
+                <Button key={link.href} asChild>
+                    <Link href={link.href}>{link.label}</Link>
+                </Button>
+            ) : (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="font-medium text-foreground/60 transition-colors hover:text-foreground/80"
+                >
+                  {link.label}
+                </Link>
+            )
           ))}
         </nav>
 
@@ -90,7 +97,10 @@ export default function Header() {
                     <Link
                     key={link.href}
                     href={link.href}
-                    className="text-lg font-medium text-foreground/80 transition-colors hover:text-foreground"
+                    className={cn(
+                        "text-lg font-medium transition-colors hover:text-foreground",
+                        link.primary ? "text-primary" : "text-foreground/80"
+                    )}
                     onClick={() => setMobileMenuOpen(false)}
                     >
                     {link.label}
