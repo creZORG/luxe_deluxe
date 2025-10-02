@@ -32,6 +32,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Skeleton } from '../ui/skeleton';
 import { cn } from '@/lib/utils';
+import { ModeToggle } from '../mode-toggle';
 
 const navLinks = [
   { href: '/shop', label: 'Shop', primary: true },
@@ -128,6 +129,8 @@ export default function Header() {
               </Link>
             </div>
             
+            <ModeToggle />
+
             {loading ? (
               <Skeleton className="h-8 w-8 rounded-full" />
             ) : user ? (
