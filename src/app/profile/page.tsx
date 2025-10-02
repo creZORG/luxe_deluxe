@@ -16,16 +16,19 @@ import * as z from 'zod';
 import { toast } from '@/hooks/use-toast';
 import { updateUserShippingAddress } from '../actions';
 import { Loader2, Star } from 'lucide-react';
-import { getOrdersByUserId } from '@/lib/admin';
 import type { Order, OrderStatus } from '@/lib/admin';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { collection, query, where, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase/firebase';
+
 
 // Helper function to safely convert a Firestore Timestamp or a JS Date to a JS Date
 const toJavaScriptDate = (date: any): Date | null => {
   if (!date) return null;
+  if (date instanceof Timestamp) return date.toDate();
   if (date.toDate) return date.toDate(); // It's a Firestore Timestamp
   if (date instanceof Date) return date; // It's already a JS Date
   return null; // Or handle as an error
@@ -126,15 +129,32 @@ function OrderHistory() {
     const [activeTab, setActiveTab] = useState<OrderStatus | 'All'>('All');
 
     useEffect(() => {
-        const fetchOrders = async () => {
-            if (user) {
-                setLoading(true);
-                const userOrders = await getOrdersByUserId(user.uid);
-                setOrders(userOrders);
-                setLoading(false);
-            }
+        if (!user) {
+            setLoading(false);
+            return;
         };
-        fetchOrders();
+
+        const ordersRef = collection(db, 'orders');
+        const q = query(ordersRef, where("userId", "==", user.uid), orderBy('orderDate', 'desc'));
+
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const userOrders = querySnapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                    orderDate: data.orderDate
+                } as Order;
+            });
+            setOrders(userOrders);
+            setLoading(false);
+        }, (error) => {
+            console.error("Error fetching orders:", error);
+            setLoading(false);
+        });
+
+        // Cleanup subscription on unmount
+        return () => unsubscribe();
     }, [user]);
 
      const filteredOrders = useMemo(() => {
