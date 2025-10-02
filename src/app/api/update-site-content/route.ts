@@ -38,8 +38,9 @@ export const siteContent: SiteContent = ${JSON.stringify(updatedContent, null, 2
 
     await fs.writeFile(jsonFilePath, fileContent, 'utf-8');
 
-    // Revalidate the homepage to show the new images
+    // Revalidate paths that use site content to show the new images
     revalidatePath('/');
+    revalidatePath('/admin/site-content');
 
     return NextResponse.json({ success: true, message: 'Site content updated.' });
 

@@ -8,7 +8,7 @@ export type ImagePlaceholder = {
   imageHint: string;
 };
 
-// productImages are now managed via upload, so we only need website images here.
+// All images used for site layout are now managed in site-content.ts
 export const PlaceHolderImages: ImagePlaceholder[] = [
     ...siteContent.images,
 ];
