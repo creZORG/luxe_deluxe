@@ -38,6 +38,7 @@ const navLinks = [
   { href: '/shop', label: 'Shop', primary: true },
   { href: '/#about', label: 'About' },
   { href: '/#sustainability', label: 'Sustainability' },
+  { href: '/gallery', label: 'Gallery' },
   { href: '/#blog', label: 'Blog' },
 ];
 

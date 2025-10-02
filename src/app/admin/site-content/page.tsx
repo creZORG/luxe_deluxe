@@ -15,10 +15,10 @@ import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Upload, Save, Loader2, Trash2 } from 'lucide-react';
+import { Upload, Save, Loader2, Trash2, PlusCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { getSiteContent, updateSiteContent, SiteContent, SocialLink, BlogPostContent } from '@/lib/content';
+import { getSiteContent, updateSiteContent, SiteContent, SocialLink, BlogPostContent, ImagePlaceholder } from '@/lib/content';
 import {
   Select,
   SelectContent,
@@ -102,6 +102,43 @@ export default function SiteContentPage() {
 
   const handleHeroImageChange = (imageId: string) => {
     setContent(prev => prev ? ({ ...prev, heroImageId: imageId }) : null);
+  }
+  
+  const handleImageInfoChange = (index: number, field: keyof ImagePlaceholder, value: string) => {
+      setContent(prev => {
+        if (!prev) return null;
+        const newImages = [...prev.images];
+        (newImages[index] as any)[field] = value;
+        return { ...prev, images: newImages };
+    });
+  }
+  
+  const addImage = () => {
+      setContent(prev => prev ? ({
+          ...prev,
+          images: [
+              ...prev.images,
+              { id: `new-image-${Date.now()}`, description: '', imageUrl: 'https://placehold.co/600x400', imageHint: ''}
+          ]
+      }) : null);
+  }
+
+  const removeImage = (id: string) => {
+      setContent(prev => {
+          if (!prev) return null;
+          // Prevent deleting an image that is currently in use
+          const isUsedInBlog = prev.blogPosts.some(post => post.imageId === id);
+          const isHero = prev.heroImageId === id;
+          if (isUsedInBlog || isHero) {
+              toast({
+                  title: "Cannot Delete Image",
+                  description: "This image is currently being used as a hero image or in a blog post.",
+                  variant: "destructive",
+              });
+              return prev;
+          }
+          return { ...prev, images: prev.images.filter(img => img.id !== id) };
+      });
   }
 
 
@@ -267,57 +304,76 @@ export default function SiteContentPage() {
 
         {/* Website Images */}
         <Card>
-            <CardHeader>
-                <CardTitle>Website Images</CardTitle>
-                <CardDescription>Manage the main images used across your website.</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Website & Gallery Images</CardTitle>
+                <CardDescription>Manage images used across your website and in the public gallery.</CardDescription>
+              </div>
+               <Button onClick={addImage} variant="outline" size="sm">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Image
+              </Button>
             </CardHeader>
             <CardContent>
                 <div className="rounded-lg border">
                     <Table>
                     <TableHeader>
                         <TableRow>
-                        <TableHead>Image ID</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Current Image</TableHead>
-                        <TableHead>Upload New</TableHead>
+                          <TableHead>Image</TableHead>
+                          <TableHead>Image ID</TableHead>
+                          <TableHead>Description</TableHead>
+                          <TableHead>AI Hint</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {content.images.map((image) => (
+                        {content.images.map((image, index) => (
                         <TableRow key={image.id}>
-                            <TableCell className="font-medium">{image.id}</TableCell>
-                            <TableCell>{image.description}</TableCell>
                             <TableCell>
-                            <Image
-                                alt={image.description}
-                                className="aspect-video rounded-md object-cover"
-                                height="72"
-                                src={image.imageUrl}
-                                width="128"
-                                key={image.imageUrl}
-                            />
+                              <div className="relative w-28 h-16 rounded-md border">
+                                <Image
+                                    alt={image.description}
+                                    className="object-cover rounded-md"
+                                    layout="fill"
+                                    src={image.imageUrl}
+                                    key={image.imageUrl}
+                                />
+                                {uploadingId === image.id && (
+                                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-md">
+                                    <Loader2 className="h-6 w-6 animate-spin text-white" />
+                                  </div>
+                                )}
+                              </div>
                             </TableCell>
                             <TableCell>
-                            <label htmlFor={`upload-${image.id}`} className="cursor-pointer">
-                                <Button asChild variant="outline" disabled={uploadingId === image.id}>
-                                <div>
-                                    {uploadingId === image.id ? (
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    ) : (
-                                        <Upload className="mr-2 h-4 w-4" />
-                                    )}
-                                    Upload
-                                </div>
-                                </Button>
-                                <Input
-                                id={`upload-${image.id}`}
-                                type="file"
-                                className="hidden"
-                                accept="image/*"
-                                onChange={(e) => handleFileChange(e, image.id)}
-                                disabled={uploadingId === image.id}
-                                />
-                            </label>
+                                <Input value={image.id} onChange={(e) => handleImageInfoChange(index, 'id', e.target.value)} placeholder="unique-id-name" />
+                            </TableCell>
+                             <TableCell>
+                                <Input value={image.description} onChange={(e) => handleImageInfoChange(index, 'description', e.target.value)} placeholder="A brief description" />
+                            </TableCell>
+                            <TableCell>
+                                <Input value={image.imageHint} onChange={(e) => handleImageInfoChange(index, 'imageHint', e.target.value)} placeholder="e.g. 'luxury product'" />
+                            </TableCell>
+                            <TableCell className="flex items-center gap-2">
+                              <label htmlFor={`upload-${image.id}`} className="cursor-pointer">
+                                  <Button asChild variant="outline" size="sm" disabled={uploadingId === image.id}>
+                                    <div>
+                                      <Upload className="mr-2 h-4 w-4" />
+                                      {uploadingId === image.id ? '...' : 'Upload'}
+                                    </div>
+                                  </Button>
+                                  <Input
+                                  id={`upload-${image.id}`}
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*"
+                                  onChange={(e) => handleFileChange(e, image.id)}
+                                  disabled={uploadingId === image.id}
+                                  />
+                              </label>
+                              <Button variant="destructive" size="icon" onClick={() => removeImage(image.id)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </TableCell>
                         </TableRow>
                         ))}
