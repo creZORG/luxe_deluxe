@@ -129,3 +129,23 @@ export async function getOrdersByUserId(userId: string): Promise<Order[]> {
         return [];
     }
 }
+
+export async function getOrderByReference(reference: string): Promise<Order | null> {
+    try {
+        const ordersCollection = collection(db, 'orders');
+        const q = query(ordersCollection, where("reference", "==", reference));
+        const orderSnapshot = await getDocs(q);
+        if (orderSnapshot.empty) {
+            return null;
+        }
+        const doc = orderSnapshot.docs[0];
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data
+        } as Order;
+    } catch (error) {
+        console.error(`Error fetching order by reference ${reference}: `, error);
+        return null;
+    }
+}

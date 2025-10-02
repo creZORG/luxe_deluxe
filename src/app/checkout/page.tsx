@@ -24,6 +24,7 @@ import { useAuth, type ShippingAddress } from '@/hooks/use-auth';
 import { processSuccessfulOrder, updateUserShippingAddress } from '../actions';
 import { Textarea } from '@/components/ui/textarea';
 import { LoadingModal } from '@/components/ui/loading-modal';
+import { Lock, CreditCard } from 'lucide-react';
 
 const checkoutSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -69,6 +70,10 @@ export default function CheckoutPage() {
 
         if (user.shippingAddress) {
             Object.assign(defaultValues, user.shippingAddress);
+        }
+        // still override email if it's set on the user object.
+        if (user.email) {
+            defaultValues.email = user.email;
         }
 
         form.reset(defaultValues);
@@ -129,7 +134,7 @@ export default function CheckoutPage() {
 
         clearCart();
         
-        router.push(`/order-confirmation?ref=${reference.reference}&amount=${subtotal}&email=${shippingData.email}`);
+        router.push(`/order-confirmation?ref=${reference.reference}&email=${shippingData.email}`);
     });
   };
 
@@ -165,7 +170,7 @@ export default function CheckoutPage() {
 
   return (
     <>
-      {isPending && <LoadingModal message="Processing your order..." />}
+      {isPending && <LoadingModal message="Finalizing your order..." />}
       <div className="container mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
           {/* Order Summary */}
@@ -211,6 +216,19 @@ export default function CheckoutPage() {
                 <span>Total</span>
                 <span>KES {subtotal.toFixed(2)}</span>
               </div>
+            </div>
+            <div className="mt-8 rounded-lg border bg-muted p-4">
+                <h3 className="flex items-center gap-2 font-semibold">
+                    <Lock className="h-5 w-5" />
+                    Secure Checkout
+                </h3>
+                <p className="text-sm text-muted-foreground mt-2">
+                    All transactions are encrypted and processed securely by Paystack. We do not store your card details.
+                </p>
+                <div className="flex items-center gap-4 mt-4">
+                    <CreditCard className="h-6 w-6 text-muted-foreground" />
+                    <p className="text-sm font-semibold">We accept all major cards.</p>
+                </div>
             </div>
           </div>
 
