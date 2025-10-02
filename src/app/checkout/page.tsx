@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCart } from '@/hooks/use-cart';
@@ -21,7 +22,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useTransition } from 'react';
 import { usePaystackPayment } from 'react-paystack';
 import { useAuth, type ShippingAddress } from '@/hooks/use-auth';
-import { processSuccessfulOrder, updateUserShippingAddress } from '../actions';
+import { processSuccessfulOrder } from '../actions';
+import { updateUserShippingAddress } from '@/app/admin/users/actions';
 import { Textarea } from '@/components/ui/textarea';
 import { LoadingModal } from '@/components/ui/loading-modal';
 import { Lock, CreditCard } from 'lucide-react';
