@@ -50,6 +50,8 @@ export async function processSuccessfulOrder(orderDetails: OrderDetails) {
             await updateDoc(userRef, {
                 loyaltyPoints: increment(pointsEarned)
             });
+            // Revalidate user-specific paths
+            revalidatePath('/profile');
         }
 
         // The following email functions will now fail gracefully if the token isn't set.
@@ -73,6 +75,9 @@ export async function processSuccessfulOrder(orderDetails: OrderDetails) {
              // The error is logged for investigation.
         }
 
+        // Revalidate paths that show order info
+        revalidatePath('/admin/orders');
+        revalidatePath('/admin/dashboard');
 
         return { success: true, orderId: newOrderRef.id };
     } catch (error) {
