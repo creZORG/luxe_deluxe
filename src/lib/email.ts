@@ -210,4 +210,10 @@ export async function sendRoleChangeEmail({ to, name, newRole }: RoleChangeEmail
                 <p>An administrator has updated your role on the Luna platform. Your new role is: <strong>${roleName}</strong>.</p>
                 <p>${roleDescription}</p>
                 <p>If you have any questions or believe this change was made in error, please contact our support team.</p>
-                <p style="margin-top: 30px; font-size: 0.9em; color: #777;">Best,<br/>The Luna Team</
+                <p style="margin-top: 30px; font-size: 0.9em; color: #777;">Best,<br/>The Luna Team</p>
+            </div>
+        `,
+    };
+
+    return sendEmail(emailPayload);
+}
