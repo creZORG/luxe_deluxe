@@ -54,29 +54,14 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-7xl items-center">
-        <nav className="hidden md:flex items-center gap-4 text-sm">
-          <Link
-            href="/"
-            className="mr-6 flex items-center space-x-2"
-          >
-            <LunaLogo className="text-xl" />
-          </Link>
-          {navLinks.map((link) => (
-             link.primary ? (
-                <Button key={link.href} asChild>
-                    <Link href={link.href}>{link.label}</Link>
-                </Button>
-            ) : (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="font-medium text-foreground/60 transition-colors hover:text-foreground/80"
-                >
-                  {link.label}
-                </Link>
-            )
-          ))}
-        </nav>
+        <div className="flex items-center">
+            <Link
+                href="/"
+                className="mr-6 flex items-center space-x-2"
+            >
+                <LunaLogo />
+            </Link>
+        </div>
 
         <Sheet open={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild>
@@ -92,7 +77,7 @@ export default function Header() {
           <SheetContent side="left">
             <div className="flex flex-col gap-6 pt-6">
                 <Link href="/" className="flex items-center" onClick={() => setMobileMenuOpen(false)}>
-                  <LunaLogo className="text-lg"/>
+                  <LunaLogo/>
                 </Link>
                 <div className="flex flex-col gap-4">
                 {navLinks.map((link) => (
@@ -123,12 +108,23 @@ export default function Header() {
         </Sheet>
         
         <div className="flex flex-1 items-center justify-end space-x-2">
-            <div className="md:hidden">
-              <Link href="/">
-                <LunaLogo className="text-xl"/>
-                <span className="sr-only">Luna Home</span>
-              </Link>
-            </div>
+            <nav className="hidden md:flex items-center gap-4 text-sm">
+              {navLinks.map((link) => (
+                link.primary ? (
+                    <Button key={link.href} asChild>
+                        <Link href={link.href}>{link.label}</Link>
+                    </Button>
+                ) : (
+                    <Link
+                    key={link.href}
+                    href={link.href}
+                    className="font-medium text-foreground/60 transition-colors hover:text-foreground/80"
+                    >
+                    {link.label}
+                    </Link>
+                )
+              ))}
+            </nav>
             
             <ModeToggle />
 
