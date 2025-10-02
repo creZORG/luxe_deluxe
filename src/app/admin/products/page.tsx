@@ -38,11 +38,11 @@ function ProductList({ products, onAdd }: { products: Product[], onAdd: () => vo
                 {products.map((product) => (
                     <Card key={product.id} className="overflow-hidden">
                         <CardHeader className="p-0">
-                            <div className="relative aspect-video w-full">
+                            <div className="relative aspect-[3/4] w-full">
                                 {product.imageId ? (
                                     <Image
                                         alt={product.name}
-                                        className="object-cover"
+                                        className="object-contain"
                                         layout="fill"
                                         src={product.imageId}
                                     />
