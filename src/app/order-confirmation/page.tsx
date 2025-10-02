@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useSearchParams } from 'next/navigation';
@@ -12,6 +11,7 @@ function ConfirmationContent() {
     const searchParams = useSearchParams();
     const orderRef = searchParams.get('ref');
     const amount = searchParams.get('amount');
+    const email = searchParams.get('email');
 
     return (
         <div className="flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center bg-background px-4 py-12 text-center">
@@ -24,7 +24,7 @@ function ConfirmationContent() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <p>A confirmation email has been sent to your inbox with the full details of your purchase.</p>
+                    <p>A confirmation email has been sent to <strong>{email}</strong> with the full details of your purchase.</p>
                     
                     <div className="text-left bg-muted p-4 rounded-lg">
                         <h3 className="font-semibold text-lg mb-2">Order Summary</h3>
@@ -62,4 +62,3 @@ export default function OrderConfirmationPage() {
         </Suspense>
     );
 }
-
