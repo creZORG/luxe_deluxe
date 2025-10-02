@@ -15,9 +15,9 @@ export default async function BlogSection() {
   const { images: allImages, blogPosts } = content;
 
   return (
-    <section id="blog" className="py-16 sm:py-24 bg-card">
+    <section id="blog" className="py-16 sm:py-24 bg-background">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
+        <div className="text-center animate-fade-in animation-duration-1000">
           <h2 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             The Luxe Lifestyle
           </h2>
@@ -27,10 +27,10 @@ export default async function BlogSection() {
         </div>
 
         <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {blogPosts.map((post) => {
+          {blogPosts.map((post, index) => {
             const image = allImages.find((img) => img.id === post.imageId);
             return (
-              <Link href="#" key={post.id} className="group block">
+              <Link href="#" key={post.id} className="group block animate-fade-in-up" style={{ animationDelay: `${index * 200}ms`, animationDuration: '1000ms' }}>
                 <Card className="h-full overflow-hidden transition-shadow duration-300 hover:shadow-xl">
                   {image && (
                     <CardHeader className="p-0">

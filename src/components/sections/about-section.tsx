@@ -12,7 +12,7 @@ export default async function AboutSection() {
     <section id="about" className="py-16 sm:py-24 bg-background">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 items-center gap-y-12 lg:grid-cols-2 lg:gap-x-16">
-          <div className="space-y-6 text-center lg:text-left">
+          <div className="space-y-6 text-center lg:text-left animate-fade-in-right animation-duration-1000">
             <h2 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
               From Our Family, For Yours.
             </h2>
@@ -26,7 +26,7 @@ export default async function AboutSection() {
               <Link href="/shop">Explore Our Products</Link>
             </Button>
           </div>
-          <div className="relative h-96 w-full lg:h-[32rem] rounded-lg overflow-hidden shadow-xl">
+          <div className="relative h-96 w-full lg:h-[32rem] rounded-lg overflow-hidden shadow-xl animate-fade-in-left animation-duration-1000">
              {image && (
                 <Image
                     src={image.imageUrl}

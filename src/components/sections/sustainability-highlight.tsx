@@ -32,7 +32,7 @@ export default async function SustainabilityHighlight() {
     <section id="sustainability" className="py-16 sm:py-24 bg-card">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16 items-center">
-          <div className="space-y-6 text-center lg:text-left">
+          <div className="space-y-6 text-center lg:text-left animate-fade-in-right animation-duration-1000">
             <h2 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
               Luxury That Doesn't Cost the Earth.
             </h2>
@@ -53,7 +53,7 @@ export default async function SustainabilityHighlight() {
               ))}
             </div>
           </div>
-          <div className="relative h-96 w-full lg:h-[32rem] rounded-lg overflow-hidden shadow-xl">
+          <div className="relative h-96 w-full lg:h-[32rem] rounded-lg overflow-hidden shadow-xl animate-fade-in-left animation-duration-1000">
              {image && (
                 <Image
                     src={image.imageUrl}
