@@ -10,14 +10,14 @@ export default async function HeroSection() {
 
   return (
     <section className="relative h-[calc(100vh-4rem)] w-full">
-      {heroImage && (
+      {content.heroImageId && (
         <Image
-          src={heroImage.imageUrl}
-          alt={heroImage.description}
+          src={content.heroImageId}
+          alt={heroImage?.description || 'Homepage hero image'}
           fill
           className="object-cover"
           priority
-          data-ai-hint={heroImage.imageHint}
+          data-ai-hint={heroImage?.imageHint || 'luxury products'}
         />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
