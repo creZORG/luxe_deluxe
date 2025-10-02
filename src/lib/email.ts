@@ -1,4 +1,6 @@
 
+'use server';
+
 import fetch from 'node-fetch';
 import type { CartItem } from '@/hooks/use-cart';
 import type { Order } from './admin';
@@ -11,28 +13,34 @@ const FROM_NAME = 'Luna';
 
 async function sendEmail(payload: object) {
     if (!ZEPTO_TOKEN) {
-        console.error('ZEPTO_TOKEN is not defined. Skipping email.');
-        // In a real app, you might want to throw an error or handle this differently
-        return Promise.resolve(); 
+        console.warn('ZEPTO_TOKEN is not defined. Skipping email sending for development/staging. Order processing will continue.');
+        return Promise.resolve({ message: "Email skipped, no token." }); 
     }
 
-    const response = await fetch(ZEPTO_API_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': ZEPTO_TOKEN,
-        },
-        body: JSON.stringify(payload),
-    });
+    try {
+        const response = await fetch(ZEPTO_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': ZEPTO_TOKEN,
+            },
+            body: JSON.stringify(payload),
+        });
 
-    if (!response.ok) {
-        const errorBody = await response.json();
-        console.error('ZeptoMail API Error:', errorBody);
-        throw new Error(`Failed to send email: ${errorBody.message || response.statusText}`);
+        if (!response.ok) {
+            const errorBody = await response.json();
+            console.error('ZeptoMail API Error:', errorBody);
+            // Throw an error to be caught by the calling function
+            throw new Error(`Failed to send email: ${errorBody.message || response.statusText}`);
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error("Error in sendEmail function:", error);
+        // Re-throw the error to be handled by the caller
+        throw error;
     }
-
-    return response.json();
 }
 
 type OrderConfirmationEmailProps = {
@@ -202,10 +210,4 @@ export async function sendRoleChangeEmail({ to, name, newRole }: RoleChangeEmail
                 <p>An administrator has updated your role on the Luna platform. Your new role is: <strong>${roleName}</strong>.</p>
                 <p>${roleDescription}</p>
                 <p>If you have any questions or believe this change was made in error, please contact our support team.</p>
-                <p style="margin-top: 30px; font-size: 0.9em; color: #777;">Best,<br/>The Luna Team</p>
-            </div>
-        `,
-    };
-
-    return sendEmail(emailPayload);
-}
+                <p style="margin-top: 30px; font-size: 0.9em; color: #777;">Best,<br/>The Luna Team</

@@ -52,26 +52,33 @@ export async function processSuccessfulOrder(orderDetails: OrderDetails) {
             });
         }
 
-        // 3. Send confirmation email to customer
-        await sendOrderConfirmationEmail({
-            to: user.email!,
-            name: user.name,
-            items: items,
-            subtotal: subtotal,
-            reference: reference,
-            pointsEarned: pointsEarned
-        });
+        // The following email functions will now fail gracefully if the token isn't set.
+        // We'll still wrap in a try/catch to handle actual API errors from ZeptoMail.
+        try {
+            // 3. Send confirmation email to customer
+            await sendOrderConfirmationEmail({
+                to: user.email!,
+                name: user.name,
+                items: items,
+                subtotal: subtotal,
+                reference: reference,
+                pointsEarned: pointsEarned
+            });
 
-        // 4. Send notification email to admin
-        await sendNewOrderAdminNotification(newOrderData);
+            // 4. Send notification email to admin
+            await sendNewOrderAdminNotification(newOrderData);
+        } catch (emailError) {
+             console.error('Error sending post-order emails:', emailError);
+             // Even if emails fail, we don't want to block the success of the order itself.
+             // The error is logged for investigation.
+        }
 
 
         return { success: true, orderId: newOrderRef.id };
     } catch (error) {
-        console.error('Error processing successful order:', error);
-        // We return success true here because the payment was successful.
-        // The failure (e.g., email or DB write) should be handled by a retry mechanism or logged for manual intervention.
-        return { success: true, error: 'Order processed, but failed to complete all post-payment steps.' };
+        console.error('Critical error processing successful order:', error);
+        // This outer catch block now only handles critical errors like database writes.
+        return { success: false, error: 'A critical error occurred while saving your order. Please contact support.' };
     }
 }
 
