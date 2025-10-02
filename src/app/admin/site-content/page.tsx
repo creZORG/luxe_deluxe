@@ -76,9 +76,12 @@ export default function SiteContentPage() {
         body: formData,
       });
 
-      if (!response.ok) throw new Error('Upload failed');
-
       const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Upload failed');
+      }
+      
       const newUrl = result.secure_url;
 
       setContent(currentContent => ({
@@ -93,11 +96,11 @@ export default function SiteContentPage() {
         description: `New image for "${imageId}" is ready to be saved.`,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       toast({
         title: "Upload Failed",
-        description: "There was an error uploading your image.",
+        description: error.message || "There was an error uploading your image.",
         variant: "destructive",
       });
     } finally {

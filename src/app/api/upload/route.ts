@@ -31,8 +31,9 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(results);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error uploading to Cloudinary:', error);
-    return NextResponse.json({ error: 'Something went wrong during the upload.' }, { status: 500 });
+    const errorMessage = error.message || 'Something went wrong during the upload.';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
