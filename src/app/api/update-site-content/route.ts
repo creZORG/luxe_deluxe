@@ -1,11 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
-import type { SiteContent } from '@/lib/site-content';
-import { revalidatePath } from 'next/cache';
-
-const jsonFilePath = path.resolve(process.cwd(), 'src/lib/site-content.ts');
+import { updateSiteContent, type SiteContent } from '@/lib/content';
 
 export async function POST(request: Request) {
   try {
@@ -15,37 +10,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No site content data provided.' }, { status: 400 });
     }
 
-    const fileContent = `
-import type { ImagePlaceholder } from './placeholder-images';
+    const result = await updateSiteContent(updatedContent);
 
-export type SocialLink = {
-  platform: string;
-  url: string;
-};
-
-export type SiteContent = {
-  contact: {
-    email: string;
-    phone: string;
-    address: string;
-  };
-  socialMedia: SocialLink[];
-  images: ImagePlaceholder[];
-};
-
-export const siteContent: SiteContent = ${JSON.stringify(updatedContent, null, 2)};
-`;
-
-    await fs.writeFile(jsonFilePath, fileContent, 'utf-8');
-
-    // Revalidate paths that use site content to show the new images
-    revalidatePath('/');
-    revalidatePath('/admin/site-content');
+    if (!result.success) {
+        throw new Error(result.error || 'Failed to save changes to Firestore.');
+    }
 
     return NextResponse.json({ success: true, message: 'Site content updated.' });
 
   } catch (error) {
-    console.error('Error updating site content file:', error);
-    return NextResponse.json({ error: 'Failed to update site content.' }, { status: 500 });
+    console.error('Error in POST /api/update-site-content:', error);
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

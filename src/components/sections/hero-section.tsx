@@ -1,10 +1,12 @@
+
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { getSiteContent } from '@/lib/content';
 import Link from 'next/link';
 
-export default function HeroSection() {
-  const heroImage = PlaceHolderImages.find((img) => img.id === 'hero-misty-bathroom');
+export default async function HeroSection() {
+  const content = await getSiteContent();
+  const heroImage = content.images.find((img) => img.id === 'hero-misty-bathroom');
 
   return (
     <section className="relative h-[calc(100vh-4rem)] w-full">

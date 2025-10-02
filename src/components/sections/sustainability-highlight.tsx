@@ -1,8 +1,10 @@
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
-export default function SustainabilityHighlight() {
-  const bannerImage = PlaceHolderImages.find((img) => img.id === 'sustainability-banner');
+import Image from 'next/image';
+import { getSiteContent } from '@/lib/content';
+
+export default async function SustainabilityHighlight() {
+  const content = await getSiteContent();
+  const bannerImage = content.images.find((img) => img.id === 'sustainability-banner');
 
   return (
     <section id="sustainability" className="relative h-96 w-full text-white">
@@ -21,7 +23,7 @@ export default function SustainabilityHighlight() {
           Committed to a Greener World
         </h2>
         <p className="mt-4 max-w-3xl text-lg text-white/90">
-          We believe in luxury that doesn&apos;t cost the earth. Our products are packaged in recyclable materials, and we are constantly striving to reduce our environmental footprint.
+          We believe in luxury that doesn't cost the earth. Our products are packaged in recyclable materials, and we are constantly striving to reduce our environmental footprint.
         </p>
       </div>
     </section>

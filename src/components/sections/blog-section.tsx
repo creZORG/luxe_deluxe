@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -6,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { getSiteContent } from '@/lib/content';
 import { ArrowRight } from 'lucide-react';
 
 const blogPosts = [
@@ -30,7 +31,10 @@ const blogPosts = [
   },
 ];
 
-export default function BlogSection() {
+export default async function BlogSection() {
+  const content = await getSiteContent();
+  const allImages = content.images;
+
   return (
     <section id="about" className="py-16 sm:py-24 bg-card">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -45,7 +49,7 @@ export default function BlogSection() {
 
         <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {blogPosts.map((post) => {
-            const image = PlaceHolderImages.find((img) => img.id === post.imageId);
+            const image = allImages.find((img) => img.id === post.imageId);
             return (
               <Link href="#" key={post.id} className="group block">
                 <Card className="h-full overflow-hidden transition-shadow duration-300 hover:shadow-xl">

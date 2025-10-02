@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -17,30 +17,51 @@ import { toast } from '@/hooks/use-toast';
 import { Upload, Save, Loader2, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { SiteContent, siteContent as initialSiteContent, SocialLink } from '@/lib/site-content';
-import { siteContent } from '@/lib/site-content';
+import { getSiteContent, updateSiteContent, SiteContent, SocialLink } from '@/lib/content';
 
 export default function SiteContentPage() {
-  const [content, setContent] = useState<SiteContent>(initialSiteContent);
+  const [content, setContent] = useState<SiteContent | null>(null);
   const [isPending, startTransition] = useTransition();
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+        setLoading(true);
+        const siteContent = await getSiteContent();
+        setContent(siteContent);
+        setLoading(false);
+    };
+    fetchContent();
+  }, []);
+
+  if (loading || !content) {
+    return (
+        <div className="flex items-center justify-center h-full">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <p className="ml-4">Loading Site Content...</p>
+        </div>
+    );
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, section: keyof SiteContent, key?: string) => {
     const { name, value } = e.target;
+    if (!content) return;
 
     if (section === 'contact') {
-        setContent(prev => ({
+        setContent(prev => prev ? ({
             ...prev,
             contact: {
                 ...prev.contact,
                 [name]: value,
             }
-        }));
+        }) : null);
     }
   };
 
   const handleSocialChange = (index: number, field: keyof SocialLink, value: string) => {
     setContent(prev => {
+        if (!prev) return null;
         const newSocialLinks = [...prev.socialMedia];
         newSocialLinks[index] = { ...newSocialLinks[index], [field]: value };
         return { ...prev, socialMedia: newSocialLinks };
@@ -48,23 +69,23 @@ export default function SiteContentPage() {
   };
 
   const addSocialLink = () => {
-    setContent(prev => ({
+    setContent(prev => prev ? ({
         ...prev,
         socialMedia: [...prev.socialMedia, { platform: 'Instagram', url: '' }]
-    }));
+    }) : null);
   };
 
   const removeSocialLink = (index: number) => {
-    setContent(prev => ({
+    setContent(prev => prev ? ({
         ...prev,
         socialMedia: prev.socialMedia.filter((_, i) => i !== index)
-    }));
+    }) : null);
   };
 
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, imageId: string) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !content) return;
 
     setUploadingId(imageId);
     const formData = new FormData();
@@ -84,12 +105,12 @@ export default function SiteContentPage() {
       
       const newUrl = result.secure_url;
 
-      setContent(currentContent => ({
+      setContent(currentContent => currentContent ? ({
         ...currentContent,
         images: currentContent.images.map(img =>
           img.id === imageId ? { ...img, imageUrl: newUrl } : img
         )
-      }));
+      }) : null);
 
       toast({
         title: "Image Uploaded",
@@ -109,26 +130,19 @@ export default function SiteContentPage() {
   };
 
   const handleSaveChanges = async () => {
+    if (!content) return;
     startTransition(async () => {
-        try {
-            const response = await fetch('/api/update-site-content', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content }),
-            });
-
-            if (!response.ok) throw new Error('Failed to save changes.');
-            
+        const result = await updateSiteContent(content);
+        if (result.success) {
             toast({
                 title: "Changes Saved",
                 description: "Your site content has been updated.",
             });
-
-        } catch (error) {
-            console.error(error);
+        } else {
+            console.error(result.error);
             toast({
                 title: "Save Failed",
-                description: "Could not save site content changes.",
+                description: result.error || "Could not save site content changes.",
                 variant: "destructive",
             });
         }

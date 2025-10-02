@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { Instagram, Twitter, Youtube, Facebook, Linkedin, LucideIcon } from 'lucide-react';
 import { LunaLogo } from '@/components/icons';
-import { siteContent } from '@/lib/site-content';
+import { getSiteContent } from '@/lib/content';
 
 // Map platform names to Lucide icons
 const iconMap: { [key: string]: LucideIcon } = {
@@ -14,8 +14,8 @@ const iconMap: { [key: string]: LucideIcon } = {
   // Add other platforms and their icons here
 };
 
-export default function Footer() {
-  const { contact, socialMedia } = siteContent;
+export default async function Footer() {
+  const { contact, socialMedia } = await getSiteContent();
 
   return (
     <footer className="bg-card text-card-foreground">
