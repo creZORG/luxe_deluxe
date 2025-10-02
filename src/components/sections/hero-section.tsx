@@ -26,7 +26,7 @@ export default async function HeroSection() {
           Elevating Everyday Essentials.
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-white/90 md:text-xl">
-          Shower Gels, Fabric Softeners & Dishwash crafted with care, available in 40ml, 500ml, and 800ml.
+          Shower Gels, Fabric Softeners & Dishwash crafted with care.
         </p>
         <Link href="/shop" passHref>
           <Button
