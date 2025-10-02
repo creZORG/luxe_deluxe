@@ -37,15 +37,6 @@ const nextConfig: NextConfig = {
       }
     ],
   },
-  env: {
-    NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-    ZEPTO_TOKEN: process.env.ZEPTO_TOKEN,
-    CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
-    CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
-    CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
-    ADMIN_EMAIL_RECIPIENT: process.env.ADMIN_EMAIL_RECIPIENT,
-    FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
-  }
 };
 
 export default nextConfig;
