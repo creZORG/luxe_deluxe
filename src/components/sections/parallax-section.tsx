@@ -13,13 +13,13 @@ export default function ParallaxSection({ imageId }: ParallaxSectionProps) {
 
   return (
     <div
-      className="h-64 md:h-96 bg-cover bg-fixed bg-center"
+      className="h-64 bg-cover bg-center md:h-96 md:bg-fixed"
       style={{ backgroundImage: `url(${image.imageUrl})` }}
       role="img"
       aria-label={image.description}
       data-ai-hint={image.imageHint}
     >
-      {/* This div is used to create the parallax effect */}
+      {/* This div is used to create the parallax effect on desktop */}
     </div>
   );
 }
