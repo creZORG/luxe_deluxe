@@ -19,12 +19,43 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/hooks/use-auth';
 import { getOrdersByUserId } from '@/lib/admin';
 import Link from 'next/link';
+import { Metadata } from 'next';
 
 type ProductPageProps = {
   params: {
     id: string;
   };
 };
+
+export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
+  const product = await getProductById(params.id);
+
+  if (!product) {
+    return {
+      title: 'Product Not Found',
+      description: 'The product you are looking for does not exist.',
+    };
+  }
+
+  return {
+    title: `${product.name} | Luna`,
+    description: product.shortDescription,
+    openGraph: {
+      title: `${product.name} | Luna`,
+      description: product.shortDescription,
+      images: [
+        {
+          url: product.imageId,
+          width: 800,
+          height: 600,
+          alt: product.name,
+        },
+      ],
+      type: 'website',
+    },
+  };
+}
+
 
 function StarRating({ rating, onRatingChange, disabled }: { rating: number, onRatingChange?: (rating: number) => void, disabled?: boolean }) {
     const [hoverRating, setHoverRating] = useState(0);
@@ -334,3 +365,5 @@ export default function ProductPage({ params }: ProductPageProps) {
     </div>
   );
 }
+
+    
