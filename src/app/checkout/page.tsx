@@ -100,43 +100,47 @@ export default function CheckoutPage() {
 
   const onPaymentSuccess = (reference: { reference: string }) => {
     startTransition(async () => {
-        if (!user) {
-            toast({
-                title: 'Authentication Error',
-                description: 'You must be logged in to complete a purchase.',
-                variant: 'destructive',
+        const shippingData = form.getValues();
+        
+        // If user is logged in, save their shipping info for next time
+        if (user) {
+            await updateUserShippingAddress(user.uid, {
+                phone: shippingData.phone,
+                firstName: shippingData.firstName,
+                lastName: shippingData.lastName,
+                address: shippingData.address,
+                city: shippingData.city,
+                county: shippingData.county,
+                deliveryDescription: shippingData.deliveryDescription
             });
-            return;
         }
 
-        // Save shipping info for next time
-        const shippingData = form.getValues();
-        await updateUserShippingAddress(user.uid, {
-            phone: shippingData.phone,
-            firstName: shippingData.firstName,
-            lastName: shippingData.lastName,
-            address: shippingData.address,
-            city: shippingData.city,
-            county: shippingData.county,
-            deliveryDescription: shippingData.deliveryDescription
-        });
-
-        // Process the order
+        // Process the order for guest or logged-in user
         const result = await processSuccessfulOrder({
-            user: user,
+            user: user, // Can be null for guests
+            customerName: `${shippingData.firstName} ${shippingData.lastName}`,
+            customerEmail: shippingData.email,
             items,
             subtotal,
             reference: reference.reference
         });
 
-        toast({
-            title: 'Payment Successful!',
-            description: 'Thank you for your purchase. Redirecting you now...',
-        });
+        if (result.success) {
+            toast({
+                title: 'Payment Successful!',
+                description: 'Thank you for your purchase. Redirecting you now...',
+            });
 
-        clearCart();
-        
-        router.push(`/order-confirmation?ref=${reference.reference}&email=${shippingData.email}`);
+            clearCart();
+            
+            router.push(`/order-confirmation?ref=${reference.reference}&email=${shippingData.email}`);
+        } else {
+             toast({
+                title: 'Order Processing Failed',
+                description: result.error || 'There was an issue saving your order. Please contact support.',
+                variant: 'destructive',
+            });
+        }
     });
   };
 

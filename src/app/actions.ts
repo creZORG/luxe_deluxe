@@ -10,7 +10,9 @@ import type { Order } from "@/lib/admin";
 import { revalidatePath } from "next/cache";
 
 type OrderDetails = {
-    user: User;
+    user: User | null; // User can be null for guest checkouts
+    customerName: string;
+    customerEmail: string;
     items: CartItem[];
     subtotal: number;
     reference: string;
@@ -18,14 +20,14 @@ type OrderDetails = {
 
 export async function processSuccessfulOrder(orderDetails: OrderDetails) {
     try {
-        const { user, items, subtotal, reference } = orderDetails;
+        const { user, customerName, customerEmail, items, subtotal, reference } = orderDetails;
 
         // 1. Save order to Firestore
         const ordersCollection = collection(db, 'orders');
         const newOrderRef = await addDoc(ordersCollection, {
-            userId: user.uid,
-            userName: user.name,
-            userEmail: user.email,
+            userId: user ? user.uid : 'guest',
+            userName: customerName,
+            userEmail: customerEmail,
             items: items.map(item => ({
                 productId: item.product.id,
                 productName: item.product.name,
@@ -43,15 +45,18 @@ export async function processSuccessfulOrder(orderDetails: OrderDetails) {
         const newOrder = await getDoc(newOrderRef);
         const newOrderData = { id: newOrder.id, ...newOrder.data() } as Order;
 
-        // 2. Award loyalty points
-        const pointsEarned = Math.floor(subtotal / 10);
-        if (pointsEarned > 0) {
-            const userRef = doc(db, 'users', user.uid);
-            await updateDoc(userRef, {
-                loyaltyPoints: increment(pointsEarned)
-            });
-            // Revalidate user-specific paths
-            revalidatePath('/profile');
+        // 2. Award loyalty points only if the user is logged in
+        let pointsEarned = 0;
+        if (user) {
+            pointsEarned = Math.floor(subtotal / 10);
+            if (pointsEarned > 0) {
+                const userRef = doc(db, 'users', user.uid);
+                await updateDoc(userRef, {
+                    loyaltyPoints: increment(pointsEarned)
+                });
+                // Revalidate user-specific paths
+                revalidatePath('/profile');
+            }
         }
 
         // The following email functions will now fail gracefully if the token isn't set.
@@ -59,8 +64,8 @@ export async function processSuccessfulOrder(orderDetails: OrderDetails) {
         try {
             // 3. Send confirmation email to customer
             await sendOrderConfirmationEmail({
-                to: user.email!,
-                name: user.name,
+                to: customerEmail,
+                name: customerName,
                 items: items,
                 subtotal: subtotal,
                 reference: reference,
