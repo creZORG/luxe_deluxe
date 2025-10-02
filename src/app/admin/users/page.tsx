@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import { getAllUsers, getAllOrders, getOrdersByUserId, Order } from '@/lib/admin';
+import { getAllUsers, getOrdersByUserId, type Order } from '@/lib/admin';
 import type { User, UserRole } from '@/hooks/use-auth';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';
@@ -25,7 +25,9 @@ import { Label } from '@/components/ui/label';
 import { updateUserRole } from './actions';
 import { toast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp, collection, query, onSnapshot, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase/firebase';
+
 
 type EnrichedUser = User & { signupDate?: Timestamp };
 
@@ -181,10 +183,17 @@ export default function UsersPage() {
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
-            const [userList, orderList] = await Promise.all([getAllUsers(), getAllOrders()]);
+            const userList = await getAllUsers();
             setUsers(userList as EnrichedUser[]);
-            setOrders(orderList);
-            setLoading(false);
+
+            const ordersRef = collection(db, 'orders');
+            const q = query(ordersRef, orderBy('orderDate', 'desc'));
+            const unsubscribe = onSnapshot(q, (snapshot) => {
+                const orderList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+                setOrders(orderList);
+                setLoading(false);
+            });
+            return () => unsubscribe();
         };
         fetchData();
     }, []);

@@ -12,9 +12,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { getAllOrders, Order, OrderStatus, getUserById } from '@/lib/admin';
+import { type Order, type OrderStatus, getUserById } from '@/lib/admin';
 import type { User } from '@/hooks/use-auth';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +23,8 @@ import { toast } from '@/hooks/use-toast';
 import { Loader2, Truck, Eye } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
+import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase/firebase';
 
 // Helper function to safely convert a Firestore Timestamp or a JS Date to a JS Date
 const toJavaScriptDate = (date: any): Date | null => {
@@ -135,7 +136,7 @@ function OrderDetailsModal({ order, open, onOpenChange }: { order: Order | null;
     );
 }
 
-function UpdateStatusModal({ order, open, onOpenChange, onStatusUpdate }: { order: Order | null; open: boolean; onOpenChange: (open: boolean) => void; onStatusUpdate: () => void; }) {
+function UpdateStatusModal({ order, open, onOpenChange }: { order: Order | null; open: boolean; onOpenChange: (open: boolean) => void; }) {
     const [status, setStatus] = useState<OrderStatus>('Pending');
     const [trackingNumber, setTrackingNumber] = useState('');
     const [isPending, startTransition] = useTransition();
@@ -150,10 +151,10 @@ function UpdateStatusModal({ order, open, onOpenChange, onStatusUpdate }: { orde
     const handleSave = () => {
         if (!order) return;
         startTransition(async () => {
+            // Note: updateOrderStatus will trigger the onSnapshot listener, so no need to refetch manually
             const result = await updateOrderStatus(order.id, status, trackingNumber);
             if (result.success) {
                 toast({ title: "Status Updated", description: `Order #${order.reference} has been updated.` });
-                onStatusUpdate();
                 onOpenChange(false);
             } else {
                 toast({ title: "Error", description: result.error, variant: 'destructive' });
@@ -221,15 +222,30 @@ export default function OrdersPage() {
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<OrderStatus | 'All'>('All');
 
-    const fetchOrders = async () => {
-        setLoading(true);
-        const orderList = await getAllOrders();
-        setOrders(orderList);
-        setLoading(false);
-    };
-
     useEffect(() => {
-        fetchOrders();
+        setLoading(true);
+        const ordersRef = collection(db, 'orders');
+        const q = query(ordersRef, orderBy('orderDate', 'desc'));
+
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const orderList = querySnapshot.docs.map(doc => {
+                 const data = doc.data();
+                 return { id: doc.id, ...data } as Order;
+            });
+            setOrders(orderList);
+            setLoading(false);
+        }, (error) => {
+            console.error("Error fetching real-time orders:", error);
+            toast({
+                title: "Error",
+                description: "Could not fetch real-time orders. Please refresh.",
+                variant: "destructive"
+            });
+            setLoading(false);
+        });
+
+        // Cleanup subscription on unmount
+        return () => unsubscribe();
     }, []);
 
     const filteredOrders = useMemo(() => {
@@ -254,17 +270,12 @@ export default function OrdersPage() {
         }, {} as Record<OrderStatus, number>);
     }, [orders]);
 
-    if (loading) {
-        return <div>Loading orders...</div>;
-    }
-
     return (
         <div>
             <UpdateStatusModal
                 order={selectedOrder}
                 open={isUpdateModalOpen}
                 onOpenChange={setUpdateModalOpen}
-                onStatusUpdate={fetchOrders}
             />
              <OrderDetailsModal
                 order={selectedOrder}
@@ -287,51 +298,57 @@ export default function OrdersPage() {
                 <TabsContent value={activeTab}>
                     <Card>
                         <CardContent className="p-0">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Order ID</TableHead>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Customer</TableHead>
-                                        <TableHead>Total</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredOrders.length > 0 ? filteredOrders.map(order => {
-                                        const orderDate = toJavaScriptDate(order.orderDate);
-                                        return (
-                                            <TableRow key={order.id}>
-                                                <TableCell className="font-medium">{order.reference}</TableCell>
-                                                <TableCell>{orderDate ? format(orderDate, 'PPp') : 'N/A'}</TableCell>
-                                                <TableCell>
-                                                    <div>{order.userName}</div>
-                                                    <div className="text-xs text-muted-foreground">{order.userEmail}</div>
-                                                </TableCell>
-                                                <TableCell>KES {order.subtotal.toFixed(2)}</TableCell>
-                                                <TableCell><Badge>{order.status}</Badge></TableCell>
-                                                <TableCell className="flex gap-2">
-                                                    <Button variant="outline" size="sm" onClick={() => handleDetailsClick(order)}>
-                                                        <Eye className="mr-2 h-4 w-4" />
-                                                        Details
-                                                    </Button>
-                                                    <Button variant="outline" size="sm" onClick={() => handleUpdateClick(order)}>
-                                                        <Truck className="mr-2 h-4 w-4" />
-                                                        Update
-                                                    </Button>
+                             {loading ? (
+                                <div className="flex justify-center items-center h-64">
+                                    <Loader2 className="h-8 w-8 animate-spin" />
+                                </div>
+                            ) : (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Order ID</TableHead>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead>Customer</TableHead>
+                                            <TableHead>Total</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Actions</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {filteredOrders.length > 0 ? filteredOrders.map(order => {
+                                            const orderDate = toJavaScriptDate(order.orderDate);
+                                            return (
+                                                <TableRow key={order.id}>
+                                                    <TableCell className="font-medium">{order.reference}</TableCell>
+                                                    <TableCell>{orderDate ? format(orderDate, 'PPp') : 'N/A'}</TableCell>
+                                                    <TableCell>
+                                                        <div>{order.userName}</div>
+                                                        <div className="text-xs text-muted-foreground">{order.userEmail}</div>
+                                                    </TableCell>
+                                                    <TableCell>KES {order.subtotal.toFixed(2)}</TableCell>
+                                                    <TableCell><Badge>{order.status}</Badge></TableCell>
+                                                    <TableCell className="flex gap-2">
+                                                        <Button variant="outline" size="sm" onClick={() => handleDetailsClick(order)}>
+                                                            <Eye className="mr-2 h-4 w-4" />
+                                                            Details
+                                                        </Button>
+                                                        <Button variant="outline" size="sm" onClick={() => handleUpdateClick(order)}>
+                                                            <Truck className="mr-2 h-4 w-4" />
+                                                            Update
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )
+                                        }) : (
+                                            <TableRow>
+                                                <TableCell colSpan={6} className="text-center h-24">
+                                                    No orders found for this status.
                                                 </TableCell>
                                             </TableRow>
-                                        )
-                                    }) : (
-                                         <TableRow>
-                                            <TableCell colSpan={6} className="text-center h-24">
-                                                No orders found for this status.
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            )}
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -339,5 +356,3 @@ export default function OrdersPage() {
         </div>
     );
 }
-
-    
