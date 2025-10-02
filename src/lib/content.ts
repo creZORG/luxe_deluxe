@@ -73,14 +73,25 @@ export async function getSiteContent(): Promise<SiteContent> {
       return defaultContent;
     }
 
-    // Ensure blogPosts array exists
     const data = contentSnap.data() as SiteContent;
-    if (!data.blogPosts) {
-      data.blogPosts = [];
-    }
+    
+    // Ensure essential fields have fallback values to prevent crashes
     if (!data.heroImageId) {
         data.heroImageId = 'hero-misty-bathroom';
     }
+    if (!data.images) {
+        data.images = [];
+    }
+     if (!data.blogPosts) {
+      data.blogPosts = [];
+    }
+    if (!data.contact) {
+        data.contact = { email: '', phone: '', address: '' };
+    }
+    if (!data.socialMedia) {
+        data.socialMedia = [];
+    }
+
 
     return data;
 
@@ -88,10 +99,10 @@ export async function getSiteContent(): Promise<SiteContent> {
     console.error("Error fetching site content from Firestore: ", error);
     // As a fallback, return an empty structure to prevent crashes.
     return {
-        heroImageId: '',
+        heroImageId: 'hero-misty-bathroom',
         contact: { email: '', phone: '', address: ''},
         socialMedia: [],
-        images: [],
+        images: [{ id: 'hero-misty-bathroom', description: 'Hero image for homepage', imageUrl: 'https://res.cloudinary.com/dvciksxcn/image/upload/v1716301331/luna-app/j3lquufc57d9jbsayrre.jpg', imageHint: 'bathroom scene' }],
         blogPosts: []
     }
   }

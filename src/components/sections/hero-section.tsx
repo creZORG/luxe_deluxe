@@ -7,19 +7,18 @@ import Link from 'next/link';
 export default async function HeroSection() {
   const content = await getSiteContent();
   const heroImage = content.images.find((img) => img.id === content.heroImageId);
+  const heroImageUrl = heroImage ? heroImage.imageUrl : 'https://placehold.co/1920x1080';
 
   return (
     <section className="relative h-[calc(100vh-4rem)] w-full">
-      {content.heroImageId && (
-        <Image
-          src={content.heroImageId}
+      <Image
+          src={heroImageUrl}
           alt={heroImage?.description || 'Homepage hero image'}
           fill
           className="object-cover"
           priority
           data-ai-hint={heroImage?.imageHint || 'luxury products'}
         />
-      )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
       <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-white">
         <h1 className="font-headline text-5xl font-bold tracking-tight md:text-7xl lg:text-8xl">
