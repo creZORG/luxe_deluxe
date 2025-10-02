@@ -55,12 +55,16 @@ export async function getSiteContent(): Promise<SiteContent> {
           contact: { email: 'your-email@example.com', phone: 'Your Phone', address: 'Your Address' },
           socialMedia: [{ platform: 'Instagram', url: '#' }],
           images: [
-              { id: 'hero-misty-bathroom', description: 'Hero image for homepage', imageUrl: 'https://res.cloudinary.com/dvciksxcn/image/upload/v1716301331/luna-app/j3lquufc57d9jbsayrre.jpg', imageHint: 'bathroom scene' },
-              { id: 'parallax-laundry', description: 'Parallax image for laundry section', imageUrl: 'https://placehold.co/1920x1080', imageHint: 'laundry' },
-              { id: 'sustainability-banner', description: 'Banner for sustainability section', imageUrl: 'https://placehold.co/1920x500', imageHint: 'nature' },
-              { id: 'blog-spa-home', description: 'Blog post image for spa at home', imageUrl: 'https://placehold.co/600x400', imageHint: 'spa home' },
-              { id: 'blog-laundry-tips', description: 'Blog post image for laundry tips', imageUrl: 'https://placehold.co/600x400', imageHint: 'laundry room' },
-              { id: 'blog-kitchen-organizing', description: 'Blog post image for kitchen organizing', imageUrl: 'https://placehold.co/600x400', imageHint: 'clean kitchen' },
+              { id: 'hero-misty-bathroom', description: 'A model in a misty, spa-like bathroom', imageUrl: 'https://i.postimg.cc/9M7xC6Vd/woman-having-bubble-bath.jpg', imageHint: 'bathroom scene' },
+              { id: 'parallax-laundry', description: 'A folded stack of fresh laundry with fabric softener', imageUrl: 'https://i.postimg.cc/tJn5gJ2D/fresh-laundry.jpg', imageHint: 'laundry' },
+              { id: 'parallax-kitchen', description: 'A glossy kitchen scene with sparkling dishes', imageUrl: 'https://i.postimg.cc/bN9b9zL1/sparkling-dishes.jpg', imageHint: 'clean kitchen' },
+              { id: 'parallax-spa-bathroom', description: 'A spa-like bathroom scene with a glowing shower gel', imageUrl: 'https://i.postimg.cc/D0pypW2T/glowing-shower-gel.jpg', imageHint: 'spa bathroom' },
+              { id: 'sustainability-banner', description: 'Nature-inspired photography of water ripples', imageUrl: 'https://i.postimg.cc/sXvLpLJM/water-ripples.jpg', imageHint: 'water ripples' },
+              { id: 'blog-spa-home', description: 'A woman relaxing in a home spa setting', imageUrl: 'https://placehold.co/600x400', imageHint: 'spa home' },
+              { id: 'blog-laundry-tips', description: 'Aesthetically pleasing laundry room', imageUrl: 'https://placehold.co/600x400', imageHint: 'laundry room' },
+              { id: 'blog-kitchen-organizing', description: 'A beautifully organized modern kitchen', imageUrl: 'https://placehold.co/600x400', imageHint: 'clean kitchen' },
+              { id: 'about-us-image', description: 'Image for About Us section', imageUrl: 'https://i.postimg.cc/YSj7k0wM/production-process.jpg', imageHint: 'natural ingredients' },
+              { id: 'sustainability-image', description: 'Image for Sustainability section', imageUrl: 'https://i.postimg.cc/PqY7d7WJ/eco-friendly-packaging.jpg', imageHint: 'eco friendly' },
           ],
           blogPosts: [
               { id: 1, title: 'How to Create a Spa Experience at Home', imageId: 'blog-spa-home', excerpt: 'Transform your bathroom into a sanctuary of relaxation with our expert tips and luxurious essentials.' },
@@ -102,7 +106,18 @@ export async function getSiteContent(): Promise<SiteContent> {
         heroImageId: 'hero-misty-bathroom',
         contact: { email: '', phone: '', address: ''},
         socialMedia: [],
-        images: [{ id: 'hero-misty-bathroom', description: 'Hero image for homepage', imageUrl: 'https://res.cloudinary.com/dvciksxcn/image/upload/v1716301331/luna-app/j3lquufc57d9jbsayrre.jpg', imageHint: 'bathroom scene' }],
+        images: [
+            { id: 'hero-misty-bathroom', description: 'A model in a misty, spa-like bathroom', imageUrl: 'https://i.postimg.cc/9M7xC6Vd/woman-having-bubble-bath.jpg', imageHint: 'bathroom scene' },
+            { id: 'parallax-laundry', description: 'A folded stack of fresh laundry with fabric softener', imageUrl: 'https://i.postimg.cc/tJn5gJ2D/fresh-laundry.jpg', imageHint: 'laundry' },
+            { id: 'parallax-kitchen', description: 'A glossy kitchen scene with sparkling dishes', imageUrl: 'https://i.postimg.cc/bN9b9zL1/sparkling-dishes.jpg', imageHint: 'clean kitchen' },
+            { id: 'parallax-spa-bathroom', description: 'A spa-like bathroom scene with a glowing shower gel', imageUrl: 'https://i.postimg.cc/D0pypW2T/glowing-shower-gel.jpg', imageHint: 'spa bathroom' },
+            { id: 'sustainability-banner', description: 'Nature-inspired photography of water ripples', imageUrl: 'https://i.postimg.cc/sXvLpLJM/water-ripples.jpg', imageHint: 'water ripples' },
+            { id: 'blog-spa-home', description: 'A woman relaxing in a home spa setting', imageUrl: 'https://placehold.co/600x400', imageHint: 'spa home' },
+            { id: 'blog-laundry-tips', description: 'Aesthetically pleasing laundry room', imageUrl: 'https://placehold.co/600x400', imageHint: 'laundry room' },
+            { id: 'blog-kitchen-organizing', description: 'A beautifully organized modern kitchen', imageUrl: 'https://placehold.co/600x400', imageHint: 'clean kitchen' },
+            { id: 'about-us-image', description: 'Image for About Us section', imageUrl: 'https://i.postimg.cc/YSj7k0wM/production-process.jpg', imageHint: 'natural ingredients' },
+            { id: 'sustainability-image', description: 'Image for Sustainability section', imageUrl: 'https://i.postimg.cc/PqY7d7WJ/eco-friendly-packaging.jpg', imageHint: 'eco friendly' },
+        ],
         blogPosts: []
     }
   }

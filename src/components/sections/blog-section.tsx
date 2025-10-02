@@ -15,7 +15,7 @@ export default async function BlogSection() {
   const { images: allImages, blogPosts } = content;
 
   return (
-    <section id="about" className="py-16 sm:py-24 bg-card">
+    <section id="blog" className="py-16 sm:py-24 bg-card">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <h2 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-5xl">

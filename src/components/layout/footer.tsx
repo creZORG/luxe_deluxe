@@ -30,6 +30,7 @@ export default async function Footer() {
             <Link href="/shop" className="text-muted-foreground transition-colors hover:text-foreground">Shop</Link>
             <Link href="/#about" className="text-muted-foreground transition-colors hover:text-foreground">About</Link>
             <Link href="/#sustainability" className="text-muted-foreground transition-colors hover:text-foreground">Sustainability</Link>
+             <Link href="/#blog" className="text-muted-foreground transition-colors hover:text-foreground">Blog</Link>
           </div>
 
           <div className="flex space-x-6">
