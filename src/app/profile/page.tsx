@@ -14,7 +14,8 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from '@/hooks/use-toast';
-import { updateUserShippingAddress, sendVerificationEmail, verifyUserEmail } from '@/app/actions';
+import { sendVerificationEmail, verifyUserEmail } from '@/app/actions';
+import { updateUserShippingAddress } from '@/app/admin/users/actions';
 import { Loader2, Star, Copy, Info } from 'lucide-react';
 import type { Order, OrderStatus } from '@/lib/admin';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -372,4 +373,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
