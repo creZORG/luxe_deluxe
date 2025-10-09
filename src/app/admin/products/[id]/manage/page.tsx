@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useTransition, useMemo } from 'react';
 import { notFound, useRouter } from 'next/navigation';
-import { Product, getProductById } from '@/lib/products';
+import { Product } from '@/lib/products';
 import { updateProduct, updateProductStatus } from '@/app/admin/products/actions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,10 +13,40 @@ import ProductForm from '@/components/admin/product-form';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { getAllOrders, Order } from '@/lib/admin';
+import { unstable_noStore as noStore } from 'next/cache';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase/firebase';
+
 
 type ManageProductPageProps = {
     params: { id: string };
 };
+
+// We need to keep the original getProductById function for the manage page,
+// as the ID from firebase is passed in the URL not the slug
+async function getProductById(id: string): Promise<Product | null> {
+    noStore();
+    try {
+        const productRef = doc(db, 'products', id);
+        const productSnap = await getDoc(productRef);
+
+        if (productSnap.exists()) {
+        const productData = productSnap.data();
+        return { 
+            id: productSnap.id, 
+            slug: productData.slug || productSnap.id,
+            ...productData, 
+            sizes: productData?.sizes || [] 
+        } as Product;
+        } else {
+        return null;
+        }
+    } catch (error) {
+        console.error(`Error fetching product ${id}:`, error);
+        return null;
+    }
+}
+
 
 export default function ManageProductPage({ params }: ManageProductPageProps) {
     const [product, setProduct] = useState<Product | null>(null);
@@ -172,29 +202,4 @@ export default function ManageProductPage({ params }: ManageProductPageProps) {
             </Card>
         </div>
     );
-}
-
-// We need to keep the original getProductById function for the manage page,
-// as the ID from firebase is passed in the URL not the slug
-async function getProductById(id: string): Promise<Product | null> {
-    noStore();
-    try {
-        const productRef = doc(db, 'products', id);
-        const productSnap = await getDoc(productRef);
-
-        if (productSnap.exists()) {
-        const productData = productSnap.data();
-        return { 
-            id: productSnap.id, 
-            slug: productData.slug || productSnap.id,
-            ...productData, 
-            sizes: productData?.sizes || [] 
-        } as Product;
-        } else {
-        return null;
-        }
-    } catch (error) {
-        console.error(`Error fetching product ${id}:`, error);
-        return null;
-    }
 }
