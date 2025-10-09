@@ -18,8 +18,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
+        body: ['"Funnel Sans"', 'sans-serif'],
+        headline: ['"Funnel Sans"', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
