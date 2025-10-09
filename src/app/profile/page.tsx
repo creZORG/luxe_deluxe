@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { collection, query, where, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
+import { Label } from '@/components/ui/label';
 
 
 // Helper function to safely convert a Firestore Timestamp or a JS Date to a JS Date
@@ -308,3 +309,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
