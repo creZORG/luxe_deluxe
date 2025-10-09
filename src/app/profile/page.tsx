@@ -15,7 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from '@/hooks/use-toast';
 import { updateUserShippingAddress } from '@/app/admin/users/actions';
-import { Loader2, Star, Copy } from 'lucide-react';
+import { Loader2, Star, Copy, Info } from 'lucide-react';
 import type { Order, OrderStatus } from '@/lib/admin';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
@@ -24,6 +24,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { collection, query, where, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 import { Label } from '@/components/ui/label';
+import Link from 'next/link';
 
 
 // Helper function to safely convert a Firestore Timestamp or a JS Date to a JS Date
@@ -247,7 +248,12 @@ export default function ProfilePage() {
                              <Star className="h-8 w-8 text-yellow-400 fill-yellow-400" />
                              <p className="text-4xl font-bold">{user.stradPoints || 0}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground">STRAD Points</p>
+                        <div className="flex items-center gap-2 mt-1">
+                            <p className="text-sm text-muted-foreground">STRAD Points</p>
+                            <Link href="/campaigns/trad">
+                                <Info className="h-4 w-4 text-muted-foreground hover:text-primary cursor-pointer" />
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </CardContent>
@@ -309,4 +315,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
