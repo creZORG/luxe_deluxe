@@ -220,3 +220,33 @@ export async function sendRoleChangeEmail({ to, name, newRole }: RoleChangeEmail
 
     return sendEmail(emailPayload);
 }
+
+type VerificationCodeEmailProps = {
+    to: string;
+    name: string;
+    code: string;
+};
+
+export async function sendVerificationCodeEmail({ to, name, code }: VerificationCodeEmailProps) {
+    const emailPayload = {
+        from: { address: FROM_EMAIL, name: FROM_NAME },
+        to: [{ email_address: { address: to, name: name } }],
+        subject: `Your Luna Verification Code`,
+        htmlbody: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
+                <h1 style="color: #333;">Verify Your Email Address</h1>
+                <p>Hi ${name},</p>
+                <p>Thanks for signing up! Use the following code to verify your email address and activate your account:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <p style="display: inline-block; padding: 15px 25px; background-color: #f0f8ff; font-size: 24px; font-weight: bold; letter-spacing: 5px; border-radius: 5px;">
+                        ${code}
+                    </p>
+                </div>
+                <p>This code will expire in 10 minutes. If you did not request this, please ignore this email.</p>
+                <p style="margin-top: 30px; font-size: 0.9em; color: #777;">Best,<br/>The Luna Team</p>
+            </div>
+        `,
+    };
+
+    return sendEmail(emailPayload);
+}

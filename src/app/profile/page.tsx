@@ -14,7 +14,7 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from '@/hooks/use-toast';
-import { updateUserShippingAddress } from '@/app/admin/users/actions';
+import { updateUserShippingAddress, sendVerificationEmail, verifyUserEmail } from '@/app/actions';
 import { Loader2, Star, Copy, Info } from 'lucide-react';
 import type { Order, OrderStatus } from '@/lib/admin';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -195,26 +195,32 @@ function OrderHistory() {
 }
 
 function EmailVerificationCard() {
-    // This is a placeholder for the OTP functionality.
-    // In a real app, this would involve server-side logic to send and verify the OTP.
+    const { user } = useAuth();
     const [otp, setOtp] = useState('');
-    const [isPending, startTransition] = useTransition();
+    const [isSending, startSending] = useTransition();
+    const [isVerifying, startVerifying] = useTransition();
 
     const handleSendOtp = () => {
-        startTransition(() => {
-            // Simulate sending OTP
-            toast({ title: 'OTP Sent', description: 'A verification code has been sent to your email (simulation).'});
+        if (!user?.email) return;
+        startSending(async () => {
+            const result = await sendVerificationEmail(user.email, user.name);
+            if (result.success) {
+                toast({ title: 'OTP Sent', description: 'A verification code has been sent to your email.'});
+            } else {
+                 toast({ title: 'Error', description: result.error, variant: 'destructive'});
+            }
         });
     }
 
     const handleVerifyOtp = () => {
-         startTransition(() => {
-            // Simulate verifying OTP
-            if (otp === '123456') { // Dummy OTP
-                toast({ title: 'Email Verified!', description: 'Your account is now verified.'});
-                // Here you would update the user's `emailVerified` status in Firestore
+        if (!user?.email) return;
+         startVerifying(async () => {
+            const result = await verifyUserEmail(user.uid, user.email, otp);
+            if (result.success) {
+                toast({ title: 'Email Verified!', description: 'Your account is now verified and points have been awarded.'});
+                // No need to manually update user state, revalidation will handle it
             } else {
-                toast({ title: 'Invalid OTP', description: 'The code you entered is incorrect.', variant: 'destructive'});
+                toast({ title: 'Invalid OTP', description: result.error, variant: 'destructive'});
             }
         });
     }
@@ -227,16 +233,16 @@ function EmailVerificationCard() {
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="flex gap-2">
-                    <Input value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="123456" maxLength={6} />
-                    <Button onClick={handleVerifyOtp} disabled={isPending || otp.length !== 6}>
-                        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <Input value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="123456" maxLength={6} disabled={isVerifying}/>
+                    <Button onClick={handleVerifyOtp} disabled={isVerifying || isSending || otp.length !== 6}>
+                        {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Verify
                     </Button>
                 </div>
             </CardContent>
             <CardFooter>
-                 <Button variant="link" className="p-0 h-auto" onClick={handleSendOtp} disabled={isPending}>
-                    Didn't receive a code? Resend.
+                 <Button variant="link" className="p-0 h-auto" onClick={handleSendOtp} disabled={isSending || isVerifying}>
+                    {isSending ? 'Sending...' : "Didn't receive a code? Resend."}
                 </Button>
             </CardFooter>
         </Card>
@@ -366,3 +372,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+

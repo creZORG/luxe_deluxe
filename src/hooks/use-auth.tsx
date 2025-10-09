@@ -180,7 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: 'customer',
         emailVerified: false, // Will be set to true after OTP verification
         signupDate: Timestamp.now(),
-        stradPoints: 0, // Points awarded after verification
+        stradPoints: 0, // Points are now only awarded after verification
         referralCode: nanoid(8),
         successfulReferrals: [],
       };
@@ -194,35 +194,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!querySnapshot.empty) {
             const referringUserDoc = querySnapshot.docs[0];
             newUser.referredBy = referringUserDoc.id; // Store referrer's UID
+        } else {
+            // Handle case where referral code is invalid, maybe show a toast?
+            // For now, we'll just ignore it.
+            console.warn(`Invalid referral code used: ${referralCode}`);
         }
       }
       
       await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
       
-      // For now, we'll auto-verify and redirect.
-      // In a real app, you would send an OTP and wait for verification.
-      // The logic to award points would be in the verification function.
-      const batch = writeBatch(db);
-      const userRef = doc(db, 'users', firebaseUser.uid);
-      
-      // Mark as verified and award signup points
-      batch.update(userRef, { 
-        emailVerified: true,
-        stradPoints: increment(globalSettings.crypto.pointsForSignup) 
-      });
-
-      // If referred, award points to the referrer
-      if (newUser.referredBy) {
-        const referrerRef = doc(db, 'users', newUser.referredBy);
-        batch.update(referrerRef, {
-            stradPoints: increment(globalSettings.crypto.pointsForReferral),
-            successfulReferrals: [...((await getDoc(referrerRef)).data()?.successfulReferrals || []), firebaseUser.uid]
-        });
-      }
-      
-      await batch.commit();
-
-      router.push('/');
+      // User is created. The auth listener will pick them up.
+      // Redirecting is handled by the auth listener effect.
+      // No points awarded here. That happens in the verification action.
 
       return true;
     } catch (err: any) {
