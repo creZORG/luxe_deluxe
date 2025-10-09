@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useTransition, useEffect } from 'react';
@@ -38,8 +37,8 @@ export default function SiteContentPage() {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    if (!authLoading && user && !['admin', 'developer'].includes(user.role)) {
-      router.push('/admin/dashboard');
+    if (!authLoading && user && !['admin', 'developer', 'digital_marketer'].includes(user.role)) {
+      router.push('/login');
     }
   }, [user, authLoading, router]);
 
@@ -51,7 +50,7 @@ export default function SiteContentPage() {
   };
   
   useEffect(() => {
-    if (user && ['admin', 'developer'].includes(user.role)) {
+    if (user && ['admin', 'developer', 'digital_marketer'].includes(user.role)) {
       fetchContent();
     }
   }, [user]);
@@ -65,7 +64,7 @@ export default function SiteContentPage() {
     );
   }
   
-  if (!user || !['admin', 'developer'].includes(user.role)) {
+  if (!user || !['admin', 'developer', 'digital_marketer'].includes(user.role)) {
       return null;
   }
 

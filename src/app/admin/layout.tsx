@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Inter } from 'next/font/google';
@@ -6,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
-  LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon, Settings, Users, Percent, UserCog, Megaphone, Bitcoin, UserPlus
+  LayoutDashboard, LogOut, Package, Image as ImageIcon, Settings, Users, Percent, UserCog, Megaphone, Bitcoin, UserPlus
 } from 'lucide-react';
 import { useAuth, AuthProvider } from '@/hooks/use-auth';
 import { LoadingModal } from '@/components/ui/loading-modal';
@@ -32,21 +31,23 @@ function PortalLayoutContent({ children }: { children: React.ReactNode }) {
   const isAdminPath = pathname.startsWith('/admin');
   const isMarketerPath = pathname.startsWith('/digital-marketer');
   const isFulfillmentPath = pathname.startsWith('/fulfillment');
+  const isSalesPath = pathname.startsWith('/sales');
 
   const navItems = [
     // Admin
     { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'developer'] },
     { href: '/admin/users', icon: UserCog, label: 'Users', roles: ['admin', 'developer'] },
     { href: '/admin/products', icon: Package, label: 'Products', roles: ['admin', 'developer'] },
-    { href: '/admin/sales-team', icon: Users, label: 'Sales Team', roles: ['admin', 'developer'] },
-    { href: '/admin/site-content', icon: ImageIcon, label: 'Site Content', roles: ['admin', 'developer'] },
     { href: '/admin/global-settings', icon: Settings, label: 'Global Settings', roles: ['admin', 'developer'] },
     { href: '/admin/crypto', icon: Bitcoin, label: 'Crypto', roles: ['developer'] },
     // Marketer
-    { href: '/digital-marketer/marketing', icon: Megaphone, label: 'Marketing', roles: ['digital_marketer'] },
-    { href: '/digital-marketer/influencers', icon: UserPlus, label: 'Influencers', roles: ['digital_marketer'] },
+    { href: '/digital-marketer/marketing', icon: Megaphone, label: 'Marketing', roles: ['digital_marketer', 'admin', 'developer'] },
+    { href: '/digital-marketer/influencers', icon: UserPlus, label: 'Influencers', roles: ['digital_marketer', 'admin', 'developer'] },
+    { href: '/digital-marketer/site-content', icon: ImageIcon, label: 'Site Content', roles: ['digital_marketer', 'admin', 'developer'] },
     // Fulfillment
-    { href: '/fulfillment/orders', icon: ShoppingCart, label: 'Orders', roles: ['fulfillment'] },
+    { href: '/fulfillment/orders', icon: LayoutDashboard, label: 'Orders', roles: ['fulfillment', 'admin', 'developer'] },
+    // Sales
+    { href: '/sales/team', icon: Users, label: 'Sales Team', roles: ['sales', 'admin', 'developer'] },
   ];
 
   const getAccessibleNavItems = () => {
@@ -54,6 +55,7 @@ function PortalLayoutContent({ children }: { children: React.ReactNode }) {
     if (isAdminPath) return navItems.filter(item => item.href.startsWith('/admin') && item.roles.includes(user.role));
     if (isMarketerPath) return navItems.filter(item => item.href.startsWith('/digital-marketer') && item.roles.includes(user.role));
     if (isFulfillmentPath) return navItems.filter(item => item.href.startsWith('/fulfillment') && item.roles.includes(user.role));
+    if (isSalesPath) return navItems.filter(item => item.href.startsWith('/sales') && item.roles.includes(user.role));
     return [];
   }
   
@@ -67,9 +69,11 @@ function PortalLayoutContent({ children }: { children: React.ReactNode }) {
       }
       const currentPortalPath = pathname.split('/')[1];
       const userAllowedPortals: string[] = [];
-      if (['admin', 'developer'].includes(user.role)) userAllowedPortals.push('admin');
+      if (['admin', 'developer'].includes(user.role)) userAllowedPortals.push('admin', 'digital-marketer', 'fulfillment', 'sales');
       if (['digital_marketer'].includes(user.role)) userAllowedPortals.push('digital-marketer');
       if (['fulfillment'].includes(user.role)) userAllowedPortals.push('fulfillment');
+      if (['sales'].includes(user.role)) userAllowedPortals.push('sales');
+
 
       if (!userAllowedPortals.includes(currentPortalPath)) {
          router.push('/login');

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { LoadingModal } from '@/components/ui/loading-modal';
 
-export default function DigitalMarketerLayout({
+export default function SalesLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -15,7 +15,7 @@ export default function DigitalMarketerLayout({
 
   useEffect(() => {
     if (!loading) {
-      if (!user || !['digital_marketer', 'admin', 'developer'].includes(user.role)) {
+      if (!user || !['sales', 'admin', 'developer'].includes(user.role)) {
         router.push('/login');
       }
     }
@@ -25,7 +25,7 @@ export default function DigitalMarketerLayout({
     return <LoadingModal />;
   }
   
-  if (!['digital_marketer', 'admin', 'developer'].includes(user.role)) {
+  if (!['sales', 'admin', 'developer'].includes(user.role)) {
     return null;
   }
 

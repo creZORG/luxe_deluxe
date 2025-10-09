@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -12,8 +11,8 @@ export default function SalesTeamPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!authLoading && user && !['admin', 'developer'].includes(user.role)) {
-      router.push('/admin/dashboard');
+    if (!authLoading && user && !['admin', 'developer', 'sales'].includes(user.role)) {
+      router.push('/login');
     }
   }, [user, authLoading, router]);
 
@@ -25,7 +24,7 @@ export default function SalesTeamPage() {
       )
   }
 
-  if (!user || !['admin', 'developer'].includes(user.role)) {
+  if (!user || !['admin', 'developer', 'sales'].includes(user.role)) {
       return null;
   }
   
