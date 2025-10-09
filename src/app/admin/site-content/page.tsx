@@ -100,9 +100,9 @@ export default function SiteContentPage() {
     });
   }
 
-  const handleHeroImageChange = (imageId: string) => {
-    setContent(prev => prev ? ({ ...prev, heroImageId: imageId }) : null);
-  }
+  const handleHomepageImageChange = (field: keyof SiteContent, imageId: string) => {
+    setContent(prev => (prev ? { ...prev, [field]: imageId } : null));
+  };
   
   const handleImageInfoChange = (index: number, field: keyof ImagePlaceholder, value: string) => {
       setContent(prev => {
@@ -128,11 +128,10 @@ export default function SiteContentPage() {
           if (!prev) return null;
           // Prevent deleting an image that is currently in use
           const isUsedInBlog = prev.blogPosts.some(post => post.imageId === id);
-          const isHero = prev.heroImageId === id;
-          if (isUsedInBlog || isHero) {
+          if (isUsedInBlog || prev.featuredProductImageId === id || prev.collectionFabricSoftenersImageId === id || prev.collectionShowerGelsImageId === id || prev.collectionDishwashImageId === id) {
               toast({
                   title: "Cannot Delete Image",
-                  description: "This image is currently being used as a hero image or in a blog post.",
+                  description: "This image is currently being used on the homepage.",
                   variant: "destructive",
               });
               return prev;
@@ -208,6 +207,27 @@ export default function SiteContentPage() {
         }
     });
   };
+  
+  const ImageSelect = ({ label, value, onChange, images }: { label: string; value: string; onChange: (value: string) => void; images: ImagePlaceholder[] }) => (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select an image" />
+        </SelectTrigger>
+        <SelectContent>
+          {images.map(image => (
+            <SelectItem key={image.id} value={image.id}>
+              <div className="flex items-center gap-2">
+                <Image src={image.imageUrl} alt={image.description} width={24} height={24} className="rounded-sm object-cover" />
+                <span>{image.id}</span>
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
 
   return (
     <div>
@@ -225,30 +245,38 @@ export default function SiteContentPage() {
       
       <div className="space-y-8">
         
-        {/* General Settings */}
+        {/* Homepage Content */}
         <Card>
             <CardHeader>
-                <CardTitle>General Settings</CardTitle>
-                <CardDescription>High-level settings for your homepage.</CardDescription>
+                <CardTitle>Homepage Content</CardTitle>
+                <CardDescription>Manage the main images displayed on your homepage.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="space-y-2">
-                    <Label>Homepage Hero Image</Label>
-                    <Select value={content.heroImageId} onValueChange={handleHeroImageChange}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select a hero image" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {content.images.map(image => (
-                                <SelectItem key={image.id} value={image.id}>
-                                    <div className="flex items-center gap-2">
-                                        <Image src={image.imageUrl} alt={image.description} width={24} height={24} className="rounded-sm" />
-                                        <span>{image.id}</span>
-                                    </div>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+               <ImageSelect
+                  label="Featured Product Image"
+                  value={content.featuredProductImageId}
+                  onChange={(value) => handleHomepageImageChange('featuredProductImageId', value)}
+                  images={content.images}
+                />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+                   <ImageSelect
+                      label="Collection: Fabric Softeners"
+                      value={content.collectionFabricSoftenersImageId}
+                      onChange={(value) => handleHomepageImageChange('collectionFabricSoftenersImageId', value)}
+                      images={content.images}
+                    />
+                    <ImageSelect
+                      label="Collection: Shower Gels"
+                      value={content.collectionShowerGelsImageId}
+                      onChange={(value) => handleHomepageImageChange('collectionShowerGelsImageId', value)}
+                      images={content.images}
+                    />
+                    <ImageSelect
+                      label="Collection: Dishwash"
+                      value={content.collectionDishwashImageId}
+                      onChange={(value) => handleHomepageImageChange('collectionDishwashImageId', value)}
+                      images={content.images}
+                    />
                 </div>
             </CardContent>
         </Card>
@@ -306,8 +334,8 @@ export default function SiteContentPage() {
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Website & Gallery Images</CardTitle>
-                <CardDescription>Manage images used across your website and in the public gallery.</CardDescription>
+                <CardTitle>Image Gallery</CardTitle>
+                <CardDescription>Upload and manage all images used across your website.</CardDescription>
               </div>
                <Button onClick={addImage} variant="outline" size="sm">
                   <PlusCircle className="mr-2 h-4 w-4" />

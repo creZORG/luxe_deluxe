@@ -2,18 +2,22 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight } from 'lucide-react';
+import { getSiteContent, ImagePlaceholder } from '@/lib/content';
 
-function FeaturedProductCard() {
+async function FeaturedProductCard() {
+  const content = await getSiteContent();
+  const image = content.images.find(img => img.id === content.featuredProductImageId);
+
   return (
     <div className="relative w-full max-w-sm mx-auto animate-fade-in-left animation-duration-1000 animation-delay-400">
       <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg shadow-2xl">
         <Image
-          src="https://i.postimg.cc/y8P8v9fC/woman-red-dress-silk.jpg"
-          alt="Cocoa Butter Shower Gel"
+          src={image?.imageUrl || "https://i.postimg.cc/y8P8v9fC/woman-red-dress-silk.jpg"}
+          alt={image?.description || "Cocoa Butter Shower Gel"}
           fill
           className="object-cover"
+          data-ai-hint={image?.imageHint}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         <div className="absolute bottom-0 w-full p-6 text-white">
@@ -25,16 +29,16 @@ function FeaturedProductCard() {
   );
 }
 
-function CollectionCard({ title, description, imageUrl, link, large = false, hint }: { title: string, description: string, imageUrl: string, link: string, large?: boolean, hint: string }) {
+function CollectionCard({ title, description, image, link, large = false }: { title: string, description: string, image?: ImagePlaceholder, link: string, large?: boolean }) {
   return (
     <Link href={link} className={`group relative block overflow-hidden rounded-lg shadow-lg ${large ? 'md:col-span-2' : ''}`}>
       <div className="relative aspect-video w-full overflow-hidden md:aspect-[4/3]">
         <Image
-          src={imageUrl}
-          alt={title}
+          src={image?.imageUrl || "https://placehold.co/600x400"}
+          alt={image?.description || title}
           fill
           className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-105"
-          data-ai-hint={hint}
+          data-ai-hint={image?.imageHint}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
       </div>
@@ -50,7 +54,15 @@ function CollectionCard({ title, description, imageUrl, link, large = false, hin
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const content = await getSiteContent();
+  
+  const collectionImages = {
+    fabricSofteners: content.images.find(img => img.id === content.collectionFabricSoftenersImageId),
+    showerGels: content.images.find(img => img.id === content.collectionShowerGelsImageId),
+    dishwash: content.images.find(img => img.id === content.collectionDishwashImageId),
+  }
+
   return (
     <div className="space-y-24 py-16 md:py-24">
       {/* Hero Section */}
@@ -93,24 +105,21 @@ export default function Home() {
           <CollectionCard
             title="Fabric Softeners"
             description="Infuse your fabrics with lasting scents that evoke a sense of pure comfort and luxury."
-            imageUrl="https://i.postimg.cc/tJn5gJ2D/fresh-laundry.jpg"
+            image={collectionImages.fabricSofteners}
             link="/shop?category=Fabric%20Softeners"
             large
-            hint="laundry"
           />
           <CollectionCard
             title="Shower Gels"
             description="Transform your daily cleanse into a moment of pure bliss."
-            imageUrl="https://i.postimg.cc/D0pypW2T/glowing-shower-gel.jpg"
+            image={collectionImages.showerGels}
             link="/shop?category=Shower%20Gels"
-            hint="spa bathroom"
           />
           <CollectionCard
             title="Dishwash"
             description="Elevate your kitchen routine with powerful, fragrant dish soap."
-            imageUrl="https://i.postimg.cc/bN9b9zL1/sparkling-dishes.jpg"
+            image={collectionImages.dishwash}
             link="/shop?category=Dishwash"
-            hint="clean kitchen"
           />
         </div>
       </section>

@@ -26,7 +26,10 @@ export type BlogPostContent = {
 }
 
 export type SiteContent = {
-  heroImageId: string;
+  featuredProductImageId: string;
+  collectionFabricSoftenersImageId: string;
+  collectionShowerGelsImageId: string;
+  collectionDishwashImageId: string;
   contact: {
     email: string;
     phone: string;
@@ -51,14 +54,17 @@ export async function getSiteContent(): Promise<SiteContent> {
       console.log('No site content document found. Returning default structure. Please populate content in /admin/site-content.');
       // Return a default, empty structure if the document doesn't exist.
       const defaultContent: SiteContent = {
-          heroImageId: 'hero-misty-bathroom',
+          featuredProductImageId: 'featured-product-default',
+          collectionFabricSoftenersImageId: 'collection-fabric-softener-default',
+          collectionShowerGelsImageId: 'collection-shower-gel-default',
+          collectionDishwashImageId: 'collection-dishwash-default',
           contact: { email: 'your-email@example.com', phone: 'Your Phone', address: 'Your Address' },
           socialMedia: [{ platform: 'Instagram', url: '#' }],
           images: [
-              { id: 'hero-misty-bathroom', description: 'A model in a misty, spa-like bathroom', imageUrl: 'https://i.postimg.cc/9M7xC6Vd/woman-having-bubble-bath.jpg', imageHint: 'bathroom scene' },
-              { id: 'parallax-laundry', description: 'A folded stack of fresh laundry with fabric softener', imageUrl: 'https://i.postimg.cc/tJn5gJ2D/fresh-laundry.jpg', imageHint: 'laundry' },
-              { id: 'parallax-kitchen', description: 'A glossy kitchen scene with sparkling dishes', imageUrl: 'https://i.postimg.cc/bN9b9zL1/sparkling-dishes.jpg', imageHint: 'clean kitchen' },
-              { id: 'parallax-spa-bathroom', description: 'A spa-like bathroom scene with a glowing shower gel', imageUrl: 'https://i.postimg.cc/D0pypW2T/glowing-shower-gel.jpg', imageHint: 'spa bathroom' },
+              { id: 'featured-product-default', description: 'A woman in a red silk dress, embodying luxury', imageUrl: 'https://i.postimg.cc/y8P8v9fC/woman-red-dress-silk.jpg', imageHint: 'luxury beauty' },
+              { id: 'collection-fabric-softener-default', description: 'A stack of fresh, clean laundry', imageUrl: 'https://i.postimg.cc/tJn5gJ2D/fresh-laundry.jpg', imageHint: 'laundry' },
+              { id: 'collection-shower-gel-default', description: 'A luxurious spa-like bathroom with glowing shower gel', imageUrl: 'https://i.postimg.cc/D0pypW2T/glowing-shower-gel.jpg', imageHint: 'spa bathroom' },
+              { id: 'collection-dishwash-default', description: 'Sparkling clean dishes in a modern kitchen', imageUrl: 'https://i.postimg.cc/bN9b9zL1/sparkling-dishes.jpg', imageHint: 'clean kitchen' },
               { id: 'sustainability-banner', description: 'Nature-inspired photography of water ripples', imageUrl: 'https://i.postimg.cc/sXvLpLJM/water-ripples.jpg', imageHint: 'water ripples' },
               { id: 'blog-spa-home', description: 'A woman relaxing in a home spa setting', imageUrl: 'https://placehold.co/600x400', imageHint: 'spa home' },
               { id: 'blog-laundry-tips', description: 'Aesthetically pleasing laundry room', imageUrl: 'https://placehold.co/600x400', imageHint: 'laundry room' },
@@ -80,21 +86,16 @@ export async function getSiteContent(): Promise<SiteContent> {
     const data = contentSnap.data() as SiteContent;
     
     // Ensure essential fields have fallback values to prevent crashes
-    if (!data.heroImageId) {
-        data.heroImageId = 'hero-misty-bathroom';
-    }
-    if (!data.images) {
-        data.images = [];
-    }
-     if (!data.blogPosts) {
-      data.blogPosts = [];
-    }
-    if (!data.contact) {
-        data.contact = { email: '', phone: '', address: '' };
-    }
-    if (!data.socialMedia) {
-        data.socialMedia = [];
-    }
+    if (!data.images) data.images = [];
+    if (!data.blogPosts) data.blogPosts = [];
+    if (!data.contact) data.contact = { email: '', phone: '', address: '' };
+    if (!data.socialMedia) data.socialMedia = [];
+    
+    // Fallbacks for new image IDs
+    if (!data.featuredProductImageId) data.featuredProductImageId = 'featured-product-default';
+    if (!data.collectionFabricSoftenersImageId) data.collectionFabricSoftenersImageId = 'collection-fabric-softener-default';
+    if (!data.collectionShowerGelsImageId) data.collectionShowerGelsImageId = 'collection-shower-gel-default';
+    if (!data.collectionDishwashImageId) data.collectionDishwashImageId = 'collection-dishwash-default';
 
 
     return data;
@@ -103,21 +104,13 @@ export async function getSiteContent(): Promise<SiteContent> {
     console.error("Error fetching site content from Firestore: ", error);
     // As a fallback, return an empty structure to prevent crashes.
     return {
-        heroImageId: 'hero-misty-bathroom',
+        featuredProductImageId: 'featured-product-default',
+        collectionFabricSoftenersImageId: 'collection-fabric-softener-default',
+        collectionShowerGelsImageId: 'collection-shower-gel-default',
+        collectionDishwashImageId: 'collection-dishwash-default',
         contact: { email: '', phone: '', address: ''},
         socialMedia: [],
-        images: [
-            { id: 'hero-misty-bathroom', description: 'A model in a misty, spa-like bathroom', imageUrl: 'https://i.postimg.cc/9M7xC6Vd/woman-having-bubble-bath.jpg', imageHint: 'bathroom scene' },
-            { id: 'parallax-laundry', description: 'A folded stack of fresh laundry with fabric softener', imageUrl: 'https://i.postimg.cc/tJn5gJ2D/fresh-laundry.jpg', imageHint: 'laundry' },
-            { id: 'parallax-kitchen', description: 'A glossy kitchen scene with sparkling dishes', imageUrl: 'https://i.postimg.cc/bN9b9zL1/sparkling-dishes.jpg', imageHint: 'clean kitchen' },
-            { id: 'parallax-spa-bathroom', description: 'A spa-like bathroom scene with a glowing shower gel', imageUrl: 'https://i.postimg.cc/D0pypW2T/glowing-shower-gel.jpg', imageHint: 'spa bathroom' },
-            { id: 'sustainability-banner', description: 'Nature-inspired photography of water ripples', imageUrl: 'https://i.postimg.cc/sXvLpLJM/water-ripples.jpg', imageHint: 'water ripples' },
-            { id: 'blog-spa-home', description: 'A woman relaxing in a home spa setting', imageUrl: 'https://placehold.co/600x400', imageHint: 'spa home' },
-            { id: 'blog-laundry-tips', description: 'Aesthetically pleasing laundry room', imageUrl: 'https://placehold.co/600x400', imageHint: 'laundry room' },
-            { id: 'blog-kitchen-organizing', description: 'A beautifully organized modern kitchen', imageUrl: 'https://placehold.co/600x400', imageHint: 'clean kitchen' },
-            { id: 'about-us-image', description: 'Image for About Us section', imageUrl: 'https://i.postimg.cc/YSj7k0wM/production-process.jpg', imageHint: 'natural ingredients' },
-            { id: 'sustainability-image', description: 'Image for Sustainability section', imageUrl: 'https://i.postimg.cc/PqY7d7WJ/eco-friendly-packaging.jpg', imageHint: 'eco friendly' },
-        ],
+        images: [],
         blogPosts: []
     }
   }
