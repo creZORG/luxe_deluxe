@@ -92,7 +92,11 @@ function OrderDetailsModal({ order, open, onOpenChange }: { order: Order | null;
                                     {order.items.map((item, index) => (
                                         <TableRow key={index}>
                                             <TableCell className="flex items-center gap-2">
-                                                <Image src={item.imageId} alt={item.productName} width={40} height={40} className="rounded-md object-cover" />
+                                                {item.imageId ? (
+                                                  <Image src={item.imageId} alt={item.productName} width={40} height={40} className="rounded-md object-cover" />
+                                                ) : (
+                                                  <div className="w-10 h-10 bg-secondary rounded-md" />
+                                                )}
                                                 {item.productName}
                                             </TableCell>
                                             <TableCell>{item.size}</TableCell>

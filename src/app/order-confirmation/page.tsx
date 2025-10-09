@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useSearchParams } from 'next/navigation';
@@ -73,7 +74,11 @@ function ConfirmationContent() {
                         <div className="space-y-4">
                            {order.items.map((item, index) => (
                              <div key={index} className="flex items-center gap-4">
-                                <Image src={item.imageId} alt={item.productName} width={64} height={64} className="rounded-md border object-cover" />
+                                {item.imageId ? (
+                                    <Image src={item.imageId} alt={item.productName} width={64} height={64} className="rounded-md border object-cover" />
+                                ) : (
+                                    <div className="w-16 h-16 bg-secondary rounded-md" />
+                                )}
                                 <div className="flex-1">
                                     <p className="font-medium">{item.productName}</p>
                                     <p className="text-sm text-muted-foreground">{item.size} &times; {item.quantity}</p>

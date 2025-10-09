@@ -50,6 +50,7 @@ function UserDetailsModal({ user, open, onOpenChange, onUserUpdate }: { user: En
         if (user && open) {
             setSelectedRole(user.role);
             const fetchOrders = async () => {
+                if (!user.uid) return;
                 setLoading(true);
                 const userOrders = await getOrdersByUserId(user.uid);
                 setOrders(userOrders);

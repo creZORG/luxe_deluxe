@@ -40,13 +40,15 @@ export default function CartSheet({ open, onOpenChange }: CartSheetProps) {
               {items.map((item) => (
                   <div key={item.id} className="flex items-start gap-4">
                     <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md">
-                      {item.product.imageId && (
+                      {item.product.imageId ? (
                         <Image
                           src={item.product.imageId}
                           alt={item.product.name}
                           fill
                           className="object-cover"
                         />
+                      ) : (
+                        <div className="w-full h-full bg-secondary" />
                       )}
                     </div>
                     <div className="flex-1">
