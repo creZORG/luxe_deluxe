@@ -26,14 +26,14 @@ export default function CartSheet({ open, onOpenChange }: CartSheetProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex w-full flex-col bg-primary text-primary-foreground sm:max-w-md">
+      <SheetContent className="flex w-full flex-col bg-background text-foreground sm:max-w-md">
         <SheetHeader>
-          <SheetTitle className="text-primary-foreground">Your Bag</SheetTitle>
-          <SheetDescription className="text-primary-foreground/80">
+          <SheetTitle className="text-foreground">Your Bag</SheetTitle>
+          <SheetDescription className="text-muted-foreground">
             Items in your shopping bag.
           </SheetDescription>
         </SheetHeader>
-        <Separator className="my-4 bg-primary-foreground/20" />
+        <Separator className="my-4" />
         {items.length > 0 ? (
           <div className="flex-1 overflow-y-auto">
             <div className="flex flex-col gap-6">
@@ -51,7 +51,7 @@ export default function CartSheet({ open, onOpenChange }: CartSheetProps) {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-medium">{item.product.name}</h3>
-                      <p className="text-sm text-primary-foreground/70">
+                      <p className="text-sm text-muted-foreground">
                         {item.size}
                       </p>
                       <div className="flex items-center justify-between mt-2">
@@ -59,7 +59,7 @@ export default function CartSheet({ open, onOpenChange }: CartSheetProps) {
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-6 w-6 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                            className="h-6 w-6"
                             onClick={() =>
                               updateItemQuantity(item.id, item.quantity - 1)
                             }
@@ -71,7 +71,7 @@ export default function CartSheet({ open, onOpenChange }: CartSheetProps) {
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-6 w-6 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                            className="h-6 w-6"
                             onClick={() =>
                               updateItemQuantity(item.id, item.quantity + 1)
                             }
@@ -85,7 +85,7 @@ export default function CartSheet({ open, onOpenChange }: CartSheetProps) {
                      <Button
                         size="icon"
                         variant="ghost"
-                        className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                        className="h-8 w-8"
                         onClick={() => removeItem(item.id)}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -96,12 +96,12 @@ export default function CartSheet({ open, onOpenChange }: CartSheetProps) {
           </div>
         ) : (
           <div className="flex flex-1 items-center justify-center">
-            <p className="text-primary-foreground/70">Your bag is empty.</p>
+            <p className="text-muted-foreground">Your bag is empty.</p>
           </div>
         )}
         {items.length > 0 && (
             <>
-                <Separator className="my-4 bg-primary-foreground/20" />
+                <Separator className="my-4" />
                 <SheetFooter className="mt-auto">
                     <div className="w-full space-y-4">
                         <div className="flex justify-between font-medium">
@@ -111,7 +111,7 @@ export default function CartSheet({ open, onOpenChange }: CartSheetProps) {
                         <Button
                           size="lg"
                           asChild
-                          className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+                          className="w-full"
                           onClick={() => onOpenChange(false)}
                         >
                           <Link href="/checkout">
