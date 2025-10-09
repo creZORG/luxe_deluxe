@@ -88,19 +88,9 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
             
             <Separator orientation="vertical" className="mx-1 h-6 hidden md:group-hover:block" />
 
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <div>
-                        <ModeToggle />
-                    </div>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="md:hidden">
-                    Toggle Theme
-                </TooltipContent>
-            </Tooltip>
-             <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button
+            <div className="hidden md:group-hover:flex md:group-hover:items-center md:group-hover:gap-2">
+                <ModeToggle />
+                 <Button
                       variant="ghost"
                       size="icon"
                       className="rounded-full text-muted-foreground hover:bg-muted/50 hover:text-foreground"
@@ -108,12 +98,35 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                     >
                       <LogOut className="h-5 w-5" />
                       <span className="nav-label text-sm font-medium">Logout</span>
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="md:hidden">
-                    Logout
-                </TooltipContent>
-            </Tooltip>
+                 </Button>
+            </div>
+             <div className="flex items-center gap-2 md:group-hover:hidden">
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <div>
+                            <ModeToggle />
+                        </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                        Toggle Theme
+                    </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="rounded-full text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                          onClick={logout}
+                        >
+                          <LogOut className="h-5 w-5" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                        Logout
+                    </TooltipContent>
+                </Tooltip>
+            </div>
           </div>
         </nav>
       </div>
