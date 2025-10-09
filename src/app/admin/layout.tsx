@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Inter } from 'next/font/google';
@@ -18,7 +19,7 @@ import { Separator } from '@/components/ui/separator';
 
 const inter = Inter({ subsets: ['latin'] });
 
-function AdminLayoutContent({ children }: { children: React.ReactNode }) {
+function PortalLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -28,39 +29,63 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     setIsClient(true);
   }, []);
 
+  const isAdminPath = pathname.startsWith('/admin');
+  const isMarketerPath = pathname.startsWith('/digital-marketer');
+  const isFulfillmentPath = pathname.startsWith('/fulfillment');
+
+  const navItems = [
+    // Admin
+    { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'developer'] },
+    { href: '/admin/users', icon: UserCog, label: 'Users', roles: ['admin', 'developer'] },
+    { href: '/admin/products', icon: Package, label: 'Products', roles: ['admin'] },
+    { href: '/admin/sales-team', icon: Users, label: 'Sales Team', roles: ['admin'] },
+    { href: '/admin/site-content', icon: ImageIcon, label: 'Site Content', roles: ['admin'] },
+    { href: '/admin/global-settings', icon: Settings, label: 'Global Settings', roles: ['admin'] },
+    { href: '/admin/crypto', icon: Bitcoin, label: 'Crypto', roles: ['admin', 'developer'] },
+    // Marketer
+    { href: '/digital-marketer/marketing', icon: Megaphone, label: 'Marketing', roles: ['digital_marketer'] },
+    { href: '/digital-marketer/influencers', icon: UserPlus, label: 'Influencers', roles: ['digital_marketer'] },
+    // Fulfillment
+    { href: '/fulfillment/orders', icon: ShoppingCart, label: 'Orders', roles: ['fulfillment'] },
+  ];
+
+  const getAccessibleNavItems = () => {
+    if (!user?.role) return [];
+    if (isAdminPath) return navItems.filter(item => item.href.startsWith('/admin') && item.roles.includes(user.role));
+    if (isMarketerPath) return navItems.filter(item => item.href.startsWith('/digital-marketer') && item.roles.includes(user.role));
+    if (isFulfillmentPath) return navItems.filter(item => item.href.startsWith('/fulfillment') && item.roles.includes(user.role));
+    return [];
+  }
+  
+  const accessibleNavItems = getAccessibleNavItems();
+
   useEffect(() => {
     if (isClient && !loading) {
-      if (!user || (user.role !== 'admin' && user.role !== 'fulfillment' && user.role !== 'digital_marketer' && user.role !== 'developer')) {
+      if (!user) {
         router.push('/login');
+        return;
+      }
+      const currentPortalPath = pathname.split('/')[1];
+      const userAllowedPortals: string[] = [];
+      if (['admin', 'developer'].includes(user.role)) userAllowedPortals.push('admin');
+      if (['digital_marketer'].includes(user.role)) userAllowedPortals.push('digital-marketer');
+      if (['fulfillment'].includes(user.role)) userAllowedPortals.push('fulfillment');
+
+      if (!userAllowedPortals.includes(currentPortalPath)) {
+         router.push('/login');
       }
     }
   }, [user, loading, router, pathname, isClient]);
 
-  const navItems = [
-    { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'fulfillment', 'digital_marketer', 'developer'] },
-    { href: '/admin/orders', icon: ShoppingCart, label: 'Orders', roles: ['admin', 'fulfillment'] },
-    { href: '/admin/marketing', icon: Megaphone, label: 'Marketing', roles: ['admin', 'digital_marketer'] },
-    { href: '/admin/influencers', icon: UserPlus, label: 'Influencers', roles: ['admin', 'digital_marketer'] },
-    { href: '/admin/crypto', icon: Bitcoin, label: 'Crypto', roles: ['admin', 'developer'] },
-    { href: '/admin/users', icon: UserCog, label: 'Users', roles: ['admin', 'developer'] },
-    { href: '/admin/products', icon: Package, label: 'Products', roles: ['admin'] },
-    { href: '/admin/sales-team', icon: Users, label: 'Sales Team', roles: ['admin'] },
-    { href: '/admin/site-content', icon: ImageIcon, label: 'Site Content', roles: ['admin', 'digital_marketer'] },
-    { href: '/admin/global-settings', icon: Settings, label: 'Global Settings', roles: ['admin'] },
-  ];
-
-  const accessibleNavItems = navItems.filter(item => user?.role && item.roles.includes(user.role));
 
   if (loading && isClient) {
     return <LoadingModal />;
   }
-
-  if (!user || !accessibleNavItems.some(item => pathname.startsWith(item.href))) {
-     if (isClient && !loading && user) {
-      router.push('/login');
-    }
-    return null;
+  
+  if (!user) {
+    return null; // or a loading state
   }
+
 
   return (
     <TooltipProvider>
@@ -100,7 +125,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                       onClick={logout}
                     >
                       <LogOut className="h-5 w-5" />
-                      <span className="nav-label text-sm font-medium">Logout</span>
+                      <span className="sr-only">Logout</span>
                  </Button>
             </div>
              <div className="flex items-center gap-2 md:group-hover:hidden">
@@ -152,7 +177,7 @@ export default function AdminLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <AdminLayoutContent>{children}</AdminLayoutContent>
+            <PortalLayoutContent>{children}</PortalLayoutContent>
           </ThemeProvider>
         </AuthProvider>
       </body>
