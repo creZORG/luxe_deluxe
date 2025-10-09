@@ -26,7 +26,6 @@ export type BlogPostContent = {
 }
 
 export type SiteContent = {
-  featuredProductImageId: string;
   collectionFabricSoftenersImageId: string;
   collectionShowerGelsImageId: string;
   collectionDishwashImageId: string;
@@ -54,14 +53,12 @@ export async function getSiteContent(): Promise<SiteContent> {
       console.log('No site content document found. Returning default structure. Please populate content in /admin/site-content.');
       // Return a default, empty structure if the document doesn't exist.
       const defaultContent: SiteContent = {
-          featuredProductImageId: 'featured-product-default',
           collectionFabricSoftenersImageId: 'collection-fabric-softener-default',
           collectionShowerGelsImageId: 'collection-shower-gel-default',
           collectionDishwashImageId: 'collection-dishwash-default',
           contact: { email: 'your-email@example.com', phone: 'Your Phone', address: 'Your Address' },
           socialMedia: [{ platform: 'Instagram', url: '#' }],
           images: [
-              { id: 'featured-product-default', description: 'A woman in a red silk dress, embodying luxury', imageUrl: 'https://i.postimg.cc/y8P8v9fC/woman-red-dress-silk.jpg', imageHint: 'luxury beauty' },
               { id: 'collection-fabric-softener-default', description: 'A stack of fresh, clean laundry', imageUrl: 'https://i.postimg.cc/tJn5gJ2D/fresh-laundry.jpg', imageHint: 'laundry' },
               { id: 'collection-shower-gel-default', description: 'A luxurious spa-like bathroom with glowing shower gel', imageUrl: 'https://i.postimg.cc/D0pypW2T/glowing-shower-gel.jpg', imageHint: 'spa bathroom' },
               { id: 'collection-dishwash-default', description: 'Sparkling clean dishes in a modern kitchen', imageUrl: 'https://i.postimg.cc/bN9b9zL1/sparkling-dishes.jpg', imageHint: 'clean kitchen' },
@@ -92,7 +89,6 @@ export async function getSiteContent(): Promise<SiteContent> {
     if (!data.socialMedia) data.socialMedia = [];
     
     // Fallbacks for new image IDs
-    if (!data.featuredProductImageId) data.featuredProductImageId = 'featured-product-default';
     if (!data.collectionFabricSoftenersImageId) data.collectionFabricSoftenersImageId = 'collection-fabric-softener-default';
     if (!data.collectionShowerGelsImageId) data.collectionShowerGelsImageId = 'collection-shower-gel-default';
     if (!data.collectionDishwashImageId) data.collectionDishwashImageId = 'collection-dishwash-default';
@@ -104,7 +100,6 @@ export async function getSiteContent(): Promise<SiteContent> {
     console.error("Error fetching site content from Firestore: ", error);
     // As a fallback, return an empty structure to prevent crashes.
     return {
-        featuredProductImageId: 'featured-product-default',
         collectionFabricSoftenersImageId: 'collection-fabric-softener-default',
         collectionShowerGelsImageId: 'collection-shower-gel-default',
         collectionDishwashImageId: 'collection-dishwash-default',

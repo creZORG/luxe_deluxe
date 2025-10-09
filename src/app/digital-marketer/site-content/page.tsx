@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useTransition, useEffect } from 'react';
@@ -143,7 +144,7 @@ export default function SiteContentPage() {
           if (!prev) return null;
           // Prevent deleting an image that is currently in use
           const isUsedInBlog = prev.blogPosts.some(post => post.imageId === id);
-          if (isUsedInBlog || prev.featuredProductImageId === id || prev.collectionFabricSoftenersImageId === id || prev.collectionShowerGelsImageId === id || prev.collectionDishwashImageId === id) {
+          if (isUsedInBlog || prev.collectionFabricSoftenersImageId === id || prev.collectionShowerGelsImageId === id || prev.collectionDishwashImageId === id) {
               toast({
                   title: "Cannot Delete Image",
                   description: "This image is currently being used on the homepage.",
@@ -267,12 +268,6 @@ export default function SiteContentPage() {
                 <CardDescription>Manage the main images displayed on your homepage.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-               <ImageSelect
-                  label="Featured Product Image"
-                  value={content.featuredProductImageId}
-                  onChange={(value) => handleHomepageImageChange('featuredProductImageId', value)}
-                  images={content.images}
-                />
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
                    <ImageSelect
                       label="Collection: Fabric Softeners"

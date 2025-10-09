@@ -5,30 +5,6 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { getSiteContent, ImagePlaceholder } from '@/lib/content';
 
-async function FeaturedProductCard() {
-  const content = await getSiteContent();
-  const image = content.images.find(img => img.id === content.featuredProductImageId);
-
-  return (
-    <div className="relative w-full max-w-sm mx-auto animate-fade-in-left animation-duration-1000 animation-delay-400">
-      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg shadow-2xl">
-        <Image
-          src={image?.imageUrl || "https://i.postimg.cc/y8P8v9fC/woman-red-dress-silk.jpg"}
-          alt={image?.description || "Cocoa Butter Shower Gel"}
-          fill
-          className="object-cover"
-          data-ai-hint={image?.imageHint}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-        <div className="absolute bottom-0 w-full p-6 text-white">
-          <h3 className="text-xl font-bold">Cocoa Butter Shower Gel</h3>
-          <p className="text-sm">400 ML - Silky lather - Ksh 2.00</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function CollectionCard({ title, description, image, link, large = false }: { title: string, description: string, image?: ImagePlaceholder, link: string, large?: boolean }) {
   return (
     <Link href={link} className={`group relative block overflow-hidden rounded-lg shadow-lg ${large ? 'md:col-span-2' : ''}`}>
@@ -67,18 +43,18 @@ export default async function Home() {
     <div className="space-y-24 py-16 md:py-24">
       {/* Hero Section */}
       <section className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
-          <div className="space-y-6 text-center lg:text-left animate-fade-in-right animation-duration-1000">
+        <div className="grid grid-cols-1 items-center gap-12">
+          <div className="space-y-6 text-center animate-fade-in-right animation-duration-1000">
             <h1 className="font-headline text-5xl font-bold tracking-tight text-foreground md:text-6xl lg:text-7xl">
               Luxury in Every Drop
             </h1>
             <p className="text-lg text-muted-foreground">
               Shower gels • Fabric softeners • Dishwash
             </p>
-            <p className="max-w-md text-muted-foreground lg:mx-0 mx-auto">
+            <p className="max-w-md text-muted-foreground mx-auto">
               A curated collection of sensorial fragrances crafted for everyday elegance. Bold model collaborations, magazine-quality photoshoots, and artisan formulations — luxury reimagined.
             </p>
-            <div className="flex justify-center lg:justify-start gap-4 pt-4">
+            <div className="flex justify-center gap-4 pt-4">
               <Button asChild size="lg">
                 <Link href="/shop">Shop Collections</Link>
               </Button>
@@ -87,7 +63,6 @@ export default async function Home() {
               </Button>
             </div>
           </div>
-          <FeaturedProductCard />
         </div>
       </section>
 
