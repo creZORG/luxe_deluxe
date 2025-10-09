@@ -5,6 +5,7 @@ import { collection, getDocs, query, where, Timestamp, orderBy, doc, getDoc } fr
 import { db } from '@/lib/firebase/firebase';
 import type { User, ShippingAddress } from '@/hooks/use-auth';
 import type { CartItem } from '@/hooks/use-cart';
+import { nanoid } from 'nanoid';
 
 export type OrderStatus = 'Pending' | 'Shipped' | 'Delivered' | 'Cancelled';
 
@@ -37,6 +38,10 @@ export async function getAllUsers(): Promise<User[]> {
                 email: data.email,
                 role: data.role,
                 shippingAddress: data.shippingAddress,
+                stradPoints: data.stradPoints || 0,
+                referralCode: data.referralCode || nanoid(8),
+                referredBy: data.referredBy,
+                successfulReferrals: data.successfulReferrals || [],
                 signupDate: signupDate,
             } as User & { signupDate: Timestamp };
         });
@@ -62,6 +67,10 @@ export async function getUserById(userId: string): Promise<User | null> {
                 email: data.email,
                 role: data.role,
                 shippingAddress: data.shippingAddress,
+                stradPoints: data.stradPoints || 0,
+                referralCode: data.referralCode || nanoid(8),
+                referredBy: data.referredBy,
+                successfulReferrals: data.successfulReferrals || [],
                 signupDate: signupDate,
             } as User & { signupDate: Timestamp };
         }

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
-  LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon, Settings, Users, Percent, UserCog, Megaphone
+  LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon, Settings, Users, Percent, UserCog, Megaphone, Bitcoin
 } from 'lucide-react';
 import { useAuth, AuthProvider } from '@/hooks/use-auth';
 import { LoadingModal } from '@/components/ui/loading-modal';
@@ -31,17 +31,18 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isClient && !loading) {
-      if (!user || (user.role !== 'admin' && user.role !== 'fulfillment' && user.role !== 'digital_marketer')) {
+      if (!user || (user.role !== 'admin' && user.role !== 'fulfillment' && user.role !== 'digital_marketer' && user.role !== 'developer')) {
         router.push('/login');
       }
     }
   }, [user, loading, router, pathname, isClient]);
 
   const navItems = [
-    { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'fulfillment', 'digital_marketer'] },
+    { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'fulfillment', 'digital_marketer', 'developer'] },
     { href: '/admin/orders', icon: ShoppingCart, label: 'Orders', roles: ['admin', 'fulfillment'] },
     { href: '/admin/marketing', icon: Megaphone, label: 'Marketing', roles: ['admin', 'digital_marketer'] },
-    { href: '/admin/users', icon: UserCog, label: 'Users', roles: ['admin'] },
+    { href: '/admin/crypto', icon: Bitcoin, label: 'Crypto', roles: ['admin', 'developer'] },
+    { href: '/admin/users', icon: UserCog, label: 'Users', roles: ['admin', 'developer'] },
     { href: '/admin/products', icon: Package, label: 'Products', roles: ['admin'] },
     { href: '/admin/influencers', icon: Percent, label: 'Influencers', roles: ['admin'] },
     { href: '/admin/sales-team', icon: Users, label: 'Sales Team', roles: ['admin'] },
@@ -55,7 +56,10 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     return <LoadingModal />;
   }
 
-  if (!user || (user.role !== 'admin' && user.role !== 'fulfillment' && user.role !== 'digital_marketer')) {
+  if (!user || !accessibleNavItems.some(item => pathname.startsWith(item.href))) {
+     if (isClient && !loading && user) {
+      router.push('/login');
+    }
     return null;
   }
 

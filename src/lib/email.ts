@@ -63,7 +63,7 @@ export async function sendOrderConfirmationEmail({ to, name, items, subtotal, re
 
     const pointsHtml = pointsEarned > 0 ? `
         <div style="margin-top: 20px; padding: 15px; background-color: #f0f8ff; border-radius: 5px; text-align: center;">
-            <p style="margin: 0; font-size: 1.1em; color: #333;">✨ You've earned <strong>${pointsEarned} loyalty points</strong> with this order! ✨</p>
+            <p style="margin: 0; font-size: 1.1em; color: #333;">✨ You've earned <strong>${pointsEarned} STRAD Points</strong> with this order! ✨</p>
         </div>
     ` : '';
 
@@ -182,11 +182,14 @@ export async function sendRoleChangeEmail({ to, name, newRole }: RoleChangeEmail
         case 'admin':
             roleDescription = 'You now have full administrative access to the Luna dashboard. You can manage products, orders, users, and site content.';
             break;
+        case 'developer':
+            roleDescription = 'You now have developer access to the Luna dashboard, including the Crypto management section.';
+            break;
         case 'customer':
             roleDescription = 'You are a customer. You can browse products and make purchases.';
             break;
         case 'digital_marketer':
-            roleDescription = 'You now have access to the Marketing section of the admin dashboard to create promo codes and tracking links.';
+            roleDescription = 'You now have access to the Marketing and Site Content sections of the admin dashboard.';
             break;
         case 'fulfillment':
             roleDescription = 'You now have access to the Orders section of the admin dashboard to process and ship orders.';

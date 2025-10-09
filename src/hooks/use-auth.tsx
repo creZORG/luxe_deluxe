@@ -23,6 +23,7 @@ import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 import { LoadingModal } from '@/components/ui/loading-modal';
 import type { CartItem } from './use-cart';
+import { nanoid } from 'nanoid'
 
 // Shipping address type
 export type ShippingAddress = {
@@ -36,7 +37,7 @@ export type ShippingAddress = {
 }
 
 // Main user type
-export type UserRole = 'admin' | 'customer' | 'influencer' | 'sales' | 'fulfillment' | 'digital_marketer';
+export type UserRole = 'admin' | 'customer' | 'influencer' | 'sales' | 'fulfillment' | 'digital_marketer' | 'developer';
 
 export type User = {
   uid: string;
@@ -44,15 +45,18 @@ export type User = {
   name: string;
   role: UserRole;
   shippingAddress?: ShippingAddress;
-  loyaltyPoints?: number;
+  stradPoints?: number;
   signupDate?: Timestamp;
+  referralCode: string;
+  referredBy?: string;
+  successfulReferrals?: string[];
 };
 
 type AuthContextType = {
   user: User | null;
   loading: boolean;
   login: (email: string, pass: string) => Promise<boolean>;
-  signup: (name: string, email: string, pass: string) => Promise<boolean>;
+  signup: (name: string, email: string, pass: string, referralCode?: string) => Promise<boolean>;
   logout: () => void;
   error: string | null;
   getCart: () => Promise<CartItem[]>;
@@ -92,19 +96,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             name: userData.name || 'User',
             role: userData.role || 'customer',
             shippingAddress: userData.shippingAddress,
-            loyaltyPoints: userData.loyaltyPoints || 0,
+            stradPoints: userData.stradPoints || 0,
             signupDate: userData.signupDate,
+            referralCode: userData.referralCode || nanoid(8),
+            referredBy: userData.referredBy,
+            successfulReferrals: userData.successfulReferrals || [],
           };
           setUser(loadedUser);
         } else {
+           // This case handles a user that exists in Firebase Auth but not in Firestore.
+           // This can happen if a user was created but the Firestore doc creation failed.
            const newUser: User = {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
             name: firebaseUser.displayName || 'New User',
             role: 'customer',
-            loyaltyPoints: 0,
+            stradPoints: 0,
             signupDate: Timestamp.now(),
+            referralCode: nanoid(8),
            };
+           // We create the Firestore document now.
+           await setDoc(userDocRef, newUser);
            setUser(newUser);
         }
       } else {
@@ -127,11 +139,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userDoc = await getDoc(userDocRef);
       if (userDoc.exists()) {
         const role = userDoc.data().role || 'customer';
-        if (role === 'admin' || role === 'fulfillment' || role === 'digital_marketer') router.push('/admin/dashboard');
+        if (['admin', 'fulfillment', 'digital_marketer', 'developer'].includes(role)) router.push('/admin/dashboard');
         else if (role === 'influencer') router.push('/influencer-portal');
         else if (role === 'sales') router.push('/sales-portal');
         else router.push('/');
       } else {
+        // Fallback if doc doesn't exist for some reason
         router.push('/');
       }
       
@@ -149,7 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signup = async (name: string, email: string, pass: string) => {
+  const signup = async (name: string, email: string, pass: string, referralCode?: string) => {
     setLoading(true);
     setError(null);
     try {
@@ -160,13 +173,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
       const firebaseUser = userCredential.user;
       
-      await setDoc(doc(db, 'users', firebaseUser.uid), {
+      const newUser: Omit<User, 'uid'> = {
         name: name,
         email: email,
         role: 'customer',
         signupDate: Timestamp.now(),
-        loyaltyPoints: 0,
-      });
+        stradPoints: 0,
+        referralCode: nanoid(8), // Generate a unique referral code for the new user
+        successfulReferrals: [],
+      };
+
+      if (referralCode) {
+        newUser.referredBy = referralCode;
+      }
+      
+      await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
       
       return true;
     } catch (err: any) {

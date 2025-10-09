@@ -80,7 +80,7 @@ function UserDetailsModal({ user, open, onOpenChange, onUserUpdate }: { user: En
     if (!user) return null;
 
     const getInitials = (name = '') => name.split(' ').map(n => n[0]).join('').toUpperCase();
-    const availableRoles: UserRole[] = ['customer', 'admin', 'influencer', 'sales', 'fulfillment', 'digital_marketer'];
+    const availableRoles: UserRole[] = ['customer', 'admin', 'influencer', 'sales', 'fulfillment', 'digital_marketer', 'developer'];
     const signupDate = toJavaScriptDate(user.signupDate);
 
     return (
@@ -303,5 +303,3 @@ export default function UsersPage() {
         </div>
     );
 }
-
-    

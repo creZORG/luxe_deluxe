@@ -47,14 +47,14 @@ export async function processSuccessfulOrder(orderDetails: OrderDetails) {
         const newOrder = await getDoc(newOrderRef);
         const newOrderData = { id: newOrder.id, ...newOrder.data() } as Order;
 
-        // 2. Award loyalty points only if the user is logged in
+        // 2. Award points only if the user is logged in
         let pointsEarned = 0;
         if (user) {
             pointsEarned = Math.floor(subtotal / 10);
             if (pointsEarned > 0) {
                 const userRef = doc(db, 'users', user.uid);
                 await updateDoc(userRef, {
-                    loyaltyPoints: increment(pointsEarned)
+                    stradPoints: increment(pointsEarned)
                 });
                 // Revalidate user-specific paths
                 revalidatePath('/profile');

@@ -255,9 +255,9 @@ export default function ProfilePage() {
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2">
                              <Star className="h-8 w-8 text-yellow-400 fill-yellow-400" />
-                             <p className="text-4xl font-bold">{user.loyaltyPoints || 0}</p>
+                             <p className="text-4xl font-bold">{user.stradPoints || 0}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground">Loyalty Points</p>
+                        <p className="text-sm text-muted-foreground">STRAD Points</p>
                     </div>
                 </div>
             </CardContent>
