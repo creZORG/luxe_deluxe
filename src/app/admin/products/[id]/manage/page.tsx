@@ -29,7 +29,7 @@ export default function ManageProductPage({ params }: ManageProductPageProps) {
         const fetchData = async () => {
             setLoading(true);
             const [fetchedProduct, allOrders] = await Promise.all([
-                getProductById(params.id),
+                getProductById(params.id), // This should be getProductById still
                 getAllOrders()
             ]);
             
@@ -71,9 +71,9 @@ export default function ManageProductPage({ params }: ManageProductPageProps) {
             try {
                 await updateProduct(product.id, productData);
                 toast({ title: "Success", description: "Product details updated successfully." });
-                // Re-fetch product data to show updated info
-                const updatedProduct = await getProductById(params.id);
-                setProduct(updatedProduct);
+                // After saving, we should navigate to the new slug if it changed
+                router.push(`/admin/products/${productData.slug}/manage`);
+                // Re-fetch product data to show updated info is now handled by the page's useEffect
             } catch (error) {
                 console.error("Error saving product: ", error);
                 toast({ title: "Error", description: "Failed to save product.", variant: "destructive" });
@@ -172,4 +172,29 @@ export default function ManageProductPage({ params }: ManageProductPageProps) {
             </Card>
         </div>
     );
+}
+
+// We need to keep the original getProductById function for the manage page,
+// as the ID from firebase is passed in the URL not the slug
+async function getProductById(id: string): Promise<Product | null> {
+    noStore();
+    try {
+        const productRef = doc(db, 'products', id);
+        const productSnap = await getDoc(productRef);
+
+        if (productSnap.exists()) {
+        const productData = productSnap.data();
+        return { 
+            id: productSnap.id, 
+            slug: productData.slug || productSnap.id,
+            ...productData, 
+            sizes: productData?.sizes || [] 
+        } as Product;
+        } else {
+        return null;
+        }
+    } catch (error) {
+        console.error(`Error fetching product ${id}:`, error);
+        return null;
+    }
 }

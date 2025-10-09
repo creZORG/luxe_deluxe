@@ -123,7 +123,6 @@ function OrderHistory() {
     const { user } = useAuth();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<OrderStatus | 'All'>('All');
 
     useEffect(() => {
         if (!user) {
@@ -154,11 +153,6 @@ function OrderHistory() {
         return () => unsubscribe();
     }, [user]);
 
-     const filteredOrders = useMemo(() => {
-        if (activeTab === 'All') return orders;
-        return orders.filter(order => order.status === activeTab);
-    }, [orders, activeTab]);
-
     return (
         <div className="rounded-md border">
             <Table>
@@ -173,8 +167,8 @@ function OrderHistory() {
                 <TableBody>
                     {loading ? (
                         <TableRow><TableCell colSpan={4} className="h-24 text-center">Loading orders...</TableCell></TableRow>
-                    ) : filteredOrders.length > 0 ? (
-                        filteredOrders.map(order => {
+                    ) : orders.length > 0 ? (
+                        orders.map(order => {
                             const orderDate = toJavaScriptDate(order.orderDate);
                             return (
                             <TableRow key={order.id}>
@@ -186,7 +180,7 @@ function OrderHistory() {
                         )})
                     ) : (
                         <TableRow>
-                            <TableCell colSpan={4} className="h-24 text-center">No orders found for this status.</TableCell>
+                            <TableCell colSpan={4} className="h-24 text-center">No orders found.</TableCell>
                         </TableRow>
                     )}
                 </TableBody>

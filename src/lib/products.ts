@@ -10,6 +10,7 @@ import { getOrdersByUserId } from './admin';
 export type Product = {
   id: string;
   name: string;
+  slug: string;
   category: 'Shower Gels' | 'Fabric Softeners' | 'Dishwash';
   fragrance: string;
   sizes: { size: string; price: number; quantityAvailable: number }[];
@@ -39,6 +40,7 @@ export async function getAllProducts(): Promise<Product[]> {
         const product = {
             id: doc.id,
             name: data.name || 'No Name',
+            slug: data.slug || doc.id,
             category: data.category || 'Uncategorized',
             fragrance: data.fragrance || 'N/A',
             shortDescription: data.shortDescription || '',
@@ -73,7 +75,7 @@ export async function getProducts(): Promise<Product[]> {
     const productSnapshot = await getDocs(q);
 
     const productList = productSnapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() } as Product))
+      .map(doc => ({ id: doc.id, slug: doc.data().slug || doc.id, ...doc.data() } as Product))
       .filter(p => p.sizes && p.sizes.length > 0); // Only show products with pricing
     
     return productList;
@@ -83,17 +85,19 @@ export async function getProducts(): Promise<Product[]> {
   }
 }
 
-export async function getProductById(id: string): Promise<Product | null> {
+export async function getProductBySlug(slug: string): Promise<Product | null> {
   noStore();
   try {
-    const productRef = doc(db, 'products', id);
-    const productSnap = await getDoc(productRef);
+    const productsCollection = collection(db, 'products');
+    const q = query(productsCollection, where("slug", "==", slug));
+    const productSnapshot = await getDocs(q);
 
-    if (productSnap.exists()) {
-      const productData = productSnap.data();
-      // No filtering here for admin/direct access
+    if (!productSnapshot.empty) {
+      const productDoc = productSnapshot.docs[0];
+      const productData = productDoc.data();
       return { 
-          id: productSnap.id, 
+          id: productDoc.id, 
+          slug: productData.slug || productDoc.id,
           ...productData, 
           sizes: productData?.sizes || [] 
       } as Product;
@@ -101,7 +105,7 @@ export async function getProductById(id: string): Promise<Product | null> {
       return null;
     }
   } catch (error) {
-    console.error(`Error fetching product ${id}:`, error);
+    console.error(`Error fetching product with slug ${slug}:`, error);
     return null;
   }
 }
@@ -173,3 +177,4 @@ export async function submitProductRating(productId: string, userId: string, rat
         return { success: false, error: 'Failed to submit rating.' };
     }
 }
+

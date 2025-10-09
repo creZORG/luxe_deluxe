@@ -28,6 +28,7 @@ import ImageUploader from './image-uploader';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Product name is required'),
+  slug: z.string().min(1, 'Slug is required.').regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase with words separated by dashes.'),
   category: z.enum(['Shower Gels', 'Fabric Softeners', 'Dishwash']),
   fragrance: z.string().min(1, 'Fragrance is required'),
   shortDescription: z.string().min(1, 'A short description is required.'),
@@ -62,6 +63,15 @@ const fragranceOptions = {
     'Dishwash': ['Limeglow', 'Citrus Bloom'],
 };
 
+const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // remove special characters
+      .trim()
+      .replace(/\s+/g, '-') // replace spaces with dashes
+      .replace(/-+/g, '-'); // remove consecutive dashes
+};
+
 export default function ProductForm({
   product,
   onSave,
@@ -71,6 +81,7 @@ export default function ProductForm({
     resolver: zodResolver(productSchema),
     defaultValues: product ? {
         name: product.name,
+        slug: product.slug,
         category: product.category,
         fragrance: product.fragrance,
         shortDescription: product.shortDescription,
@@ -81,6 +92,7 @@ export default function ProductForm({
         imageId: product.imageId,
     } : {
       name: '',
+      slug: '',
       category: 'Shower Gels',
       fragrance: '',
       shortDescription: '',
@@ -94,6 +106,13 @@ export default function ProductForm({
 
   const [imageUrl, setImageUrl] = useState(product?.imageId || '');
   const selectedCategory = form.watch('category');
+  const productName = form.watch('name');
+
+  useEffect(() => {
+    if (productName && !form.getValues('slug')) {
+        form.setValue('slug', generateSlug(productName));
+    }
+  }, [productName, form]);
 
   useEffect(() => {
     if (product) {
@@ -102,6 +121,7 @@ export default function ProductForm({
     } else {
       form.reset({
         name: '',
+        slug: '',
         category: 'Shower Gels',
         fragrance: '',
         shortDescription: '',
@@ -135,6 +155,7 @@ export default function ProductForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-6">
                 <FormField control={form.control} name="name" render={({ field }) => ( <FormItem> <FormLabel>Product Name</FormLabel> <FormControl> <Input {...field} /> </FormControl> <FormMessage /> </FormItem> )}/>
+                <FormField control={form.control} name="slug" render={({ field }) => ( <FormItem> <FormLabel>Product Slug</FormLabel> <FormControl> <Input {...field} /> </FormControl> <FormMessage /> </FormItem> )}/>
                 <FormField control={form.control} name="category" render={({ field }) => ( <FormItem> <FormLabel>Category</FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value} > <FormControl> <SelectTrigger> <SelectValue placeholder="Select a category" /> </SelectTrigger> </FormControl> <SelectContent> <SelectItem value="Shower Gels">Shower Gels</SelectItem> <SelectItem value="Fabric Softeners"> Fabric Softeners </SelectItem> <SelectItem value="Dishwash">Dishwash</SelectItem> </SelectContent> </Select> <FormMessage /> </FormItem> )}/>
                  <FormField control={form.control} name="fragrance" render={({ field }) => ( <FormItem> <FormLabel>Fragrance</FormLabel> <Select onValueChange={field.onChange} value={field.value}> <FormControl> <SelectTrigger> <SelectValue placeholder="Select a fragrance" /> </SelectTrigger> </FormControl> <SelectContent> {fragranceOptions[selectedCategory].map(fragrance => ( <SelectItem key={fragrance} value={fragrance}> {fragrance} </SelectItem> ))} </SelectContent> </Select> <FormMessage /> </FormItem> )}/>
             </div>

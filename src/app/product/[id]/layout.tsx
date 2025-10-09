@@ -1,14 +1,14 @@
-import { getProductById } from '@/lib/products';
+import { getProductBySlug } from '@/lib/products';
 import type { Metadata } from 'next';
 
 type ProductPageProps = {
   params: {
-    id: string;
+    slug: string;
   };
 };
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
-  const product = await getProductById(params.id);
+  const product = await getProductBySlug(params.slug);
 
   if (!product) {
     return {

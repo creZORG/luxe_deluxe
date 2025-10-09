@@ -62,7 +62,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Card className="flex h-full transform-gpu flex-col overflow-hidden border-none shadow-lg transition-transform duration-300 ease-in-out hover:-translate-y-2 hover:shadow-2xl">
       <CardHeader className="p-0">
-        <Link href={`/product/${product.id}`} className="group block">
+        <Link href={`/product/${product.slug}`} className="group block">
           <div className="relative aspect-[3/4] w-full overflow-hidden">
             {product.imageId && (
               <Image
@@ -78,7 +78,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       </CardHeader>
       <CardContent className="flex flex-1 flex-col p-6">
         <CardTitle className="font-headline text-xl font-semibold leading-tight">
-          <Link href={`/product/${product.id}`}>{product.name}</Link>
+          <Link href={`/product/${product.slug}`}>{product.name}</Link>
         </CardTitle>
         <CardDescription className="mt-2 flex-grow text-base">
           {product.shortDescription}
@@ -127,7 +127,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             </div>
             </div>
         ): (
-            <Link href={`/product/${product.id}`} className='w-full'>
+            <Link href={`/product/${product.slug}`} className='w-full'>
                 <Button variant="outline" className='w-full'>View Details</Button>
             </Link>
         )}

@@ -6,7 +6,7 @@ import { useState, useEffect, useTransition, useMemo } from 'react';
 import { notFound, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import type { Product } from '@/lib/products';
-import { getProductById, getProducts, incrementProductView, submitProductRating } from '@/lib/products';
+import { getProductBySlug, getProducts, incrementProductView, submitProductRating } from '@/lib/products';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/hooks/use-cart';
@@ -20,7 +20,7 @@ import { Separator } from '@/components/ui/separator';
 
 type ProductPageProps = {
   params: {
-    id: string;
+    slug: string;
   };
 };
 
@@ -53,10 +53,10 @@ export default function ProductPage({ params }: ProductPageProps) {
   
   const fetchProductData = async () => {
     setLoading(true);
-    incrementProductView(params.id);
-    const fetchedProduct = await getProductById(params.id);
+    const fetchedProduct = await getProductBySlug(params.slug);
 
     if (fetchedProduct) {
+      incrementProductView(fetchedProduct.id);
       setProduct(fetchedProduct);
       const allProducts = await getProducts();
       const related = allProducts
@@ -71,7 +71,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   
   useEffect(() => {
     fetchProductData();
-  }, [params.id]);
+  }, [params.slug]);
 
 
   const [selectedSize, setSelectedSize] = useState<{size: string, price: number, quantityAvailable: number} | null>(null);
