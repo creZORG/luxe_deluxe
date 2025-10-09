@@ -249,7 +249,7 @@ export default function ProfilePage() {
                              <p className="text-4xl font-bold">{user.stradPoints || 0}</p>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
-                            <p className="text-sm text-muted-foreground">STRAD Points</p>
+                            <p className="text-sm text-muted-foreground">$TRAD Points</p>
                             <Link href="/campaigns/trad">
                                 <Info className="h-4 w-4 text-muted-foreground hover:text-primary cursor-pointer" />
                             </Link>
@@ -262,7 +262,7 @@ export default function ProfilePage() {
         <Card>
             <CardHeader>
                 <CardTitle>Refer & Earn</CardTitle>
-                <CardDescription>Share your code and earn STRAD Points for every friend who signs up.</CardDescription>
+                <CardDescription>Share your code and earn $TRAD Points for every friend who signs up.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="space-y-2">

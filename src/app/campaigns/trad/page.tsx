@@ -11,7 +11,7 @@ const steps = [
   {
     icon: Gift,
     title: 'Sign Up & Earn',
-    description: 'Create an account and instantly receive STRAD Points as a welcome gift.',
+    description: 'Create an account and instantly receive $TRAD Points as a welcome gift.',
   },
   {
     icon: Users,
@@ -21,7 +21,7 @@ const steps = [
   {
     icon: ShoppingBag,
     title: 'Shop Your Favorites',
-    description: 'Every purchase you make earns you more STRAD Points, bringing you closer to exclusive rewards.',
+    description: 'Every purchase you make earns you more $TRAD Points, bringing you closer to exclusive rewards.',
   },
 ];
 
@@ -35,10 +35,10 @@ export default function TradCampaignPage() {
                 <div className="text-center animate-fade-in-up">
                     <p className="font-semibold text-primary">A Partnership for the Future</p>
                     <h1 className="mt-2 font-headline text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
-                        Earn STRAD Points, Get Ready for $trad.
+                        Earn $TRAD Points, Get Ready for $trad.
                     </h1>
                     <p className="mt-6 max-w-3xl mx-auto text-lg text-muted-foreground">
-                        Luna has partnered with <a href="https://tradinta.co.ke" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">Tradinta</a> to reward our community. Your STRAD Points, earned from signups, referrals, and purchases, will be eligible for the upcoming $trad crypto airdrop.
+                        Luna has partnered with <a href="https://tradinta.co.ke" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">Tradinta</a> to reward our community. Your $TRAD Points, earned from signups, referrals, and purchases, will be eligible for the upcoming $trad crypto airdrop.
                     </p>
                     <div className="mt-8 flex justify-center gap-4">
                         <Button asChild size="lg">

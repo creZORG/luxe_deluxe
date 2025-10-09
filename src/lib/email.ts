@@ -63,7 +63,7 @@ export async function sendOrderConfirmationEmail({ to, name, items, subtotal, re
 
     const pointsHtml = pointsEarned > 0 ? `
         <div style="margin-top: 20px; padding: 15px; background-color: #f0f8ff; border-radius: 5px; text-align: center;">
-            <p style="margin: 0; font-size: 1.1em; color: #333;">✨ You've earned <strong>${pointsEarned} STRAD Points</strong> with this order! ✨</p>
+            <p style="margin: 0; font-size: 1.1em; color: #333;">✨ You've earned <strong>${pointsEarned} $TRAD Points</strong> with this order! ✨</p>
         </div>
     ` : '';
 

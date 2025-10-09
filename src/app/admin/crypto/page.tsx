@@ -56,7 +56,7 @@ export default function CryptoPage() {
       </div>
       <Card>
         <CardHeader>
-            <CardTitle>STRAD Points Ecosystem</CardTitle>
+            <CardTitle>$TRAD Points Ecosystem</CardTitle>
             <CardDescription>
                 A high-level overview of the points system.
             </CardDescription>
