@@ -19,11 +19,13 @@ import {
   type User as FirebaseAuthUser,
 } from 'firebase/auth';
 import { app } from '@/lib/firebase/firebase';
-import { doc, getDoc, setDoc, Timestamp, collection, query, where, getDocs, writeBatch, increment } from 'firebase/firestore';
+import { doc, getDoc, setDoc, Timestamp, collection, query, where, getDocs, writeBatch, increment, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 import { LoadingModal } from '@/components/ui/loading-modal';
 import type { CartItem } from './use-cart';
-import { nanoid } from 'nanoid'
+import { nanoid } from 'nanoid';
+import { globalSettings } from '@/lib/global-settings';
+
 
 // Shipping address type
 export type ShippingAddress = {
@@ -75,10 +77,6 @@ export function useAuth() {
 }
 
 const auth = getAuth(app);
-
-// Point rewards can be configured here
-const POINTS_FOR_SIGNUP = 50;
-const POINTS_FOR_REFERRAL = 100;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -203,12 +201,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Award points to new user for signing up
             const newUserRef = doc(db, 'users', firebaseUser.uid);
             batch.set(newUserRef, newUser);
-            batch.update(newUserRef, { stradPoints: increment(POINTS_FOR_SIGNUP) });
+            batch.update(newUserRef, { stradPoints: increment(globalSettings.crypto.pointsForSignup) });
             
             // Award points to referring user
             const referringUserRef = doc(db, 'users', referringUserDoc.id);
             batch.update(referringUserRef, { 
-                stradPoints: increment(POINTS_FOR_REFERRAL),
+                stradPoints: increment(globalSettings.crypto.pointsForReferral),
                 successfulReferrals: [...(referringUserDoc.data().successfulReferrals || []), firebaseUser.uid]
             });
             
@@ -222,7 +220,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
          // No referral code, just create the user and award signup points
          const newUserRef = doc(db, 'users', firebaseUser.uid);
          await setDoc(newUserRef, newUser);
-         await updateDoc(newUserRef, { stradPoints: increment(POINTS_FOR_SIGNUP) });
+         await updateDoc(newUserRef, { stradPoints: increment(globalSettings.crypto.pointsForSignup) });
       }
       
       // TODO: In the next stage, trigger OTP flow here instead of returning true.

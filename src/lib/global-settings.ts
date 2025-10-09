@@ -14,10 +14,16 @@ export type DeliveryFee = {
     fee: number;
 };
 
+export type CryptoSettings = {
+    pointsForSignup: number;
+    pointsForReferral: number;
+};
+
 export type GlobalSettings = {
     productSizes: ProductSize[];
     fees: FeeSettings;
     deliveryFees: DeliveryFee[];
+    crypto: CryptoSettings;
 };
 
 export const globalSettings: GlobalSettings = {
@@ -35,4 +41,8 @@ export const globalSettings: GlobalSettings = {
         { county: 'Kiambu', fee: 400 },
         { county: 'Machakos', fee: 500 },
     ],
+    crypto: {
+        pointsForSignup: 50,
+        pointsForReferral: 100,
+    },
 };

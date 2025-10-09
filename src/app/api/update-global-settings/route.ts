@@ -30,10 +30,16 @@ export type DeliveryFee = {
     fee: number;
 };
 
+export type CryptoSettings = {
+    pointsForSignup: number;
+    pointsForReferral: number;
+};
+
 export type GlobalSettings = {
     productSizes: ProductSize[];
     fees: FeeSettings;
     deliveryFees: DeliveryFee[];
+    crypto: CryptoSettings;
 };
 
 export const globalSettings: GlobalSettings = ${JSON.stringify(updatedSettings, null, 4)};

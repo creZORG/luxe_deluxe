@@ -53,6 +53,16 @@ export default function GlobalSettingsPage() {
     setSettings(prev => ({ ...prev, deliveryFees: prev.deliveryFees.filter((_, i) => i !== index)}));
   }
 
+  const handleCryptoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setSettings(prev => ({
+        ...prev,
+        crypto: {
+            ...prev.crypto,
+            [name]: Number(value)
+        }
+    }));
+  }
 
   const handleSaveChanges = () => {
     startTransition(async () => {
@@ -151,6 +161,24 @@ export default function GlobalSettingsPage() {
                     </div>
                 ))}
                 <Button variant="outline" onClick={addDeliveryFee}>Add Delivery Location</Button>
+            </CardContent>
+        </Card>
+
+        {/* Crypto & Points Settings */}
+        <Card>
+            <CardHeader>
+                <CardTitle>Crypto &amp; Points Settings</CardTitle>
+                <CardDescription>Configure the STRAD points reward system.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid md:grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                    <Label htmlFor="pointsForSignup">Points for New Signup</Label>
+                    <Input id="pointsForSignup" name="pointsForSignup" type="number" value={settings.crypto.pointsForSignup} onChange={handleCryptoChange} placeholder="e.g. 50" />
+                 </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="pointsForReferral">Points for Successful Referral</Label>
+                    <Input id="pointsForReferral" name="pointsForReferral" type="number" value={settings.crypto.pointsForReferral} onChange={handleCryptoChange} placeholder="e.g. 100" />
+                 </div>
             </CardContent>
         </Card>
       </div>

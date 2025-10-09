@@ -1,21 +1,53 @@
 
 'use client';
 
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { useAuth } from '@/hooks/use-auth';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth, type User } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { collection, onSnapshot, query } from 'firebase/firestore';
+import { db } from '@/lib/firebase/firebase';
+import { Loader2, Star, Users } from 'lucide-react';
+
+type CryptoStats = {
+  totalPointsInCirculation: number;
+  totalReferrals: number;
+};
 
 export default function CryptoPage() {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const [stats, setStats] = useState<CryptoStats>({ totalPointsInCirculation: 0, totalReferrals: 0 });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!loading && (!user || (user.role !== 'admin' && user.role !== 'developer'))) {
+    if (!authLoading && (!user || (user.role !== 'admin' && user.role !== 'developer'))) {
       router.push('/admin/dashboard');
     }
-  }, [user, loading, router]);
+  }, [user, authLoading, router]);
 
+  useEffect(() => {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef);
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      let totalPoints = 0;
+      let totalRefs = 0;
+      querySnapshot.forEach((doc) => {
+        const userData = doc.data() as User;
+        totalPoints += userData.stradPoints || 0;
+        totalRefs += (userData.successfulReferrals || []).length;
+      });
+      setStats({
+        totalPointsInCirculation: totalPoints,
+        totalReferrals: totalRefs,
+      });
+      setLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
 
   return (
     <div>
@@ -24,20 +56,51 @@ export default function CryptoPage() {
       </div>
       <Card>
         <CardHeader>
-            <CardTitle>STRAD Points Dashboard</CardTitle>
+            <CardTitle>STRAD Points Ecosystem</CardTitle>
             <CardDescription>
-                This section will allow you to manage the STRAD points ecosystem.
+                A high-level overview of the points system.
             </CardDescription>
         </CardHeader>
         <CardContent>
-            <p className="text-muted-foreground">Stage 1 Complete: Foundational data structures are in place.</p>
-            <p className="mt-4">Coming in Stage 2 & 3:</p>
-            <ul className="list-disc list-inside mt-2 text-muted-foreground">
-                <li>User-facing profile section to view points and referral codes.</li>
-                <li>Secure email verification (OTP) to award points for new signups.</li>
-                <li>A full developer dashboard to view system-wide stats.</li>
-                <li>Global settings to configure points awards.</li>
+          {loading ? (
+            <div className="flex justify-center items-center h-40">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Points in Circulation</CardTitle>
+                  <Star className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.totalPointsInCirculation.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground">Across all users</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Successful Referrals</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.totalReferrals.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground">Number of users who signed up via referral</p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </CardContent>
+        <CardContent>
+          <div className="mt-4 bg-muted p-4 rounded-md">
+            <h4 className="font-semibold">Coming in the next phases:</h4>
+             <ul className="list-disc list-inside mt-2 text-muted-foreground text-sm">
+                <li>System to flag suspicious activities.</li>
+                <li>Tools to reset or revert points for individual users.</li>
+                <li>A detailed audit log for all point transactions.</li>
+                <li>Leaderboards for top referrers and earners.</li>
             </ul>
+          </div>
         </CardContent>
       </Card>
     </div>
