@@ -2,8 +2,33 @@
 'use client';
 
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 
 export default function SalesTeamPage() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && user && !['admin', 'developer'].includes(user.role)) {
+      router.push('/admin/dashboard');
+    }
+  }, [user, authLoading, router]);
+
+  if (authLoading) {
+      return (
+          <div className="flex items-center justify-center h-full">
+              <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+      )
+  }
+
+  if (!user || !['admin', 'developer'].includes(user.role)) {
+      return null;
+  }
+  
   return (
     <div>
       <div className="flex items-center justify-between mb-6">

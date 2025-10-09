@@ -21,12 +21,14 @@ export default function CryptoPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && (!user || (user.role !== 'admin' && user.role !== 'developer'))) {
+    if (!authLoading && user?.role !== 'developer') {
       router.push('/admin/dashboard');
     }
   }, [user, authLoading, router]);
 
   useEffect(() => {
+    if (user?.role !== 'developer') return;
+
     const usersRef = collection(db, 'users');
     const q = query(usersRef);
 
@@ -47,7 +49,19 @@ export default function CryptoPage() {
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, []);
+  }, [user]);
+
+  if (authLoading || loading) {
+      return (
+          <div className="flex items-center justify-center h-full">
+              <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+      )
+  }
+
+  if (user?.role !== 'developer') {
+      return null;
+  }
 
   return (
     <div>
@@ -58,15 +72,10 @@ export default function CryptoPage() {
         <CardHeader>
             <CardTitle>$TRAD Points Ecosystem</CardTitle>
             <CardDescription>
-                A high-level overview of the points system.
+                A high-level overview of the points system. (Visible to Developers only)
             </CardDescription>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex justify-center items-center h-40">
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          ) : (
             <div className="grid gap-6 md:grid-cols-2">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -89,7 +98,6 @@ export default function CryptoPage() {
                 </CardContent>
               </Card>
             </div>
-          )}
         </CardContent>
         <CardContent>
           <div className="mt-4 bg-muted p-4 rounded-md">

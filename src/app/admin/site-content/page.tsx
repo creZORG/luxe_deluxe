@@ -26,12 +26,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 
 export default function SiteContentPage() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [content, setContent] = useState<SiteContent | null>(null);
   const [isPending, startTransition] = useTransition();
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    if (!authLoading && user && !['admin', 'developer'].includes(user.role)) {
+      router.push('/admin/dashboard');
+    }
+  }, [user, authLoading, router]);
 
   const fetchContent = async () => {
     setLoading(true);
@@ -41,16 +51,22 @@ export default function SiteContentPage() {
   };
   
   useEffect(() => {
-    fetchContent();
-  }, []);
+    if (user && ['admin', 'developer'].includes(user.role)) {
+      fetchContent();
+    }
+  }, [user]);
 
-  if (loading || !content) {
+  if (authLoading || loading || !content) {
     return (
         <div className="flex items-center justify-center h-full">
             <Loader2 className="h-8 w-8 animate-spin" />
             <p className="ml-4">Loading Site Content...</p>
         </div>
     );
+  }
+  
+  if (!user || !['admin', 'developer'].includes(user.role)) {
+      return null;
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, section: keyof SiteContent, key?: string) => {

@@ -37,11 +37,11 @@ function PortalLayoutContent({ children }: { children: React.ReactNode }) {
     // Admin
     { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'developer'] },
     { href: '/admin/users', icon: UserCog, label: 'Users', roles: ['admin', 'developer'] },
-    { href: '/admin/products', icon: Package, label: 'Products', roles: ['admin'] },
-    { href: '/admin/sales-team', icon: Users, label: 'Sales Team', roles: ['admin'] },
-    { href: '/admin/site-content', icon: ImageIcon, label: 'Site Content', roles: ['admin'] },
-    { href: '/admin/global-settings', icon: Settings, label: 'Global Settings', roles: ['admin'] },
-    { href: '/admin/crypto', icon: Bitcoin, label: 'Crypto', roles: ['admin', 'developer'] },
+    { href: '/admin/products', icon: Package, label: 'Products', roles: ['admin', 'developer'] },
+    { href: '/admin/sales-team', icon: Users, label: 'Sales Team', roles: ['admin', 'developer'] },
+    { href: '/admin/site-content', icon: ImageIcon, label: 'Site Content', roles: ['admin', 'developer'] },
+    { href: '/admin/global-settings', icon: Settings, label: 'Global Settings', roles: ['admin', 'developer'] },
+    { href: '/admin/crypto', icon: Bitcoin, label: 'Crypto', roles: ['developer'] },
     // Marketer
     { href: '/digital-marketer/marketing', icon: Megaphone, label: 'Marketing', roles: ['digital_marketer'] },
     { href: '/digital-marketer/influencers', icon: UserPlus, label: 'Influencers', roles: ['digital_marketer'] },
