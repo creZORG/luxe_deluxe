@@ -32,6 +32,9 @@ const productSchema = z.object({
   fragrance: z.string().min(1, 'Fragrance is required'),
   shortDescription: z.string().min(1, 'A short description is required.'),
   longDescription: z.string().min(1, 'A long description is required.'),
+  howToUse: z.string().min(1, 'Usage instructions are required.'),
+  ingredients: z.string().min(1, 'Ingredients list is required.'),
+  fragranceNotes: z.string().min(1, 'Fragrance notes are required.'),
   imageId: z.string().min(1, 'Image is required'),
 });
 
@@ -72,6 +75,9 @@ export default function ProductForm({
         fragrance: product.fragrance,
         shortDescription: product.shortDescription,
         longDescription: product.longDescription,
+        howToUse: product.howToUse,
+        ingredients: product.ingredients,
+        fragranceNotes: product.fragranceNotes,
         imageId: product.imageId,
     } : {
       name: '',
@@ -79,6 +85,9 @@ export default function ProductForm({
       fragrance: '',
       shortDescription: '',
       longDescription: '',
+      howToUse: '',
+      ingredients: '',
+      fragranceNotes: '',
       imageId: '',
     },
   });
@@ -88,14 +97,7 @@ export default function ProductForm({
 
   useEffect(() => {
     if (product) {
-      form.reset({
-        name: product.name,
-        category: product.category,
-        fragrance: product.fragrance,
-        shortDescription: product.shortDescription,
-        longDescription: product.longDescription,
-        imageId: product.imageId,
-      });
+      form.reset(product);
       setImageUrl(product.imageId);
     } else {
       form.reset({
@@ -104,6 +106,9 @@ export default function ProductForm({
         fragrance: '',
         shortDescription: '',
         longDescription: '',
+        howToUse: '',
+        ingredients: '',
+        fragranceNotes: '',
         imageId: '',
       });
       setImageUrl('');
@@ -129,116 +134,18 @@ export default function ProductForm({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-6">
-                <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Product Name</FormLabel>
-                    <FormControl>
-                        <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                    >
-                        <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            <SelectItem value="Shower Gels">Shower Gels</SelectItem>
-                            <SelectItem value="Fabric Softeners">
-                                Fabric Softeners
-                            </SelectItem>
-                            <SelectItem value="Dishwash">Dishwash</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="fragrance"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Fragrance</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a fragrance" />
-                                </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {fragranceOptions[selectedCategory].map(fragrance => (
-                                    <SelectItem key={fragrance} value={fragrance}>
-                                        {fragrance}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <FormField control={form.control} name="name" render={({ field }) => ( <FormItem> <FormLabel>Product Name</FormLabel> <FormControl> <Input {...field} /> </FormControl> <FormMessage /> </FormItem> )}/>
+                <FormField control={form.control} name="category" render={({ field }) => ( <FormItem> <FormLabel>Category</FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value} > <FormControl> <SelectTrigger> <SelectValue placeholder="Select a category" /> </SelectTrigger> </FormControl> <SelectContent> <SelectItem value="Shower Gels">Shower Gels</SelectItem> <SelectItem value="Fabric Softeners"> Fabric Softeners </SelectItem> <SelectItem value="Dishwash">Dishwash</SelectItem> </SelectContent> </Select> <FormMessage /> </FormItem> )}/>
+                 <FormField control={form.control} name="fragrance" render={({ field }) => ( <FormItem> <FormLabel>Fragrance</FormLabel> <Select onValueChange={field.onChange} value={field.value}> <FormControl> <SelectTrigger> <SelectValue placeholder="Select a fragrance" /> </SelectTrigger> </FormControl> <SelectContent> {fragranceOptions[selectedCategory].map(fragrance => ( <SelectItem key={fragrance} value={fragrance}> {fragrance} </SelectItem> ))} </SelectContent> </Select> <FormMessage /> </FormItem> )}/>
             </div>
-            <FormField
-              control={form.control}
-              name="imageId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Product Image</FormLabel>
-                  <FormControl>
-                    <ImageUploader 
-                      currentImageUrl={imageUrl} 
-                      onUploadSuccess={handleImageUpload} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <FormField control={form.control} name="imageId" render={({ field }) => ( <FormItem> <FormLabel>Product Image</FormLabel> <FormControl> <ImageUploader currentImageUrl={imageUrl} onUploadSuccess={handleImageUpload} /> </FormControl> <FormMessage /> </FormItem> )}/>
         </div>
         
-         <FormField
-          control={form.control}
-          name="shortDescription"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Short Description (One-liner)</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="e.g. An indulgent shower experience that softens skin." />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="longDescription"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Long Description</FormLabel>
-              <FormControl>
-                <Textarea {...field} rows={5} placeholder="Provide the full, detailed description that will appear on the product page."/>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+         <FormField control={form.control} name="shortDescription" render={({ field }) => ( <FormItem> <FormLabel>Short Description (One-liner)</FormLabel> <FormControl> <Input {...field} placeholder="e.g. An indulgent shower experience that softens skin." /> </FormControl> <FormMessage /> </FormItem> )}/>
+         <FormField control={form.control} name="longDescription" render={({ field }) => ( <FormItem> <FormLabel>Long Description</FormLabel> <FormControl> <Textarea {...field} rows={3} placeholder="Provide the full, detailed description."/> </FormControl> <FormMessage /> </FormItem> )}/>
+         <FormField control={form.control} name="howToUse" render={({ field }) => ( <FormItem> <FormLabel>How to Use</FormLabel> <FormControl> <Textarea {...field} rows={3} placeholder="Step-by-step usage instructions."/> </FormControl> <FormMessage /> </FormItem> )}/>
+         <FormField control={form.control} name="ingredients" render={({ field }) => ( <FormItem> <FormLabel>Key Ingredients</FormLabel> <FormControl> <Textarea {...field} rows={3} placeholder="List the key ingredients."/> </FormControl> <FormMessage /> </FormItem> )}/>
+         <FormField control={form.control} name="fragranceNotes" render={({ field }) => ( <FormItem> <FormLabel>Fragrance Notes</FormLabel> <FormControl> <Textarea {...field} rows={3} placeholder="Describe the fragrance profile."/> </FormControl> <FormMessage /> </FormItem> )}/>
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline" onClick={onCancel}>

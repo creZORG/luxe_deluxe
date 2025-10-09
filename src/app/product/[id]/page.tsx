@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition, useMemo } from 'react';
 import { notFound, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import type { Product } from '@/lib/products';
@@ -11,14 +11,12 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/hooks/use-cart';
 import { toast } from '@/hooks/use-toast';
-import { Check, Star, Loader2 } from 'lucide-react';
+import { Check, Star, Loader2, Minus, Plus, Zap, Bookmark } from 'lucide-react';
 import ProductCard from '@/components/product-card';
 import { PremiumSkeleton } from '@/components/ui/premium-skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/hooks/use-auth';
-import { getOrdersByUserId } from '@/lib/admin';
-import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Separator } from '@/components/ui/separator';
 
 type ProductPageProps = {
   params: {
@@ -52,11 +50,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
-  const [hasPurchased, setHasPurchased] = useState(false);
-  const [userRating, setUserRating] = useState(0);
-  const [isSubmittingRating, startRatingSubmission] = useTransition();
-
+  
   const fetchProductData = async () => {
     setLoading(true);
     incrementProductView(params.id);
@@ -64,17 +58,6 @@ export default function ProductPage({ params }: ProductPageProps) {
 
     if (fetchedProduct) {
       setProduct(fetchedProduct);
-      if (user) {
-        const orders = await getOrdersByUserId(user.uid);
-        const purchased = orders.some(order => order.items.some(item => item.productId === fetchedProduct.id));
-        setHasPurchased(purchased);
-
-        const existingRating = fetchedProduct.ratings?.find(r => r.userId === user.uid);
-        if (existingRating) {
-            setUserRating(existingRating.rating);
-        }
-      }
-      
       const allProducts = await getProducts();
       const related = allProducts
         .filter(p => p.category === fetchedProduct.category && p.id !== fetchedProduct.id)
@@ -88,7 +71,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   
   useEffect(() => {
     fetchProductData();
-  }, [params.id, user]);
+  }, [params.id]);
 
 
   const [selectedSize, setSelectedSize] = useState<{size: string, price: number, quantityAvailable: number} | null>(null);
@@ -135,18 +118,11 @@ export default function ProductPage({ params }: ProductPageProps) {
     router.push('/checkout');
   };
 
-  const handleRatingSubmit = (newRating: number) => {
-      if (!user || !product) return;
-      startRatingSubmission(async () => {
-          const result = await submitProductRating(product.id, user.uid, newRating);
-          if (result.success) {
-              toast({ title: 'Rating Submitted', description: 'Thank you for your feedback!'});
-              await fetchProductData(); // Re-fetch to update average rating
-          } else {
-              toast({ title: 'Error', description: result.error, variant: 'destructive' });
-          }
-      })
-  }
+  const totalPrice = useMemo(() => {
+    if (!selectedSize) return 0;
+    return selectedSize.price * quantity;
+  }, [selectedSize, quantity]);
+
   
   if (loading || !product) {
     return (
@@ -192,29 +168,39 @@ export default function ProductPage({ params }: ProductPageProps) {
           </div>
 
           {/* Product Details */}
-          <div className="flex flex-col justify-center">
-            <h1 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-              {product.name}
-            </h1>
+          <div className="flex flex-col justify-start">
+             <p className="text-sm text-muted-foreground">{product.category}</p>
+             <div className="flex justify-between items-center mt-2">
+                <h1 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+                  {product.name}
+                </h1>
+                <Button variant="ghost" size="icon">
+                    <Bookmark className="h-6 w-6" />
+                </Button>
+             </div>
+             <div className="flex items-center gap-2 mt-2">
+                <StarRating rating={product.averageRating || 0} disabled />
+                <span className="text-sm text-muted-foreground">({product.reviewCount || 0} reviews)</span>
+             </div>
             
             {product.sizes && product.sizes.length > 0 && selectedSize ? (
               <>
-                <p className="mt-6 text-2xl font-semibold text-foreground">
-                  KES {selectedSize.price.toFixed(2)}
+                <p className="mt-4 text-3xl font-semibold text-foreground">
+                  Ksh {selectedSize.price.toFixed(2)}
                 </p>
 
                 {/* Size Selector */}
-                <div className="mt-8">
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Select Size
+                <div className="mt-6">
+                  <h2 className="text-sm font-medium text-foreground">
+                    Size
                   </h2>
-                  <div className="mt-4 flex flex-wrap gap-3">
+                  <div className="mt-2 flex flex-wrap gap-3">
                     {product.sizes.map((size) => (
                       <Button
                         key={size.size}
                         variant={selectedSize?.size === size.size ? 'default' : 'outline'}
                         onClick={() => setSelectedSize(size)}
-                        className="min-w-[80px] rounded-full"
+                        className="min-w-[80px] rounded-md"
                       >
                         {size.size}
                       </Button>
@@ -222,14 +208,31 @@ export default function ProductPage({ params }: ProductPageProps) {
                   </div>
                 </div>
 
-                {/* Add to Cart */}
-                <div className="mt-8 flex gap-4">
+                {/* Quantity */}
+                <div className="mt-6">
+                    <h2 className="text-sm font-medium text-foreground">Quantity</h2>
+                    <div className="flex items-center gap-4 mt-2">
+                         <div className="flex items-center gap-2 rounded-md border p-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus className="h-4 w-4" /></Button>
+                            <span className="w-10 text-center font-medium">{quantity}</span>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setQuantity(q => q + 1)}><Plus className="h-4 w-4" /></Button>
+                        </div>
+                    </div>
+                </div>
+
+                <Separator className="my-6" />
+
+                <div className="flex justify-between items-center font-bold text-lg">
+                    <span>Total Price</span>
+                    <span>Ksh {totalPrice.toFixed(2)}</span>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="mt-6 flex flex-col gap-3">
                   <Button
                     size="lg"
                     onClick={handleAddToCart}
                     disabled={!selectedSize}
-                    className="flex-1"
-                    variant="outline"
                   >
                     Add to Bag
                   </Button>
@@ -237,14 +240,37 @@ export default function ProductPage({ params }: ProductPageProps) {
                     size="lg"
                     onClick={handleBuyNow}
                     disabled={!selectedSize}
-                    className="flex-1"
+                    variant="outline"
+                    className="flex items-center gap-2"
                   >
-                    Buy Now
+                    <Zap className="h-4 w-4"/> Buy Now
                   </Button>
                 </div>
                  <div className="mt-4 text-center text-sm text-muted-foreground">
                     <p>Promo codes can be applied at checkout.</p>
                 </div>
+
+                {/* Accordion for details */}
+                <Accordion type="single" collapsible className="w-full mt-8">
+                  <AccordionItem value="how-to-use">
+                    <AccordionTrigger>How to Use</AccordionTrigger>
+                    <AccordionContent>
+                      <p className="whitespace-pre-wrap text-muted-foreground">{product.howToUse}</p>
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="ingredients">
+                    <AccordionTrigger>Key Ingredients</AccordionTrigger>
+                    <AccordionContent>
+                       <p className="whitespace-pre-wrap text-muted-foreground">{product.ingredients}</p>
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="fragrance-notes">
+                    <AccordionTrigger>Fragrance Notes</AccordionTrigger>
+                    <AccordionContent>
+                       <p className="whitespace-pre-wrap text-muted-foreground">{product.fragranceNotes}</p>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </>
             ) : (
               <div className="mt-8">
@@ -256,65 +282,6 @@ export default function ProductPage({ params }: ProductPageProps) {
           </div>
         </div>
       </div>
-
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-            <Tabs defaultValue="description" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="description">Description</TabsTrigger>
-                    <TabsTrigger value="reviews">Ratings & Reviews ({product.reviewCount || 0})</TabsTrigger>
-                </TabsList>
-                <TabsContent value="description">
-                    <Card>
-                        <CardContent className="pt-6">
-                            <p className="text-lg text-muted-foreground whitespace-pre-wrap">
-                                {product.longDescription}
-                            </p>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-                <TabsContent value="reviews">
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Customer Reviews</CardTitle>
-                            <div className="flex items-center gap-4 mt-2">
-                                <StarRating rating={product.averageRating || 0} disabled />
-                                <p className="text-muted-foreground">
-                                    {product.averageRating?.toFixed(1) || '0.0'} out of 5
-                                    ({product.reviewCount || 0} ratings)
-                                </p>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            {user ? (
-                                hasPurchased ? (
-                                    <div className="space-y-2">
-                                        <h3 className="font-semibold">
-                                            {userRating > 0 ? 'Update your rating' : 'Rate this product'}
-                                        </h3>
-                                        <div className="flex items-center gap-2">
-                                            <StarRating rating={userRating} onRatingChange={handleRatingSubmit} disabled={isSubmittingRating} />
-                                            {isSubmittingRating && <Loader2 className="h-5 w-5 animate-spin" />}
-                                        </div>
-                                        <p className="text-xs text-muted-foreground">You can rate this product because you've purchased it.</p>
-                                    </div>
-                                ) : (
-                                    <p className="text-sm text-muted-foreground">You must purchase this product to leave a review.</p>
-                                )
-                            ) : (
-                                <p className="text-sm text-muted-foreground">
-                                    <Link href="/login" className="underline">Log in</Link> to rate products you've purchased.
-                                </p>
-                            )}
-
-                            <div className="mt-8">
-                                <h3 className="font-semibold mb-4">All Reviews</h3>
-                                <p className="text-sm text-muted-foreground">Review display is coming soon!</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
-        </div>
 
        {/* Related Products */}
        {relatedProducts.length > 0 && (

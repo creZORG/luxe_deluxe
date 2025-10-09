@@ -16,6 +16,9 @@ export type Product = {
   imageId: string; // This is now a URL from Cloudinary
   shortDescription: string;
   longDescription: string;
+  howToUse: string;
+  ingredients: string;
+  fragranceNotes: string;
   status: 'active' | 'inactive';
   viewCount: number;
   ratings: { userId: string; rating: number }[];
@@ -40,6 +43,9 @@ export async function getAllProducts(): Promise<Product[]> {
             fragrance: data.fragrance || 'N/A',
             shortDescription: data.shortDescription || '',
             longDescription: data.longDescription || '',
+            howToUse: data.howToUse || '',
+            ingredients: data.ingredients || '',
+            fragranceNotes: data.fragranceNotes || '',
             imageId: data.imageId || '',
             sizes: data.sizes || [],
             status: data.status || 'inactive',

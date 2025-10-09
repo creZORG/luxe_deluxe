@@ -33,6 +33,7 @@ export async function updateProduct(productId: string, productData: Omit<Product
         await updateDoc(productRef, productData);
         revalidatePath('/admin/products');
         revalidatePath(`/admin/products/${productId}/manage`);
+        revalidatePath(`/product/${productId}`);
         return { success: true };
     } catch (error) {
         console.error("Error updating product:", error);
