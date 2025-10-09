@@ -18,8 +18,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Literata', 'serif'],
+        body: ['Tenor Sans', 'sans-serif'],
+        headline: ['Tenor Sans', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
