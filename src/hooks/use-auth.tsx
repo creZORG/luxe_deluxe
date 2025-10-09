@@ -19,7 +19,7 @@ import {
   type User as FirebaseAuthUser,
 } from 'firebase/auth';
 import { app } from '@/lib/firebase/firebase';
-import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, Timestamp, collection, query, where, getDocs, writeBatch, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 import { LoadingModal } from '@/components/ui/loading-modal';
 import type { CartItem } from './use-cart';
@@ -44,6 +44,7 @@ export type User = {
   email: string | null;
   name: string;
   role: UserRole;
+  emailVerified: boolean;
   shippingAddress?: ShippingAddress;
   stradPoints?: number;
   signupDate?: Timestamp;
@@ -75,6 +76,10 @@ export function useAuth() {
 
 const auth = getAuth(app);
 
+// Point rewards can be configured here
+const POINTS_FOR_SIGNUP = 50;
+const POINTS_FOR_REFERRAL = 100;
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -95,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: firebaseUser.email,
             name: userData.name || 'User',
             role: userData.role || 'customer',
+            emailVerified: userData.emailVerified || false,
             shippingAddress: userData.shippingAddress,
             stradPoints: userData.stradPoints || 0,
             signupDate: userData.signupDate,
@@ -105,19 +111,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(loadedUser);
         } else {
            // This case handles a user that exists in Firebase Auth but not in Firestore.
-           // This can happen if a user was created but the Firestore doc creation failed.
-           const newUser: User = {
-            uid: firebaseUser.uid,
+           const newUser: Omit<User, 'uid'> = {
             email: firebaseUser.email,
             name: firebaseUser.displayName || 'New User',
             role: 'customer',
+            emailVerified: false,
             stradPoints: 0,
             signupDate: Timestamp.now(),
             referralCode: nanoid(8),
            };
-           // We create the Firestore document now.
            await setDoc(userDocRef, newUser);
-           setUser(newUser);
+           setUser({ uid: firebaseUser.uid, ...newUser });
         }
       } else {
         setUser(null);
@@ -144,7 +148,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         else if (role === 'sales') router.push('/sales-portal');
         else router.push('/');
       } else {
-        // Fallback if doc doesn't exist for some reason
         router.push('/');
       }
       
@@ -177,21 +180,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: name,
         email: email,
         role: 'customer',
+        emailVerified: false, // Will be set to true after OTP verification
         signupDate: Timestamp.now(),
-        stradPoints: 0,
-        referralCode: nanoid(8), // Generate a unique referral code for the new user
+        stradPoints: 0, // Points awarded after verification
+        referralCode: nanoid(8),
         successfulReferrals: [],
       };
 
+      // Handle referral logic
       if (referralCode) {
-        newUser.referredBy = referralCode;
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("referralCode", "==", referralCode));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            const referringUserDoc = querySnapshot.docs[0];
+            newUser.referredBy = referringUserDoc.id; // Store referrer's UID
+            
+            // Here, we award points to both users using a batch write for atomicity
+            const batch = writeBatch(db);
+
+            // Award points to new user for signing up
+            const newUserRef = doc(db, 'users', firebaseUser.uid);
+            batch.set(newUserRef, newUser);
+            batch.update(newUserRef, { stradPoints: increment(POINTS_FOR_SIGNUP) });
+            
+            // Award points to referring user
+            const referringUserRef = doc(db, 'users', referringUserDoc.id);
+            batch.update(referringUserRef, { 
+                stradPoints: increment(POINTS_FOR_REFERRAL),
+                successfulReferrals: [...(referringUserDoc.data().successfulReferrals || []), firebaseUser.uid]
+            });
+            
+            await batch.commit();
+
+        } else {
+             // Invalid referral code, just create the user
+            await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
+        }
+      } else {
+         // No referral code, just create the user and award signup points
+         const newUserRef = doc(db, 'users', firebaseUser.uid);
+         await setDoc(newUserRef, newUser);
+         await updateDoc(newUserRef, { stradPoints: increment(POINTS_FOR_SIGNUP) });
       }
       
-      await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
-      
+      // TODO: In the next stage, trigger OTP flow here instead of returning true.
+      // For now, we'll auto-verify and redirect.
+      const userRef = doc(db, 'users', firebaseUser.uid);
+      await updateDoc(userRef, { emailVerified: true });
+      router.push('/');
+
       return true;
     } catch (err: any) {
-      setError(err.message || 'An unknown error occurred.');
+       if (err.code === 'auth/email-already-in-use') {
+        setError('This email address is already in use. Please log in or use a different email.');
+      } else {
+        setError(err.message || 'An unknown error occurred.');
+      }
       return false;
     } finally {
       setLoading(false);

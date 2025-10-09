@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,18 +14,27 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal } from 'lucide-react';
+import { Terminal, Loader2 } from 'lucide-react';
 import { LunaLogo } from '@/components/icons';
 import Link from 'next/link';
 
-export default function SignupPage() {
+function SignupForm() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const { signup, error, user, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      setReferralCode(refCode);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (user) {
@@ -34,15 +44,16 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await signup(name, email, password);
+    const success = await signup(name, email, password, referralCode);
     if (success) {
-        router.push('/');
+        // Don't redirect immediately. The auth hook will handle showing an OTP modal or similar.
+        // For now, we can just show a success message.
+        // The redirect will happen after successful OTP verification.
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
-      <div className="w-full max-w-md">
+    <div className="w-full max-w-md">
         <div className="flex justify-center mb-6">
             <Link href="/">
                 <LunaLogo />
@@ -100,8 +111,24 @@ export default function SignupPage() {
                   disabled={loading}
                 />
               </div>
+               <div className="space-y-2">
+                <Label htmlFor="referralCode">Referral Code (Optional)</Label>
+                <Input
+                  id="referralCode"
+                  type="text"
+                  placeholder="e.g. FRIEND123"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value)}
+                  disabled={loading || !!searchParams.get('ref')}
+                />
+              </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Creating Account...' : 'Create Account'}
+                {loading ? (
+                    <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating Account...
+                    </>
+                 ) : 'Create Account'}
               </Button>
             </form>
           </CardContent>
@@ -118,6 +145,17 @@ export default function SignupPage() {
           </CardFooter>
         </Card>
       </div>
+  )
+}
+
+
+export default function SignupPage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+        <Suspense fallback={<div className="w-full max-w-md"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+            <SignupForm />
+        </Suspense>
     </div>
   );
 }
+

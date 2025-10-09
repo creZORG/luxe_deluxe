@@ -15,7 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from '@/hooks/use-toast';
 import { updateUserShippingAddress } from '@/app/admin/users/actions';
-import { Loader2, Star } from 'lucide-react';
+import { Loader2, Star, Copy } from 'lucide-react';
 import type { Order, OrderStatus } from '@/lib/admin';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
@@ -90,35 +90,29 @@ function ShippingAddressForm() {
     };
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Shipping Information</CardTitle>
-                <CardDescription>Manage your default shipping address for faster checkout.</CardDescription>
-            </CardHeader>
-            <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)}>
-                    <CardContent className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <FormField control={form.control} name="firstName" render={({ field }) => ( <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                           <FormField control={form.control} name="lastName" render={({ field }) => ( <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                        </div>
-                         <FormField control={form.control} name="phone" render={({ field }) => ( <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="0712 345 678" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                         <FormField control={form.control} name="address" render={({ field }) => ( <FormItem><FormLabel>Address</FormLabel><FormControl><Input placeholder="e.g. Street, Estate, Building, Apt No." {...field} /></FormControl><FormMessage /></FormItem> )} />
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <FormField control={form.control} name="city" render={({ field }) => ( <FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                           <FormField control={form.control} name="county" render={({ field }) => ( <FormItem><FormLabel>County</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                        </div>
-                         <FormField control={form.control} name="deliveryDescription" render={({ field }) => ( <FormItem><FormLabel>Delivery Instructions (Optional)</FormLabel><FormControl><Textarea placeholder="e.g., Leave at the reception, call upon arrival." {...field} /></FormControl><FormMessage /></FormItem> )} />
-                    </CardContent>
-                    <CardFooter>
-                        <Button type="submit" disabled={isPending}>
-                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Save Address
-                        </Button>
-                    </CardFooter>
-                </form>
-            </Form>
-        </Card>
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+                <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField control={form.control} name="firstName" render={({ field }) => ( <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={form.control} name="lastName" render={({ field }) => ( <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    </div>
+                        <FormField control={form.control} name="phone" render={({ field }) => ( <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="0712 345 678" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={form.control} name="address" render={({ field }) => ( <FormItem><FormLabel>Address</FormLabel><FormControl><Input placeholder="e.g. Street, Estate, Building, Apt No." {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField control={form.control} name="city" render={({ field }) => ( <FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={form.control} name="county" render={({ field }) => ( <FormItem><FormLabel>County</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    </div>
+                        <FormField control={form.control} name="deliveryDescription" render={({ field }) => ( <FormItem><FormLabel>Delivery Instructions (Optional)</FormLabel><FormControl><Textarea placeholder="e.g., Leave at the reception, call upon arrival." {...field} /></FormControl><FormMessage /></FormItem> )} />
+                </CardContent>
+                <CardFooter>
+                    <Button type="submit" disabled={isPending}>
+                        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Save Address
+                    </Button>
+                </CardFooter>
+            </form>
+        </Form>
     )
 }
 
@@ -163,64 +157,51 @@ function OrderHistory() {
     }, [orders, activeTab]);
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>My Orders</CardTitle>
-                <CardDescription>View your complete order history.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                 <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
-                    <TabsList className="mb-4 grid grid-cols-3 md:grid-cols-5 h-auto">
-                        <TabsTrigger value="All">All</TabsTrigger>
-                        <TabsTrigger value="Pending">Pending</TabsTrigger>
-                        <TabsTrigger value="Shipped">Shipped</TabsTrigger>
-                        <TabsTrigger value="Delivered">Delivered</TabsTrigger>
-                        <TabsTrigger value="Cancelled">Cancelled</TabsTrigger>
-                    </TabsList>
-                     <div className="rounded-md border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Order ID</TableHead>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Total</TableHead>
-                                    <TableHead>Status</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {loading ? (
-                                    <TableRow><TableCell colSpan={4} className="h-24 text-center">Loading orders...</TableCell></TableRow>
-                                ) : filteredOrders.length > 0 ? (
-                                    filteredOrders.map(order => {
-                                        const orderDate = toJavaScriptDate(order.orderDate);
-                                        return (
-                                        <TableRow key={order.id}>
-                                            <TableCell className="font-medium">{order.reference}</TableCell>
-                                            <TableCell>{orderDate ? format(orderDate, 'PPp') : 'N/A'}</TableCell>
-                                            <TableCell>KES {order.subtotal.toFixed(2)}</TableCell>
-                                            <TableCell><Badge>{order.status}</Badge></TableCell>
-                                        </TableRow>
-                                    )})
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center">No orders found for this status.</TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                     </div>
-                </Tabs>
-            </CardContent>
-        </Card>
+        <div className="rounded-md border">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Status</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {loading ? (
+                        <TableRow><TableCell colSpan={4} className="h-24 text-center">Loading orders...</TableCell></TableRow>
+                    ) : filteredOrders.length > 0 ? (
+                        filteredOrders.map(order => {
+                            const orderDate = toJavaScriptDate(order.orderDate);
+                            return (
+                            <TableRow key={order.id}>
+                                <TableCell className="font-medium">{order.reference}</TableCell>
+                                <TableCell>{orderDate ? format(orderDate, 'PPp') : 'N/A'}</TableCell>
+                                <TableCell>KES {order.subtotal.toFixed(2)}</TableCell>
+                                <TableCell><Badge>{order.status}</Badge></TableCell>
+                            </TableRow>
+                        )})
+                    ) : (
+                        <TableRow>
+                            <TableCell colSpan={4} className="h-24 text-center">No orders found for this status.</TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
+            </div>
     );
 }
 
 
 export default function ProfilePage() {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const router = useRouter();
+  const [baseUrl, setBaseUrl] = useState('');
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+        setBaseUrl(window.location.origin);
+    }
     if (!loading && !user) {
       router.push('/login');
     }
@@ -230,13 +211,20 @@ export default function ProfilePage() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: 'Copied to clipboard!' });
+  };
+
   if (loading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p>Loading...</p>
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
+
+  const referralLink = `${baseUrl}/signup?ref=${user.referralCode}`;
 
   return (
     <div className="container mx-auto max-w-4xl py-12 space-y-8">
@@ -251,6 +239,7 @@ export default function ProfilePage() {
                     <div className="flex-1 text-center sm:text-left">
                         <h1 className="text-3xl font-bold">{user.name}</h1>
                         <p className="text-lg text-muted-foreground">{user.email}</p>
+                        <Button variant="link" onClick={logout} className="px-0 h-auto text-muted-foreground">Log out</Button>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2">
@@ -262,11 +251,60 @@ export default function ProfilePage() {
                 </div>
             </CardContent>
         </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Refer & Earn</CardTitle>
+                <CardDescription>Share your code and earn STRAD Points for every friend who signs up.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="space-y-2">
+                    <Label>Your Referral Code</Label>
+                    <div className="flex gap-2">
+                        <Input value={user.referralCode} readOnly className="font-mono"/>
+                        <Button variant="outline" size="icon" onClick={() => copyToClipboard(user.referralCode)}>
+                            <Copy className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+                 <div className="space-y-2">
+                    <Label>Your Referral Link</Label>
+                    <div className="flex gap-2">
+                        <Input value={referralLink} readOnly className="text-sm"/>
+                         <Button variant="outline" size="icon" onClick={() => copyToClipboard(referralLink)}>
+                            <Copy className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
       
-      <ShippingAddressForm />
-
-      <OrderHistory />
-
+      <Tabs defaultValue="orders">
+        <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="orders">Order History</TabsTrigger>
+            <TabsTrigger value="shipping">Shipping Info</TabsTrigger>
+        </TabsList>
+        <TabsContent value="orders">
+            <Card>
+                <CardHeader>
+                    <CardTitle>My Orders</CardTitle>
+                    <CardDescription>View your complete order history.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <OrderHistory />
+                </CardContent>
+            </Card>
+        </TabsContent>
+        <TabsContent value="shipping">
+             <Card>
+                <CardHeader>
+                    <CardTitle>Shipping Information</CardTitle>
+                    <CardDescription>Manage your default shipping address for faster checkout.</CardDescription>
+                </CardHeader>
+                <ShippingAddressForm />
+            </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
