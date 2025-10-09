@@ -1,17 +1,16 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
-import { ArrowRight, Gift, Users, ShoppingBag } from 'lucide-react';
+import { ArrowRight, Gift, Users, ShoppingBag, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
 const steps = [
   {
     icon: Gift,
     title: 'Sign Up & Earn',
-    description: 'Create an account and instantly receive $TRAD Points as a welcome gift.',
+    description: 'Create an account and instantly receive $TRAD Points as a welcome gift after you verify your email.',
   },
   {
     icon: Users,
@@ -27,6 +26,7 @@ const steps = [
 
 export default function TradCampaignPage() {
     const { user } = useAuth();
+    const successfulReferrals = user?.successfulReferrals?.length || 0;
 
     return (
         <div className="bg-background text-foreground">
@@ -82,6 +82,29 @@ export default function TradCampaignPage() {
                         ))}
                     </div>
                 </div>
+
+                {/* Referral Stats Section */}
+                {user && (
+                    <div className="mt-24 text-center">
+                        <h2 className="font-headline text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                            Your Referral Stats
+                        </h2>
+                         <div className="mt-8 flex justify-center">
+                            <Card className="w-full max-w-sm">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Verified Referrals</CardTitle>
+                                    <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{successfulReferrals}</div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Users who signed up and verified their email with your code.
+                                    </p>
+                                </CardContent>
+                            </Card>
+                         </div>
+                    </div>
+                )}
             </div>
         </div>
     );

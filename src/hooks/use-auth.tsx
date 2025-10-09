@@ -194,39 +194,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!querySnapshot.empty) {
             const referringUserDoc = querySnapshot.docs[0];
             newUser.referredBy = referringUserDoc.id; // Store referrer's UID
-            
-            // Here, we award points to both users using a batch write for atomicity
-            const batch = writeBatch(db);
-
-            // Award points to new user for signing up
-            const newUserRef = doc(db, 'users', firebaseUser.uid);
-            batch.set(newUserRef, newUser);
-            batch.update(newUserRef, { stradPoints: increment(globalSettings.crypto.pointsForSignup) });
-            
-            // Award points to referring user
-            const referringUserRef = doc(db, 'users', referringUserDoc.id);
-            batch.update(referringUserRef, { 
-                stradPoints: increment(globalSettings.crypto.pointsForReferral),
-                successfulReferrals: [...(referringUserDoc.data().successfulReferrals || []), firebaseUser.uid]
-            });
-            
-            await batch.commit();
-
-        } else {
-             // Invalid referral code, just create the user
-            await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
         }
-      } else {
-         // No referral code, just create the user and award signup points
-         const newUserRef = doc(db, 'users', firebaseUser.uid);
-         await setDoc(newUserRef, newUser);
-         await updateDoc(newUserRef, { stradPoints: increment(globalSettings.crypto.pointsForSignup) });
       }
       
-      // TODO: In the next stage, trigger OTP flow here instead of returning true.
+      await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
+      
       // For now, we'll auto-verify and redirect.
+      // In a real app, you would send an OTP and wait for verification.
+      // The logic to award points would be in the verification function.
+      const batch = writeBatch(db);
       const userRef = doc(db, 'users', firebaseUser.uid);
-      await updateDoc(userRef, { emailVerified: true });
+      
+      // Mark as verified and award signup points
+      batch.update(userRef, { 
+        emailVerified: true,
+        stradPoints: increment(globalSettings.crypto.pointsForSignup) 
+      });
+
+      // If referred, award points to the referrer
+      if (newUser.referredBy) {
+        const referrerRef = doc(db, 'users', newUser.referredBy);
+        batch.update(referrerRef, {
+            stradPoints: increment(globalSettings.crypto.pointsForReferral),
+            successfulReferrals: [...((await getDoc(referrerRef)).data()?.successfulReferrals || []), firebaseUser.uid]
+        });
+      }
+      
+      await batch.commit();
+
       router.push('/');
 
       return true;

@@ -194,6 +194,55 @@ function OrderHistory() {
     );
 }
 
+function EmailVerificationCard() {
+    // This is a placeholder for the OTP functionality.
+    // In a real app, this would involve server-side logic to send and verify the OTP.
+    const [otp, setOtp] = useState('');
+    const [isPending, startTransition] = useTransition();
+
+    const handleSendOtp = () => {
+        startTransition(() => {
+            // Simulate sending OTP
+            toast({ title: 'OTP Sent', description: 'A verification code has been sent to your email (simulation).'});
+        });
+    }
+
+    const handleVerifyOtp = () => {
+         startTransition(() => {
+            // Simulate verifying OTP
+            if (otp === '123456') { // Dummy OTP
+                toast({ title: 'Email Verified!', description: 'Your account is now verified.'});
+                // Here you would update the user's `emailVerified` status in Firestore
+            } else {
+                toast({ title: 'Invalid OTP', description: 'The code you entered is incorrect.', variant: 'destructive'});
+            }
+        });
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Verify Your Email</CardTitle>
+                <CardDescription>Enter the 6-digit code sent to your email to verify your account and start earning points.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex gap-2">
+                    <Input value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="123456" maxLength={6} />
+                    <Button onClick={handleVerifyOtp} disabled={isPending || otp.length !== 6}>
+                        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Verify
+                    </Button>
+                </div>
+            </CardContent>
+            <CardFooter>
+                 <Button variant="link" className="p-0 h-auto" onClick={handleSendOtp} disabled={isPending}>
+                    Didn't receive a code? Resend.
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+}
+
 
 export default function ProfilePage() {
   const { user, loading, logout } = useAuth();
@@ -258,11 +307,13 @@ export default function ProfilePage() {
                 </div>
             </CardContent>
         </Card>
+        
+        {!user.emailVerified && <EmailVerificationCard />}
 
         <Card>
             <CardHeader>
                 <CardTitle>Refer & Earn</CardTitle>
-                <CardDescription>Share your code and earn $TRAD Points for every friend who signs up.</CardDescription>
+                <CardDescription>Share your code and earn $TRAD Points for every friend who signs up and verifies their email.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="space-y-2">
