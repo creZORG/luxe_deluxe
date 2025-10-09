@@ -45,7 +45,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     { href: '/admin/products', icon: Package, label: 'Products', roles: ['admin'] },
     { href: '/admin/influencers', icon: Percent, label: 'Influencers', roles: ['admin'] },
     { href: '/admin/sales-team', icon: Users, label: 'Sales Team', roles: ['admin'] },
-    { href: '/admin/site-content', icon: ImageIcon, label: 'Site Content', roles: ['admin'] },
+    { href: '/admin/site-content', icon: ImageIcon, label: 'Site Content', roles: ['admin', 'digital_marketer'] },
     { href: '/admin/global-settings', icon: Settings, label: 'Global Settings', roles: ['admin'] },
   ];
 
