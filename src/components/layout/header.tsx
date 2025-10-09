@@ -38,7 +38,6 @@ import { ModeToggle } from '../mode-toggle';
 
 const navLinks = [
   { href: '/shop', label: 'Shop' },
-  { href: '/#about', label: 'Story' },
   { href: '/#blog', label: 'Journal' },
   { href: '/gallery', label: 'Gallery' },
 ];
@@ -76,8 +75,8 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full">
-      <div className="bg-[#4a2e2a]">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="bg-background">
         <div className="container flex h-16 max-w-7xl items-center">
           <div className="flex items-center">
               <Link
@@ -93,7 +92,7 @@ export default function Header() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-white hover:text-white hover:bg-white/10"
+                className="md:hidden text-foreground hover:bg-accent"
               >
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle Menu</span>
@@ -135,7 +134,7 @@ export default function Header() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="font-medium text-white/80 transition-colors hover:text-white"
+                    className="font-medium text-foreground/80 transition-colors hover:text-foreground"
                   >
                     {link.label}
                   </Link>
@@ -150,7 +149,7 @@ export default function Header() {
                 ) : user ? (
                    <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="relative h-8 w-8 rounded-full text-white hover:text-white hover:bg-white/10">
+                        <Button variant="ghost" className="relative h-8 w-8 rounded-full text-foreground hover:bg-accent">
                           <Avatar className="h-8 w-8">
                             <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                           </Avatar>
@@ -189,14 +188,14 @@ export default function Header() {
                     </DropdownMenu>
                 ) : (
                   <Link href="/login">
-                    <Button variant="ghost" size="sm" className="text-white hover:text-white hover:bg-white/10">
+                    <Button variant="ghost" size="sm" className="text-foreground hover:bg-accent">
                       Login
                     </Button>
                   </Link>
                 )}
 
                 <div className="relative">
-                  <Button variant="ghost" size="icon" onClick={() => setCartOpen(true)} className="text-white hover:text-white hover:bg-white/10">
+                  <Button variant="ghost" size="icon" onClick={() => setCartOpen(true)} className="text-foreground hover:bg-accent">
                       <ShoppingCart className="h-5 w-5" />
                       <span className="sr-only">Open cart</span>
                   </Button>
