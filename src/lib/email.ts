@@ -1,4 +1,3 @@
-
 'use server';
 
 import fetch from 'node-fetch';
@@ -248,5 +247,35 @@ export async function sendVerificationCodeEmail({ to, name, code }: Verification
         `,
     };
 
+    return sendEmail(emailPayload);
+}
+
+type NewCampaignEmailProps = {
+    to: string;
+    name: string;
+    promoCode: string;
+    commissionRate: number;
+};
+
+export async function sendNewCampaignEmail({ to, name, promoCode, commissionRate }: NewCampaignEmailProps) {
+     const emailPayload = {
+        from: { address: FROM_EMAIL, name: FROM_NAME },
+        to: [{ email_address: { address: to, name: name } }],
+        subject: `You've been invited to a new Luna campaign!`,
+        htmlbody: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
+                <h1 style="color: #333;">New Campaign Invitation</h1>
+                <p>Hi ${name},</p>
+                <p>We'd love for you to be a part of our new campaign! We've created a unique promo code for you to share with your audience.</p>
+                <div style="text-align: center; margin: 30px 0; background-color: #f7f7f7; padding: 20px; border-radius: 5px;">
+                    <p style="font-size: 1.1em; margin-bottom: 10px;">Your Promo Code: <strong style="font-size: 1.5em; color: #007bff;">${promoCode}</strong></p>
+                    <p style="font-size: 1.1em; margin: 0;">Commission Rate: <strong style="font-size: 1.5em;">${commissionRate}%</strong> on every sale</p>
+                </div>
+                <p>Please log in to your Influencer Portal to accept this campaign and start earning.</p>
+                <a href="https://your-store-url.com/influencer-portal" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px;">Go to Portal</a>
+                <p style="margin-top: 30px; font-size: 0.9em; color: #777;">Best,<br/>The Luna Team</p>
+            </div>
+        `,
+    };
     return sendEmail(emailPayload);
 }

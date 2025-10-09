@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Inter } from 'next/font/google';
@@ -6,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
-  LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon, Settings, Users, Percent, UserCog, Megaphone, Bitcoin
+  LayoutDashboard, LogOut, Package, ShoppingCart, Image as ImageIcon, Settings, Users, Percent, UserCog, Megaphone, Bitcoin, UserPlus
 } from 'lucide-react';
 import { useAuth, AuthProvider } from '@/hooks/use-auth';
 import { LoadingModal } from '@/components/ui/loading-modal';
@@ -41,10 +40,10 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'fulfillment', 'digital_marketer', 'developer'] },
     { href: '/admin/orders', icon: ShoppingCart, label: 'Orders', roles: ['admin', 'fulfillment'] },
     { href: '/admin/marketing', icon: Megaphone, label: 'Marketing', roles: ['admin', 'digital_marketer'] },
+    { href: '/admin/influencers', icon: UserPlus, label: 'Influencers', roles: ['admin', 'digital_marketer'] },
     { href: '/admin/crypto', icon: Bitcoin, label: 'Crypto', roles: ['admin', 'developer'] },
     { href: '/admin/users', icon: UserCog, label: 'Users', roles: ['admin', 'developer'] },
     { href: '/admin/products', icon: Package, label: 'Products', roles: ['admin'] },
-    { href: '/admin/influencers', icon: Percent, label: 'Influencers', roles: ['admin'] },
     { href: '/admin/sales-team', icon: Users, label: 'Sales Team', roles: ['admin'] },
     { href: '/admin/site-content', icon: ImageIcon, label: 'Site Content', roles: ['admin', 'digital_marketer'] },
     { href: '/admin/global-settings', icon: Settings, label: 'Global Settings', roles: ['admin'] },
