@@ -3,7 +3,7 @@
 
 import { sendOrderConfirmationEmail, sendNewOrderAdminNotification, sendOrderShippedEmail, sendVerificationCodeEmail } from "@/lib/email";
 import type { CartItem } from "@/hooks/use-cart";
-import { collection, addDoc, Timestamp, doc, updateDoc, getDoc, increment, writeBatch, query, where, getDocs, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, Timestamp, doc, updateDoc, getDoc, increment, writeBatch, query, where, getDocs, deleteDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 import type { User, ShippingAddress } from "@/hooks/use-auth";
 import type { Order } from "@/lib/admin";
@@ -117,6 +117,7 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
         }
         
         revalidatePath('/admin/orders');
+        revalidatePath('/fulfillment/orders');
         return { success: true };
     } catch (error) {
         console.error('Error updating order status:', error);
@@ -222,4 +223,3 @@ export async function verifyUserEmail(userId: string, email: string, otp: string
         return { success: false, error: 'An unexpected error occurred during verification.' };
     }
 }
-
